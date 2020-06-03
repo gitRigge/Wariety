@@ -20,7 +20,7 @@ import wariety_updater
 
 __author__ = "Roland Rickborn (gitRigge)"
 __copyright__ = "Copyright (c) 2020 gitRigge"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __desc__ = "[Description]"
 __status__ = "Development"
 __url__ = "https://github.com/gitRigge/wariety"
