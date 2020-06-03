@@ -1,0 +1,103 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2020-05-27 22:32+0200\n"
+"PO-Revision-Date: 2020-05-28 18:43+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.3.1\n"
+"Last-Translator: Roland Rickborn\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de\n"
+
+#: wariety\wariety.py:73 wariety\wariety.py:82
+msgid "Next"
+msgstr "Nächstes"
+
+#: wariety\wariety.py:74 wariety\wariety.py:83
+msgid "Previous"
+msgstr "Vorheriges"
+
+#: wariety\wariety.py:76
+msgid "Image Name"
+msgstr "Bildname"
+
+#: wariety\wariety.py:77
+msgid "Image Source"
+msgstr "Bildquelle"
+
+#: wariety\wariety.py:78
+msgid "Add to Favorites"
+msgstr "Zu Favoriten hinzufügen"
+
+#: wariety\wariety.py:79
+msgid "Delete Image"
+msgstr "Bild löschen"
+
+#: wariety\wariety.py:85
+msgid "Keep Current"
+msgstr "Aktuelles behalten"
+
+#: wariety\wariety.py:87
+msgid "Show Source"
+msgstr "Zeige Quelle"
+
+#: wariety\wariety.py:88
+msgid "Google Image Search"
+msgstr "Google Bildersuche"
+
+#: wariety\wariety.py:96
+msgid "No Vote"
+msgstr "Keine Bewertung"
+
+#: wariety\wariety.py:97
+msgid "Vote"
+msgstr "Bewerten"
+
+#: wariety\wariety.py:98
+msgid "Image"
+msgstr "Bild"
+
+#: wariety\wariety.py:100 wariety\wariety.py:171
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: wariety\wariety.py:101
+msgid "About"
+msgstr "Über"
+
+#: wariety\wariety.py:102
+msgid "Quit"
+msgstr "Beenden"
+
+#: wariety\wariety.py:114
+msgid "Double Click"
+msgstr "Doppelklick"
+
+#: wariety\wariety.py:118
+msgid "Single Click"
+msgstr "Einfacher Klick"
+
+#: wariety\wariety.py:171
+msgid "{} {}"
+msgstr "{} {}"
+
+#: wariety\wariety.py:174
+msgid "About {}"
+msgstr "Über {}"
+
+#: wariety\wariety.py:264
+msgid ""
+"Wariety is a wallpaper manager for Windows systems. It is a clone of the "
+"famous Linux application Variety and covers its main functionality."
+msgstr ""
+"Wariety ist ein Hintergrundbild-Manager für Windows-Systeme. Er ist ein "
+"Klon der berühmten Linux-Anwendung Variety und deckt deren "
+"Hauptfunktionalität ab."

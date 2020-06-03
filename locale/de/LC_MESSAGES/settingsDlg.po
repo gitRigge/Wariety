@@ -1,0 +1,186 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2020-05-27 22:20+0200\n"
+"PO-Revision-Date: 2020-05-28 18:44+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.3.1\n"
+"Last-Translator: Roland Rickborn\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: de\n"
+
+#: wariety\settingsDlg.py:47
+msgid "Start Wariety automatically with Windows startup\n"
+msgstr "Wariety automatisch beim Start von Windows starten\n"
+
+#: wariety\settingsDlg.py:48
+msgid "Change wallpaper every"
+msgstr "Hintergrundbild wechseln alle"
+
+#: wariety\settingsDlg.py:49 wariety\settingsDlg.py:52
+#: wariety\settingsDlg.py:55
+msgid "128"
+msgstr "128"
+
+#: wariety\settingsDlg.py:49 wariety\settingsDlg.py:52
+#: wariety\settingsDlg.py:55
+msgid "16"
+msgstr "16"
+
+#: wariety\settingsDlg.py:49 wariety\settingsDlg.py:52
+#: wariety\settingsDlg.py:55
+msgid "2"
+msgstr "2"
+
+#: wariety\settingsDlg.py:49 wariety\settingsDlg.py:52
+#: wariety\settingsDlg.py:55
+msgid "256"
+msgstr "256"
+
+#: wariety\settingsDlg.py:49 wariety\settingsDlg.py:52
+#: wariety\settingsDlg.py:55
+msgid "32"
+msgstr "32"
+
+#: wariety\settingsDlg.py:49 wariety\settingsDlg.py:52
+#: wariety\settingsDlg.py:55
+msgid "4"
+msgstr "4"
+
+#: wariety\settingsDlg.py:49 wariety\settingsDlg.py:52
+#: wariety\settingsDlg.py:55
+msgid "64"
+msgstr "64"
+
+#: wariety\settingsDlg.py:49 wariety\settingsDlg.py:52
+#: wariety\settingsDlg.py:55
+msgid "8"
+msgstr "8"
+
+#: wariety\settingsDlg.py:50
+msgid "Change wallpaper on Windows startup"
+msgstr "Hintergrundbild beim Start von Windows ändern"
+
+#: wariety\settingsDlg.py:51
+msgid "Download a new wallpaper image every"
+msgstr "Download eines neuen Hintergrundbildes alle"
+
+#: wariety\settingsDlg.py:54
+msgid "Limit download folder size to"
+msgstr "Größe des Download-Ordners begrenzen auf"
+
+#: wariety\settingsDlg.py:55
+msgid "512"
+msgstr "512"
+
+#: wariety\settingsDlg.py:56
+msgid "Animate system tray icon on every wallpaper change"
+msgstr "Taskleistensymbol bei jeder Änderung des Hintergrundbildes animieren"
+
+#: wariety\settingsDlg.py:57
+msgid "Show balloon message on every wallpaper change"
+msgstr "Sprechblase bei jeder Änderung des Hintergrundbildes anzeigen"
+
+#: wariety\settingsDlg.py:63
+msgid "Fetch wallpapers from manual download folder"
+msgstr "Hintergrundbilder aus dem manuellen Download-Ordner laden"
+
+#: wariety\settingsDlg.py:68
+msgid "https://github.com/gitRigge/wariety"
+msgstr "https://github.com/gitRigge/wariety"
+
+#: wariety\settingsDlg.py:69
+msgid "https://github.com/gitRigge/wariety/issues"
+msgstr "https://github.com/gitRigge/wariety/issues"
+
+#: wariety\settingsDlg.py:70
+msgid "https://github.com/gitRigge/wariety/pulls"
+msgstr "https://github.com/gitRigge/wariety/pulls"
+
+#: wariety\settingsDlg.py:72
+msgid "Close"
+msgstr "Schließen"
+
+#: wariety\settingsDlg.py:157
+msgid "Activated"
+msgstr "Aktiviert"
+
+#: wariety\settingsDlg.py:158
+msgid "Type"
+msgstr "Typ"
+
+#: wariety\settingsDlg.py:159 wariety\settingsDlg.py:291
+msgid "Source"
+msgstr "Quelle"
+
+#: wariety\settingsDlg.py:191
+msgid "Wariety Settings"
+msgstr "Wariety Einstellungen"
+
+#: wariety\settingsDlg.py:201
+msgid "Hit button to save and close"
+msgstr "Klicken um zu Speichern und Schließen"
+
+#: wariety\settingsDlg.py:228 wariety\settingsDlg.py:290
+msgid "General"
+msgstr "Allgemein"
+
+#: wariety\settingsDlg.py:236
+msgid "Minutes"
+msgstr "Minuten"
+
+#: wariety\settingsDlg.py:243
+msgid "Minutes into the folder"
+msgstr "Minuten in den Ordner"
+
+#: wariety\settingsDlg.py:249
+msgid "MB (older files are deleted if necessary)"
+msgstr "MB (ältere Dateien werden bei Bedarf gelöscht)"
+
+#: wariety\settingsDlg.py:256
+msgid "Image Sources"
+msgstr "Bildquelle"
+
+#: wariety\settingsDlg.py:261
+msgid "VRTY.ORG is currently not publically available"
+msgstr "VRTY.ORG ist derzeit nicht öffentlich verfügbar"
+
+#: wariety\settingsDlg.py:264
+msgid "Fetch folder"
+msgstr "Download-Ordner"
+
+#: wariety\settingsDlg.py:272
+msgid "Recent changes"
+msgstr "Letzte Änderungen"
+
+#: wariety\settingsDlg.py:276
+msgid "Visit project page"
+msgstr "Projektseite besuchen"
+
+#: wariety\settingsDlg.py:280
+msgid "Bug report / issue tracker"
+msgstr "Fehlerbericht / Issue-Tracker"
+
+#: wariety\settingsDlg.py:284
+msgid "Change requests"
+msgstr "Änderungswünsche"
+
+#: wariety\settingsDlg.py:292
+msgid "Synchronize / Social"
+msgstr "Synchronisieren / Social"
+
+#: wariety\settingsDlg.py:293
+msgid "Manual Download"
+msgstr "Manueller Download"
+
+#: wariety\settingsDlg.py:294
+msgid "Info"
+msgstr "Information"

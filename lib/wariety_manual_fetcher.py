@@ -4,6 +4,7 @@
 import datetime
 import logging
 import sys
+import os
 import PIL.Image
 import time
 import warnings
@@ -27,29 +28,27 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
         self.config = config
         self.database = wariety_database.WarietyDatabase(self.config)
 
-    def on_modified(self, event):
+    def on_created(self, event):
         """
-        This method checks if the modified file is an image file. If so,
-        it checks whether the image exists in the database. If it does,
-        it updates the database. Otherwise, it adds the image.
+        This method checks if the created file is an image file. If so,
+        it checks whether the image exists in the database. If it does not,
+        it adds the created image. Otherwise, it does nothing.
         :param event:
         :return:
         """
-        logger.debug('on_modified()')
+        logger.debug('on_created()')
         full_image_path = event.src_path
         if self.is_image_file(full_image_path) is True:
-            if self.database.exists_image_by_url_or_path(full_image_path):
-                logger.debug('on_modified() - update existing image')
-                # TODO
-                pass
-            else:
-                logger.debug('on_modified() - add new image')
+            if self.database.exists_image_by_url_or_path(full_image_path) == 0:
+                logger.debug('on_created() - add new image')
                 my_new_wallpaper = self.database.get_empty_image()
                 self.fill_image_metadata(full_image_path, my_new_wallpaper)
                 self.database.add_image_to_database(my_new_wallpaper)
+            else:
+                logger.debug('on_created() - image already exists. Do nothing')
         else:
             # Modified file is no image file - do nothing.
-            logger.debug('on_modified() - no image file. Do nothing.')
+            logger.debug('on_created() - no image file. Do nothing.')
 
     def on_deleted(self, event):
         """
@@ -121,9 +120,21 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
         return is_image
 
     def fill_image_metadata(self, image_file_path, wallpaper):
+        """
+        Tries to read IPTC metadata from image given by 'image_file_path' and
+        fills wallpaper object given by 'wallpaper' with the found IPTC metadata.
+        If no IPTC metddata was found, fills default values.
+        :param image_file_path:
+        :param wallpaper:
+        :return:
+        """
         logger.debug('fill_image_metadata()')
         my_iptc = self.get_iptc_metadata(image_file_path)
-        wallpaper.image_name = self.get_image_name_by_metadata(my_iptc)
+        _i_name = self.get_image_name_by_metadata(my_iptc)
+        if _i_name == '':
+            wallpaper.image_name = str(os.path.basename(image_file_path))
+        else:
+            wallpaper.image_name = _i_name
         wallpaper.image_md5_hash = self.database.get_md5_hash_of_file(image_file_path)
         wallpaper.image_path = image_file_path
         wallpaper.source_url = '' # TODO
@@ -131,7 +142,11 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
         wallpaper.image_author = self.get_image_author_by_metadata(my_iptc)
         wallpaper.image_url = image_file_path
         wallpaper.location = self.get_image_location_by_metadata(my_iptc)
-        wallpaper.source_name = self.get_image_source_name_by_metadata(my_iptc)
+        _s_name = self.get_image_source_name_by_metadata(my_iptc)
+        if _s_name == '':
+            wallpaper.source_name = 'Fetched Folder'
+        else:
+            wallpaper.source_name = _s_name
         wallpaper.keywords = self.get_image_keywords_by_metadata(my_iptc)
         wallpaper.found_at_counter = 0
         if self.database.is_image_landscape(image_file_path):
@@ -151,12 +166,18 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
         """
 
         logger.debug('get_iptc_metadata()')
-        im = PIL.Image.open(image_file_path)
-        iptc = IptcImagePlugin.getiptcinfo(im)
-        if not iptc is None:
-            return iptc
-        else:
-            return []
+
+        try:
+            im = PIL.Image.open(image_file_path)
+            iptc = IptcImagePlugin.getiptcinfo(im)
+            im.close()
+            if not iptc is None:
+                return iptc
+            else:
+                return []
+        except:
+            e = sys.exc_info()[0]
+            logger.debug('is_image_landscape() - {}'.format(e))
 
     def get_image_name_by_metadata(self, iptc):
         """
@@ -276,12 +297,33 @@ class WarietyManualFetcher(Observer):
         self.config = config
         self.keep_running = self.config['manual_download']
         self.fetch_dir = self.config['manual_download_folder']
+        self.database = wariety_database.WarietyDatabase(self.config)
         Observer.__init__(self)
         if self.keep_running is True:
-            event_handler = WarietyManualFetchHandler(self.config)
-            self.schedule(event_handler, path=self.fetch_dir, recursive=False)
+            self.event_handler = WarietyManualFetchHandler(self.config)
+            self.initial_folder_scan(self.fetch_dir)
+            self.schedule(self.event_handler, path=self.fetch_dir, recursive=False)
             self.start()
 
     def __del__(self):
         logger.debug('Stopping manual fetcher')
         logger.debug('__del__()')
+
+    def initial_folder_scan(self, fetch_dir):
+        """
+        Loops thru all files of the folder given by 'fetch_dir' and checks whether
+        each file exists as image in the DB. Images who do not exists in the DB will
+        be added.
+        :param fetch_dir:
+        :return:
+        """
+        logging.debug('initial_folder_scan()')
+
+        all_image_file_paths = self.database.get_all_image_paths_from_folder_by_path(fetch_dir)
+        for image_file_path in all_image_file_paths:
+            image_id = self.database.exists_image_by_url_or_path(image_file_path)
+            if not image_id:
+                logging.debug('initial_folder_scan() - add new image')
+                my_new_wallpaper = self.database.get_empty_image()
+                self.event_handler.fill_image_metadata(image_file_path, my_new_wallpaper)
+                self.database.add_image_to_database(my_new_wallpaper)
