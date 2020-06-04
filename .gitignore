@@ -26,3 +26,4 @@ __pycache__/
 env/
 venv/
 ENV/
+/bin/*.exe
