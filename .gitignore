@@ -19,6 +19,8 @@ __pycache__/
 *.mo
 *.pot
 
+*.bat
+
 .env
 .venv
 env/
