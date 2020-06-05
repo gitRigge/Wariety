@@ -36,7 +36,7 @@ version_info_dic = {
     'R09':copyright,  # LegalCopyright -> copyright
     'R10':'wariety.exe',  # OriginalFilename
     'R11':appname,  # ProductName -> APP_NAME
-    'R12':'{} ({} {})'.format(version_str, branch.strip(), cmt_msg)   # ProductVersion -> version + (cmt_msg)
+    'R12':'{} ({} {})'.format(version_str, branch.split('\n')[0].strip(), cmt_msg)   # ProductVersion -> version + (cmt_msg)
 }
 
 print('MAKE VERSION FILE: Read template')

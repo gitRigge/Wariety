@@ -21,7 +21,7 @@ VSVersionInfo(
         StringStruct(u'LegalCopyright', u'Copyright (c) 2020 gitRigge'),
         StringStruct(u'OriginalFilename', u'wariety.exe'),
         StringStruct(u'ProductName', u'Wariety'),
-        StringStruct(u'ProductVersion', u'0.0.2 (master 4ac4396)')])
+        StringStruct(u'ProductVersion', u'0.0.2 (WarietyVariety 4ac4396)')])
       ]), 
     VarFileInfo([VarStruct(u'Translation', [1031, 1252, 1033, 1252, 11274, 1252])])
   ]
