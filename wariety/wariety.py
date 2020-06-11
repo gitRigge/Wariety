@@ -314,8 +314,11 @@ if __name__ == '__main__':
     if __status__ == 'Development':
         # Start Debug Logging if our status equals 'Development'
         myname = os.path.basename(__file__).split('.')[0]
-        mypath = os.path.join(os.environ['LOCALAPPDATA'], APP_NAME)
-        fname = os.path.join(mypath, '{}.log'.format(myname))
+        mypath = os.path.abspath(os.path.join(os.environ['LOCALAPPDATA'], APP_NAME))
+        os.makedirs(mypath, exist_ok=True)
+        fname = os.path.abspath(os.path.join(mypath, '{}.log'.format(myname)))
+        if not os.path.isfile(fname):
+            open(fname, 'w').close()
         init_logging(log_file=fname, append=False, console_loglevel=logging.DEBUG)
 
     logging.debug('Starting application')

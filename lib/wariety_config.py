@@ -84,14 +84,16 @@ class WarietyConfig(object):
 
     def init_folders(self):
         """
-        Checks for required folders 'self.plugin_folder' and 'self.manual_download_folder'
-        and creates it if they do not yet exist.
+        Checks for required folders 'self.download_wallpaper_folder', 'self.manual_download_folder'
+        and 'self.plugin_folder' and creates it if they do not yet exist.
         :return:
         """
         logger.debug('init_folders()')
-        dir_path = os.path.abspath(self.plugin_folder)
+        dir_path = os.path.abspath(self.download_wallpaper_folder)
         os.makedirs(dir_path, exist_ok=True)
         dir_path = os.path.abspath(self.manual_download_folder)
+        os.makedirs(dir_path, exist_ok=True)
+        dir_path = os.path.abspath(self.plugin_folder)
         os.makedirs(dir_path, exist_ok=True)
 
     def on_close(self):
