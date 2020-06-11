@@ -102,31 +102,51 @@ class WarietyConfig(object):
         logger.debug('read_config_file()')
         if os.path.isfile(self.config_file):
             self.config.read(self.config_file)
+        else:
+            logger.debug('read_config_file() - No config file found.')
+            self.config.add_section('General')
+            self.config.add_section('Sources')
+            self.config.add_section('External Sources')
+            self.config.read(self.config_file)
+            self.set_config()
+            self.write_config_file()
 
     def write_config_file(self):
         logger.debug('write_config_file()')
-        if os.path.isfile(self.config_file):
-            with open(self.config_file, 'w') as config_file:
-                self.config.write(config_file)
+        with open(self.config_file, 'w') as config_file:
+            self.config.write(config_file)
 
     def read_config(self):
         logger.debug('read_config()')
         # General
-        self.start_at_startup = self.config['General'].getboolean('start_at_startup')
-        self.wallpaper_change = self.config['General'].getboolean('wallpaper_change')
-        self.wallpaper_change_interval = self.config['General'].getint('wallpaper_change_interval')
-        self.change_wallpaper_at_startup = self.config['General'].getboolean('change_wallpaper_at_startup')
-        self.download_wallpaper = self.config['General'].getboolean('download_wallpaper')
-        self.download_wallpaper_interval = self.config['General'].getint('download_wallpaper_interval')
+        self.start_at_startup = self.config['General'].getboolean('start_at_startup',
+                                                                  fallback=self.start_at_startup)
+        self.wallpaper_change = self.config['General'].getboolean('wallpaper_change',
+                                                                  fallback=self.wallpaper_change)
+        self.wallpaper_change_interval = self.config['General'].getint('wallpaper_change_interval',
+                                                                       fallback=self.wallpaper_change_interval)
+        self.change_wallpaper_at_startup = self.config['General'].getboolean('change_wallpaper_at_startup',
+                                                                             fallback=self.change_wallpaper_at_startup)
+        self.download_wallpaper = self.config['General'].getboolean('download_wallpaper',
+                                                                    fallback=self.download_wallpaper)
+        self.download_wallpaper_interval = self.config['General'].getint('download_wallpaper_interval',
+                                                                         fallback=self.download_wallpaper_interval)
         self.download_wallpaper_folder = self.config['General'].get('download_wallpaper_folder',
-                                                                    r'%LOCALAPPDATA%\Wariety\Downloaded')
-        self.max_wallpaper_folder = self.config['General'].getboolean('max_wallpaper_folder')
-        self.max_wallpaper_folder_size = self.config['General'].getint('max_wallpaper_folder_size')
-        self.manual_download = self.config['General'].getboolean('manual_download')
-        self.manual_download_folder = self.config['General'].get('manual_download_folder')
-        self.animate_system_tray_icon = self.config['General'].getboolean('animate_system_tray_icon')
-        self.show_balloon_message = self.config['General'].getboolean('show_balloon_message')
-        self.plugin_folder = self.config['General'].get('plugin_folder')
+                                                                    fallback=os.path.expandvars(r'%LOCALAPPDATA%\Wariety\Downloaded'))
+        self.max_wallpaper_folder = self.config['General'].getboolean('max_wallpaper_folder',
+                                                                      fallback=self.max_wallpaper_folder)
+        self.max_wallpaper_folder_size = self.config['General'].getint('max_wallpaper_folder_size',
+                                                                       fallback=self.max_wallpaper_folder_size)
+        self.manual_download = self.config['General'].getboolean('manual_download',
+                                                                 fallback=self.manual_download)
+        self.manual_download_folder = self.config['General'].get('manual_download_folder',
+                                                                 fallback=os.path.expandvars(r'%LOCALAPPDATA%\Wariety\Fetched'))
+        self.animate_system_tray_icon = self.config['General'].getboolean('animate_system_tray_icon',
+                                                                          fallback=self.animate_system_tray_icon)
+        self.show_balloon_message = self.config['General'].getboolean('show_balloon_message',
+                                                                      fallback=self.show_balloon_message)
+        self.plugin_folder = self.config['General'].get('plugin_folder',
+                                                        fallback=os.path.expandvars(r'%LOCALAPPDATA%\Wariety\Plugins'))
 
         # Sources
         for bltin_src in self.config['Sources']:
@@ -145,14 +165,14 @@ class WarietyConfig(object):
         self.config.set('General', 'change_wallpaper_at_startup', str(self.change_wallpaper_at_startup))
         self.config.set('General', 'download_wallpaper', str(self.download_wallpaper))
         self.config.set('General', 'download_wallpaper_interval', str(self.download_wallpaper_interval))
-        self.config.set('General', 'download_wallpaper_folder', str(self.download_wallpaper_folder))
+        self.config.set('General', 'download_wallpaper_folder', str(os.path.expandvars(self.download_wallpaper_folder)))
         self.config.set('General', 'max_wallpaper_folder', str(self.max_wallpaper_folder))
         self.config.set('General', 'max_wallpaper_folder_size', str(self.max_wallpaper_folder_size))
         self.config.set('General', 'manual_download', str(self.manual_download))
-        self.config.set('General', 'manual_download_folder', str(self.manual_download_folder))
+        self.config.set('General', 'manual_download_folder', str(os.path.expandvars(self.manual_download_folder)))
         self.config.set('General', 'animate_system_tray_icon', str(self.animate_system_tray_icon))
         self.config.set('General', 'show_balloon_message', str(self.show_balloon_message))
-        self.config.set('General', 'plugin_folder', str(self.plugin_folder))
+        self.config.set('General', 'plugin_folder', str(os.path.expandvars(self.plugin_folder)))
 
         # Built-in Downloaders
         for bltin_src in self.builtin_downloaders:
