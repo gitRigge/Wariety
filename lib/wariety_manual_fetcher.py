@@ -12,9 +12,6 @@ from PIL import IptcImagePlugin
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
-sys.path.insert(1, '../lib')
-sys.path.insert(1, '../lib/downloaders')
-sys.path.insert(1, '../wariety')
 import wariety_database
 
 logger = logging.getLogger(__name__)

@@ -11,12 +11,11 @@ import wx
 import wx.adv
 from pubsub import pub
 
-sys.path.insert(1, '../lib')
-import wariety_config
-import wariety_database
-import wariety_downloader
-import wariety_manual_fetcher
-import wariety_updater
+import lib.wariety_config
+import lib.wariety_database
+import lib.wariety_downloader
+import lib.wariety_manual_fetcher
+import lib.wariety_updater
 
 __author__ = "Roland Rickborn (gitRigge)"
 __copyright__ = "Copyright (c) 2020 gitRigge"
@@ -59,9 +58,9 @@ class WarietyMain(wx.adv.TaskBarIcon):
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, self.on_left_double)
         self.Bind(wx.EVT_TIMER, self.on_left_single)
         # Configuration
-        self.myConfig = wariety_config.WarietyConfig(CONFIGFILE)
+        self.myConfig = lib.wariety_config.WarietyConfig(CONFIGFILE)
         # DB initializing
-        self.database = wariety_database.WarietyDatabase(self.myConfig.to_dict())
+        self.database = lib.wariety_database.WarietyDatabase(self.myConfig.to_dict())
         self.database.database_maintenance()
         self.database.__del__()
         # Messaging
@@ -70,18 +69,18 @@ class WarietyMain(wx.adv.TaskBarIcon):
         pub.subscribe(self.update_manual_fetcher, "config updated")
         # Instantiate the wallpaper updater
         if self.myConfig.wallpaper_change:
-            self.myUpdater = wariety_updater.WarietyUpdater(self.myConfig.wallpaper_change_interval,
-                                                            self.myConfig.to_dict())
+            self.myUpdater = lib.wariety_updater.WarietyUpdater(
+                self.myConfig.wallpaper_change_interval, self.myConfig.to_dict())
         else:
-            self.myUpdater = wariety_updater.WarietyUpdater(0, self.myConfig.to_dict())
+            self.myUpdater = lib.wariety_updater.WarietyUpdater(0, self.myConfig.to_dict())
         # Instantiate the wallpaper downloader
         if self.myConfig.download_wallpaper:
-            self.myDownloader = wariety_downloader.WarietyDownloader(self.myConfig.download_wallpaper_interval,
-                                                                     self.myConfig.to_dict())
+            self.myDownloader = lib.wariety_downloader.WarietyDownloader(
+                self.myConfig.download_wallpaper_interval, self.myConfig.to_dict())
         else:
-            self.myDownloader = wariety_downloader.WarietyDownloader(0, self.myConfig.to_dict())
+            self.myDownloader = lib.wariety_downloader.WarietyDownloader(0, self.myConfig.to_dict())
         # Run Observer in any case
-        self.myManualFetcher = wariety_manual_fetcher.WarietyManualFetcher(self.myConfig.to_dict())
+        self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(self.myConfig.to_dict())
 
     def CreatePopupMenu(self):
         menu = wx.Menu()
@@ -212,22 +211,22 @@ class WarietyMain(wx.adv.TaskBarIcon):
         logging.debug('update_downloader()')
         self.myDownloader.stop()
         if msg['download_wallpaper']:
-            self.myDownloader = wariety_downloader.WarietyDownloader(msg['download_wallpaper_interval'], msg)
+            self.myDownloader = lib.wariety_downloader.WarietyDownloader(msg['download_wallpaper_interval'], msg)
         else:
-            self.myDownloader = wariety_downloader.WarietyDownloader(0, msg)
+            self.myDownloader = lib.wariety_downloader.WarietyDownloader(0, msg)
 
     def update_updater(self, msg):
         logging.debug('update_updater()')
         self.myUpdater.stop()
         if msg['wallpaper_change']:
-            self.myUpdater = wariety_updater.WarietyUpdater(msg['wallpaper_change_interval'], msg)
+            self.myUpdater = lib.wariety_updater.WarietyUpdater(msg['wallpaper_change_interval'], msg)
         else:
-            self.myUpdater = wariety_updater.WarietyUpdater(0, msg)
+            self.myUpdater = lib.wariety_updater.WarietyUpdater(0, msg)
 
     def update_manual_fetcher(self, msg):
         logging.debug('update_manual_fetcher()')
         self.myManualFetcher.on_thread_stop()
-        self.myManualFetcher = wariety_manual_fetcher.WarietyManualFetcher(msg)
+        self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(msg)
 
 def create_menu_item(menu, label, func):
     item = wx.MenuItem(menu, -1, label)

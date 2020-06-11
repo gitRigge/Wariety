@@ -14,9 +14,6 @@ import threading
 import warnings
 import win32api
 
-sys.path.insert(1, '../lib')
-sys.path.insert(1, '../lib/downloaders')
-sys.path.insert(1, '../wariety')
 import wariety_config
 import wariety_database
 

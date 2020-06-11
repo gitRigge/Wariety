@@ -18,9 +18,7 @@ import gettext
 import locale
 import logging
 import os
-sys.path.insert(1, '../lib')
-sys.path.insert(1, '../lib/downloaders')
-sys.path.insert(1, '../wariety')
+
 import wariety
 
 current_locale = locale.getdefaultlocale()[0].split("_")[0]

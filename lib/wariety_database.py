@@ -10,10 +10,7 @@ import random
 import sqlite3
 import sys
 import warnings
-from pathlib import Path
 
-sys.path.insert(1, '../lib/downloaders')
-sys.path.insert(1, '../lib')
 import wariety_wallpaper
 
 logger = logging.getLogger(__name__)

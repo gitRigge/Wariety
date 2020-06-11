@@ -16,10 +16,10 @@ import gettext
 
 import locale
 import logging
+import os
 import sys
+
 import wariety
-sys.path.insert(1, '../lib')
-sys.path.insert(1, '../lib/downloaders')
 import wariety_config
 
 current_locale = locale.getdefaultlocale()[0].split("_")[0]
