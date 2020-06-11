@@ -60,7 +60,7 @@ class WarietyConfig(object):
         self.read_config()
 
         # Init Plugins Folder
-        self.init_plugins_folder()
+        self.init_folders()
 
         # Find built-in downloaders
         if getattr(sys, 'frozen', False):
@@ -82,16 +82,22 @@ class WarietyConfig(object):
         logger.debug('__del__()')
         logger.debug('Stopping config')
 
-    def init_plugins_folder(self):
-        """Creates the folder 'Plugins' in the local app dir
-        location if it does not yet exist.
+    def init_folders(self):
         """
-        logger.debug('init_plugins_folder()')
+        Checks for required folders 'self.plugin_folder' and 'self.manual_download_folder'
+        and creates it if they do not yet exist.
+        :return:
+        """
+        logger.debug('init_folders()')
         dir_path = os.path.abspath(self.plugin_folder)
+        os.makedirs(dir_path, exist_ok=True)
+        dir_path = os.path.abspath(self.manual_download_folder)
         os.makedirs(dir_path, exist_ok=True)
 
     def on_close(self):
-        """Update, push and write config
+        """
+        Update, push and write config to file
+        :return:
         """
         logger.debug('on_close()')
         self.set_config()
@@ -99,6 +105,11 @@ class WarietyConfig(object):
         self.write_config_file()
 
     def read_config_file(self):
+        """
+        Tries to read config from file. If confif file does not exist, creates config file,
+        adds sectors 'General', 'Sources' and 'External Sources' and fills with default values.
+        :return:
+        """
         logger.debug('read_config_file()')
         if os.path.isfile(self.config_file):
             self.config.read(self.config_file)
@@ -112,11 +123,20 @@ class WarietyConfig(object):
             self.write_config_file()
 
     def write_config_file(self):
+        """
+        Writes current config to file.
+        :return:
+        """
         logger.debug('write_config_file()')
         with open(self.config_file, 'w') as config_file:
             self.config.write(config_file)
 
     def read_config(self):
+        """
+        Parses config and assigns it to instance variables.
+        Sets default values in case of fallback.
+        :return:
+        """
         logger.debug('read_config()')
         # General
         self.start_at_startup = self.config['General'].getboolean('start_at_startup',
@@ -157,6 +177,10 @@ class WarietyConfig(object):
             self.external_downloaders[ext_src] = self.config['External Sources'].getboolean(ext_src)
 
     def set_config(self):
+        """
+        Sets config taken from instance variables.
+        :return:
+        """
         logger.debug('set_config()')
         # General
         self.config.set('General', 'start_at_startup', str(self.start_at_startup))
@@ -183,10 +207,18 @@ class WarietyConfig(object):
             self.config.set('External Sources', ext_src, str(self.external_downloaders[ext_src]))
 
     def push_updated_config(self):
+        """
+        Sends 'config updated' message
+        :return:
+        """
         logger.debug('push_updated_config()')
         pub.sendMessage("config updated", msg=self.to_dict())
 
     def to_dict(self):
+        """
+        Takes instance variables and puts it into a dict. Returns the dict.
+        :return my_config:
+        """
         logger.debug('to_dict()')
         my_config = {
             'start_at_startup': self.start_at_startup,
