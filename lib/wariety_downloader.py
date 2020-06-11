@@ -8,7 +8,6 @@ import PIL.Image
 import random
 import requests
 import shutil
-import struct
 import sys
 import time
 import threading
@@ -115,10 +114,11 @@ class WarietyDownloader(threading.Thread):
                 self.resize_image(my_image.image_path)
 
     def get_enabled_sources(self):
+        # TODO erweitern um additional downloaders!
         logger.debug('get_enabled_sources()')
         for key, value in self.config.items():
             if key.startswith('source_') and value is True:
-                built_in_downloaders = wariety_config.BUILT_IN_DOWNLOADERS
+                built_in_downloaders = wariety_config.BUILT_IN_DOWNLOADERS  # TODO
                 if key in built_in_downloaders:
                     self.enabled_sources[key] = built_in_downloaders[key]
                 else:
@@ -128,9 +128,9 @@ class WarietyDownloader(threading.Thread):
     def get_random_downloader(self):
         logger.debug('get_random_downloader()')
         try:
-            sys.path.append(r'lib\downloaders')
+            sys.path.append(r'lib\downloaders') # TODO Kommt vom Downloader
             enabled_sources = self.get_enabled_sources()
-            my_downloader = __import__(random.choice(list(enabled_sources.values())))
+            my_downloader = __import__(random.choice(list(enabled_sources.values()))) # TODO Als Instanz einer Klasse?
             return my_downloader
         except IndexError:
             return ''

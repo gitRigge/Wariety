@@ -5,7 +5,6 @@
 #
 
 import wx
-import wx.lib.mixins.listctrl as listmix
 import wx.adv
 
 # begin wxGlade: dependencies
@@ -91,17 +90,18 @@ class SettingsDlg(wx.Frame):
         self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_1, self.checkbox_1)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClose, self.button_1)
         # end wxGlade
-        self.Bind(wx.EVT_CLOSE, self.OnButtonClose)
         self.sources_list_ctrl_1.EnableCheckBoxes(True)
-        self.Bind(wx.EVT_LIST_ITEM_CHECKED, self.OnClickedListCheckbox, self.sources_list_ctrl_1)
-        self.Bind(wx.EVT_LIST_ITEM_UNCHECKED, self.OnClickedListCheckbox, self.sources_list_ctrl_1)
-        self.Bind(wx.EVT_LIST_COL_CLICK, self.OnClickedListCheckbox, self.sources_list_ctrl_1)
+        self.sources_list_items_1 = {}
         title = kwds.get('title', 'Wariety Settings')
         self.set_properties_received_by_main(title)
         self.myConfig = wariety_config.WarietyConfig(self.config_file)
         self.set_settings()
-        ## Important: call the Centre method that centers automatically
-        ## the window for you
+        # Bind events _after_ adding items
+        self.Bind(wx.EVT_CLOSE, self.OnButtonClose)
+        self.Bind(wx.EVT_LIST_ITEM_CHECKED, self.OnClickedListCheckbox, self.sources_list_ctrl_1)
+        self.Bind(wx.EVT_LIST_ITEM_UNCHECKED, self.OnClickedListCheckbox, self.sources_list_ctrl_1)
+        self.Bind(wx.EVT_LIST_COL_CLICK, self.OnClickedListCheckbox, self.sources_list_ctrl_1)
+        # Important: call the Centre method that centers automatically the window for you
         self.Centre()
 
     def set_properties_received_by_main(self, title):
@@ -109,11 +109,11 @@ class SettingsDlg(wx.Frame):
         args = wariety.get_settingsDlg_args()
         self.config_file = args['config_file']
         self.releasenotes = args['releasenotes']
-        
         self.SetTitle(title)
 
     def save_settings(self):
         logger.debug('save_settings()')
+
         # General
         self.myConfig.start_at_startup = self.checkbox_6.GetValue()
         self.myConfig.wallpaper_change = self.checkbox_7.GetValue()
@@ -128,15 +128,29 @@ class SettingsDlg(wx.Frame):
         self.myConfig.manual_download_folder = self.dirpickerctrl_2.GetPath()
         self.myConfig.animate_system_tray_icon = self.checkbox_12.GetValue()
         self.myConfig.show_balloon_message = self.checkbox_11.GetValue()
+
         # Sources
-        self.myConfig.source_windows_spotlight = self.sources_list_ctrl_1.IsItemChecked(0)
-        self.myConfig.source_flickr_peter_levi = self.sources_list_ctrl_1.IsItemChecked(2)
-        self.myConfig.source_bing = self.sources_list_ctrl_1.IsItemChecked(1)
-        self.myConfig.source_wikimedia = self.sources_list_ctrl_1.IsItemChecked(3)
-        self.myConfig.source_manual = self.checkbox_1.GetValue()
+        counter = 0
+        for dl in self.myConfig.builtin_downloaders:
+            item = self.sources_list_ctrl_1.GetItem(counter)
+            try:
+                self.myConfig.builtin_downloaders[dl] = self.sources_list_ctrl_1.IsItemChecked(item.GetId())
+            except:
+                self.myConfig.external_downloaders[dl] = False
+            counter += 1
+
+        # External sources
+        for dl in self.myConfig.external_downloaders:
+            item = self.sources_list_ctrl_1.GetItem(counter)
+            try:
+                self.myConfig.external_downloaders[dl] = self.sources_list_ctrl_1.IsItemChecked(item.GetId())
+            except:
+                self.myConfig.external_downloaders[dl] = False
+            counter += 1
 
     def set_settings(self):
         logger.debug('set_settings()')
+
         # General
         self.checkbox_6.SetValue(self.myConfig.start_at_startup)
         self.checkbox_7.SetValue(self.myConfig.wallpaper_change)
@@ -159,40 +173,45 @@ class SettingsDlg(wx.Frame):
         self.dirpickerctrl_2.SetPath(self.myConfig.manual_download_folder)
         self.checkbox_12.SetValue(self.myConfig.animate_system_tray_icon)
         self.checkbox_11.SetValue(self.myConfig.show_balloon_message)
-        # Sources
-        _source_windows_spotlight = self.myConfig.source_windows_spotlight
-        _source_bing = self.myConfig.source_bing
-        _source_flickr_peter_levi = self.myConfig.source_flickr_peter_levi
-        _source_wikimedia = self.myConfig.source_wikimedia
+
+        # Basic Columns Definition and Width
         self.sources_list_ctrl_1.InsertColumn(0, _("Activated"), wx.LIST_FORMAT_CENTRE)
         self.sources_list_ctrl_1.InsertColumn(1, _("Type"))
         self.sources_list_ctrl_1.InsertColumn(2, _("Source"))
-        sources = [
-                        ['Microsoft Spotlight',r'%LOCALAPPDATA%\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets'],
-                        ['Bing Image Of The Day','https://www.bing.com/HPImageArchive.aspx'],
-                        ['Peter Levi\'s Flickr Collection','https://www.flickr.com/photos/peter-levi/'],
-                        ['Wikimedia Picture Of The Day','https://commons.wikimedia.org/wiki/']
-                    ]
-        for item in reversed(sources):
-            index = self.sources_list_ctrl_1.InsertItem(0, "")
-            self.sources_list_ctrl_1.SetItem(index, 1, item[0])
-            self.sources_list_ctrl_1.SetItem(index, 2, item[1])
-
-        if _source_windows_spotlight:
-            self.sources_list_ctrl_1.CheckItem(0, check=True)
-
-        if _source_bing:
-            self.sources_list_ctrl_1.CheckItem(1, check=True)
-
-        if _source_flickr_peter_levi:
-            self.sources_list_ctrl_1.CheckItem(2, check=True)
-
-        if _source_wikimedia:
-            self.sources_list_ctrl_1.CheckItem(3, check=True)
-
         self.sources_list_ctrl_1.SetColumnWidth(0, 70)
         self.sources_list_ctrl_1.SetColumnWidth(1, 200)
         self.sources_list_ctrl_1.SetColumnWidth(2, 480)
+
+        # Built-in Downloaders
+        counter = 0
+        for dl in self.myConfig.builtin_downloaders:
+            _desc = self.myConfig.available_builtin_downloaders[dl][0]  # TODO can be better solved than [0]
+            _base_url = self.myConfig.available_builtin_downloaders[dl][2]
+            _state = self.myConfig.builtin_downloaders[dl]
+            index = self.sources_list_ctrl_1.InsertItem(sys.maxsize, "")
+            self.sources_list_ctrl_1.SetItem(index, 1, _desc)
+            self.sources_list_ctrl_1.SetItem(index, 2, _base_url)
+            self.sources_list_ctrl_1.SetItemData(index, counter)
+            if _state:
+                self.sources_list_ctrl_1.CheckItem(index, check=True)
+            else:
+                self.sources_list_ctrl_1.CheckItem(index, check=False)
+            counter += 1
+
+        # External Downloaders
+        for dl in self.myConfig.external_downloaders:
+            _desc = self.myConfig.available_external_downloaders[dl][0]  # TODO can be better solved than [0]
+            _base_url = self.myConfig.available_external_downloaders[dl][2]
+            _state = self.myConfig.external_downloaders[dl]
+            index = self.sources_list_ctrl_1.InsertItem(sys.maxsize, "")
+            self.sources_list_ctrl_1.SetItem(index, 1, _desc)
+            self.sources_list_ctrl_1.SetItem(index, 2, _base_url)
+            self.sources_list_ctrl_1.SetItemData(index, counter)
+            if _state:
+                self.sources_list_ctrl_1.CheckItem(index, check=True)
+            else:
+                self.sources_list_ctrl_1.CheckItem(index, check=False)
+            counter += 1
 
         self.text_ctrl_1.SetValue(self.releasenotes)
 
@@ -214,11 +233,11 @@ class SettingsDlg(wx.Frame):
         # end wxGlade
         if getattr(sys, 'frozen', False):
             icon = wx.Icon()
-            icon.CopyFromBitmap(wx.Bitmap(sys._MEIPASS+'/data/logo_1_32x32px.ico', wx.BITMAP_TYPE_ANY))
+            icon.CopyFromBitmap(wx.Bitmap(sys._MEIPASS+'/data/icons/logo_1_32x32px.ico', wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
         else:
             icon = wx.Icon()
-            icon.CopyFromBitmap(wx.Bitmap('data/logo_1_32x32px.ico', wx.BITMAP_TYPE_ANY))
+            icon.CopyFromBitmap(wx.Bitmap('data/icons/logo_1_32x32px.ico', wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
 
     def __do_layout(self):

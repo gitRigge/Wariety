@@ -247,11 +247,11 @@ def get_icons():
     icons = []
     if getattr(sys, 'frozen', False):
         print("We're frozen")
-        icons_path = sys._MEIPASS + '/data'
+        icons_path = sys._MEIPASS + '/data/icons'
         icons = glob.glob(os.path.join(icons_path, '*.ico'))
     else:
         print("We're script")
-        icons = glob.glob('data/*.ico')
+        icons = glob.glob('data/icons/*.ico')
     return icons
 
 

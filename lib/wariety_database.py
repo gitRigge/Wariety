@@ -26,7 +26,7 @@ class WarietyDatabase(object):
         logger.debug('__init__()')
         self.config = config
         # DB settings
-        dir_path = os.path.join(os.environ['LOCALAPPDATA'],'Wariety')
+        dir_path = os.path.join(os.environ['LOCALAPPDATA'],'Wariety')  # TODO Replace static string 'Wariety'
         try:
             os.makedirs(dir_path, exist_ok=True)
             self.db_file = os.path.join(dir_path,'wariety.db')

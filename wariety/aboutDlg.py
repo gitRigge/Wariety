@@ -91,11 +91,11 @@ class AboutDlg(wx.Frame):
         # end wxGlade
         if getattr(sys, 'frozen', False):
             icon = wx.Icon()
-            icon.CopyFromBitmap(wx.Bitmap(sys._MEIPASS+'/data/logo_1_32x32px.ico', wx.BITMAP_TYPE_ANY))
+            icon.CopyFromBitmap(wx.Bitmap(sys._MEIPASS+'/data/icons/logo_1_32x32px.ico', wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
         else:
             icon = wx.Icon()
-            icon.CopyFromBitmap(wx.Bitmap('data/logo_1_32x32px.ico', wx.BITMAP_TYPE_ANY))
+            icon.CopyFromBitmap(wx.Bitmap('data/icons/logo_1_32x32px.ico', wx.BITMAP_TYPE_ANY))
             self.SetIcon(icon)
 
     def __do_layout(self):
@@ -118,11 +118,11 @@ class AboutDlg(wx.Frame):
         # end wxGlade
         if getattr(sys, 'frozen', False):
             icon = wx.Icon()
-            icon.CopyFromBitmap(wx.Bitmap(sys._MEIPASS+'/data/logo_1_150x132px.png', wx.BITMAP_TYPE_ANY))
+            icon.CopyFromBitmap(wx.Bitmap(sys._MEIPASS+'/data/icons/logo_1_150x132px.png', wx.BITMAP_TYPE_ANY))
             bitmap_1.SetIcon(icon)
         else:
             icon = wx.Icon()
-            icon.CopyFromBitmap(wx.Bitmap('data/logo_1_150x132px.png', wx.BITMAP_TYPE_ANY))
+            icon.CopyFromBitmap(wx.Bitmap('data/icons/logo_1_150x132px.png', wx.BITMAP_TYPE_ANY))
             bitmap_1.SetIcon(icon)
 
     def onButtonClose(self, event):  # wxGlade: AboutDlg.<event_handler>
