@@ -3,12 +3,18 @@
 
 import logging
 import re
-import requests
 import sys
 
-sys.path.insert(1, '../.')
-import wariety_wallpaper
-from downloaders.default_downloader import DefaultDownloader
+import requests
+
+logger = logging.getLogger(__name__)
+if getattr(sys, 'frozen', False):
+    import wariety_wallpaper
+    from lib.downloaders.default_downloader import DefaultDownloader
+else:
+    import lib.wariety_wallpaper as wariety_wallpaper
+    from lib.downloaders.default_downloader import DefaultDownloader
+
 
 START_URL = 'http://...'
 BASE_URL = 'https://www.flickr.com/photos/peter-levi/'
@@ -16,7 +22,6 @@ DOWNLOADER_TYPE = 'peterlevi'
 DOWNLOADER_DESCRIPTION = 'Peter Levi\'s Flickr Collection'
 CAPABILITIES = {'single': 'single', 'many': 'many'}
 
-logger = logging.getLogger(__name__)
 
 class PeterLeviDownloader(DefaultDownloader):
 

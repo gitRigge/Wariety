@@ -2,13 +2,14 @@
 # -*- coding: UTF-8 -*-
 
 import configparser
-import logging
 import glob
 import importlib
 import inspect
+import logging
 import os
-import winreg
 import sys
+import winreg
+
 from pubsub import pub
 
 logger = logging.getLogger(__name__)
@@ -258,7 +259,7 @@ class WarietyConfig(object):
         for candidate in candidates:
             my_module_name = inspect.getmodulename(candidate)
             try:
-                sys.path.insert(1, downloaders_path)
+                sys.path.insert(1, downloaders_path)  # TODO Check if necessary!
                 my_module = importlib.import_module(my_module_name)
                 # Check whether it inherits from 'DefaultDownloader'
                 inherits_from_DefaultDownloader = False
@@ -291,7 +292,7 @@ class WarietyConfig(object):
                     logger.debug('identify_available_downloaders() - {}'.format('Is no Downloader, no import'))
             except:
                 e = sys.exc_info()[0]
-                logger.debug('identify_available_downloaders() - {}'.format(e))
+                logger.debug('identify_available_downloaders() - Error: {}'.format(e))
 
     def assign_configured_with_available_downloaders(self, available_downloaders, configured_downloaders, section):
         """

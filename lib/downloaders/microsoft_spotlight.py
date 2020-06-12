@@ -2,14 +2,19 @@
 # -*- coding: UTF-8 -*-
 
 import glob
-import logging
 import imghdr
+import logging
 import os
 import sys
 
-sys.path.insert(1, '../.')
-import wariety_wallpaper
-from downloaders.default_downloader import DefaultDownloader
+logger = logging.getLogger(__name__)
+if getattr(sys, 'frozen', False):
+    import wariety_wallpaper
+    from lib.downloaders.default_downloader import DefaultDownloader
+else:
+    import lib.wariety_wallpaper as wariety_wallpaper
+    from lib.downloaders.default_downloader import DefaultDownloader
+
 
 START_URL = 'http://...'
 BASE_URL = r'%LOCALAPPDATA%\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets'
@@ -17,7 +22,6 @@ DOWNLOADER_TYPE = 'spotlight'
 DOWNLOADER_DESCRIPTION = 'Microsoft Spotlight'
 CAPABILITIES = {'single': 'single', 'many': 'many'}
 
-logger = logging.getLogger(__name__)
 
 class SpotlightDownloader(DefaultDownloader):
 

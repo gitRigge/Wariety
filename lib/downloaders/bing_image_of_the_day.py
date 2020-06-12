@@ -3,13 +3,19 @@
 
 import json
 import logging
-import requests
 import sys
 import urllib.parse
 
-sys.path.insert(1, '../.')
-import wariety_wallpaper
-from downloaders.default_downloader import DefaultDownloader
+import requests
+
+logger = logging.getLogger(__name__)
+if getattr(sys, 'frozen', False):
+    import wariety_wallpaper
+    from lib.downloaders.default_downloader import DefaultDownloader
+else:
+    import lib.wariety_wallpaper as wariety_wallpaper
+    from lib.downloaders.default_downloader import DefaultDownloader
+
 
 START_URL = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=en-US'
 BASE_URL = 'https://www.bing.com/HPImageArchive.aspx'
@@ -17,7 +23,6 @@ DOWNLOADER_TYPE = 'bing'
 DOWNLOADER_DESCRIPTION = 'Bing Image Of The Day'
 CAPABILITIES = {'single': 'single', 'many': 'many'}
 
-logger = logging.getLogger(__name__)
 
 class BingDownloader(DefaultDownloader):
 

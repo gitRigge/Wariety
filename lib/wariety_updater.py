@@ -3,11 +3,13 @@
 
 import ctypes
 import logging
-import time
 import threading
+import time
+
 import win32con
 
 logger = logging.getLogger(__name__)
+
 
 class WarietyUpdater(threading.Thread):
     """docstring for WarietyUpdater"""

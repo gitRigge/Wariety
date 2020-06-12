@@ -4,14 +4,15 @@
 import datetime
 import logging
 import os
-import PIL.Image
 import random
-import requests
 import shutil
 import sys
-import time
 import threading
+import time
 import warnings
+
+import PIL.Image
+import requests
 import win32api
 
 import wariety_config
@@ -125,7 +126,6 @@ class WarietyDownloader(threading.Thread):
     def get_random_downloader(self):
         logger.debug('get_random_downloader()')
         try:
-            sys.path.append(r'lib\downloaders') # TODO Kommt vom Downloader
             enabled_sources = self.get_enabled_sources()
             my_downloader = __import__(random.choice(list(enabled_sources.values()))) # TODO Als Instanz einer Klasse?
             return my_downloader

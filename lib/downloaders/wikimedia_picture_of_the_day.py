@@ -1,16 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import bs4
 import calendar
 import logging
 import sys
 import urllib.parse
 import urllib.request
 
-sys.path.insert(1, '../.')
-import wariety_wallpaper
-from downloaders.default_downloader import DefaultDownloader
+import bs4
+
+logger = logging.getLogger(__name__)
+if getattr(sys, 'frozen', False):
+    import wariety_wallpaper
+    from lib.downloaders.default_downloader import DefaultDownloader
+else:
+    import lib.wariety_wallpaper as wariety_wallpaper
+    from lib.downloaders.default_downloader import DefaultDownloader
+
 
 START_URL = 'https://commons.wikimedia.org/wiki/Commons:Bild_des_Tages'
 BASE_URL = 'https://commons.wikimedia.org/wiki/'
@@ -18,7 +24,6 @@ DOWNLOADER_TYPE = 'wikimedia'
 DOWNLOADER_DESCRIPTION = 'Wikimedia Picture Of The Day'
 CAPABILITIES = {'single': 'single', 'many': 'many'}
 
-logger = logging.getLogger(__name__)
 
 class WikimediaDownloader(DefaultDownloader):
 

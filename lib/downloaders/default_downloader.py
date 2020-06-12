@@ -2,13 +2,17 @@
 # -*- coding: UTF-8 -*-
 
 import abc
-import logging
 import json
+import logging
 import os
 import sys
 
-sys.path.insert(1, '../lib')
-import wariety_wallpaper
+logger = logging.getLogger(__name__)
+if getattr(sys, 'frozen', False):
+    import wariety_wallpaper
+else:
+    import lib.wariety_wallpaper as wariety_wallpaper
+
 
 START_URL = ''
 BASE_URL = ''
@@ -16,7 +20,6 @@ DOWNLOADER_TYPE = ''
 DOWNLOADER_DESCRIPTION = ''
 CAPABILITIES = {'single': 'single', 'many': 'many'}
 
-logger = logging.getLogger(__name__)
 
 class DefaultDownloader(abc.ABC):
     def __init__(self, config=None, capability='single'):
@@ -26,7 +29,9 @@ class DefaultDownloader(abc.ABC):
         """
         super().__init__()
         self.config = config
-        self.target_folder = os.path.join(os.environ['LOCALAPPDATA'],'Wariety')  # TODO Replace static string 'Wariety'
+        #_app_name = wariety.APP_NAME
+        #print(_app_name)
+        self.target_folder = os.path.join(os.environ['LOCALAPPDATA'], 'Wariety')  # TODO Replace static string 'Wariety'
         self.state = None
         if capability in CAPABILITIES:
             self.capability = capability
