@@ -8,6 +8,12 @@ import logging
 import sys
 
 logger = logging.getLogger(__name__)
+START_URL = ''
+BASE_URL = 'zzz'
+DOWNLOADER_TYPE = 'xxx'
+DOWNLOADER_DESCRIPTION = 'yyy'
+CAPABILITIES = {'single': 'single', 'many': 'many'}
+
 if getattr(sys, 'frozen', False):
     import wariety_wallpaper
     from lib.downloaders.default_downloader import DefaultDownloader
@@ -18,27 +24,35 @@ else:
 
 class www(DefaultDownloader):
 
+    def __init__(self, config=None):
+        self.config = config
+        self._load_state(DOWNLOADER_TYPE)
+        super().__init__(config)
+
+    def __del__(self):
+        self.save_state(DOWNLOADER_TYPE)
+
     def get_next_image(self, last_image_counter=0):
         next_image = None
         print(self.target_folder)
         return next_image
 
     def get_downloader_type(self):
-        return 'xxx'
+        return DOWNLOADER_TYPE
 
     def get_downloader_description(self):
-        return 'yyy'
+        return DOWNLOADER_DESCRIPTION
 
     def get_capability(self):
-        return self.capability
+        return CAPABILITIES['single']
 
     def get_base_url(self):
-        return 'zzz'
+        return BASE_URL
 """
 
 for i in range(0, 20):
     print('i = {}'.format(i))
-    new_file_name = 'testdownloader_'+str(i)+'.py'
+    new_file_name = 'test_downloader_'+str(i)+'.py'
     www = 'Test_'+str(i)+'_Downloader'
     xxx = 'test_'+str(i)
     yyy = 'This is my Test '+str(i)+' Downloader'
