@@ -36,21 +36,20 @@ def set_proxy_with_environment_variable():
 
 
 class DefaultDownloader(abc.ABC):
-    def __init__(self, config=None, capability='single'):
+
+    def __init__(self, config=None):
         """
         Create a downloader for an image source
         :param config: optional, see get_config()
         """
         super().__init__()
+        logging.debug('__init__({})'.format(config))
         self.config = config
         _app_name = wariety.APP_NAME
         self.target_folder = os.path.join(os.environ['LOCALAPPDATA'], _app_name)
-        self.state = None
+        self.state = {}
         self.use_proxy = False
-        if capability in CAPABILITIES:
-            self.capability = capability
-        else:
-            self.capability = 'single'
+        self.capability = CAPABILITIES['single']
         self.start_url = START_URL
         self.base_url = BASE_URL
         self.downloader_type = DOWNLOADER_TYPE
@@ -65,24 +64,27 @@ class DefaultDownloader(abc.ABC):
         else:
             self.with_https_proxy = False
         self.next_image = wariety_wallpaper.WarietyWallpaper()
-        self._downloader_id = os.path.basename(__file__)
 
-    def _load_state(self):
+    def _load_state(self, dl_typ):
+        """
+        Loads the state as json inside the downloader's target folder.
+        :return:
+        """
+        logging.debug('_load_state()')
         try:
-            with open(os.path.join(self.target_folder, self._downloader_id+'.json')) as f:
+            with open(os.path.join(self.target_folder, dl_typ+'.json')) as f:
                 self.state = json.load(f)
         except Exception:
             self.state = {}
 
-    def save_state(self):
+    def save_state(self, dl_typ):
         """
         Persists the state as json inside the downloader's target folder.
-        state is a dict that is used internally by Variety, but the downloaders can also use it
-        keeping any sort of state is necessary for the downloader.
         """
+        logging.debug('_load_state()')
         if self.target_folder is None:
             raise Exception("update_download_folder was not called before save_state")
-        with open(os.path.join(self.target_folder, self._downloader_id+'.json'), 'w') as f:
+        with open(os.path.join(self.target_folder, dl_typ+'.json'), 'w') as f:
             json.dump(self.state, f)
 
     def get_start_url(self):

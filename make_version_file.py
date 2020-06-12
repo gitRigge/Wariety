@@ -3,7 +3,7 @@
 
 import sys
 sys.path.insert(1, 'lib')
-import wariety.wariety
+from wariety import wariety
 from subprocess import check_output
 
 def get_version_array(vers_str):
@@ -17,11 +17,11 @@ def get_version_array(vers_str):
 print('MAKE VERSION FILE: Read properties')
 cmt_msg = check_output('git log --all --grep="#releasenotes" --pretty=format:"%h" --max-count 1', shell=True).decode()
 branch = check_output('git branch --format %(refname:short)', shell=True).decode()
-version_str = wariety.wariety.__version__
+version_str = wariety.__version__
 version_arr = get_version_array(version_str)
-author = wariety.wariety.__author__
-appname = wariety.wariety.APP_NAME
-copyright = wariety.wariety.__copyright__
+author = wariety.__author__
+appname = wariety.APP_NAME
+copyright = wariety.__copyright__
 
 
 version_info_dic = {

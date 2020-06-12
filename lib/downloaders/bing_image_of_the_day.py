@@ -26,6 +26,14 @@ CAPABILITIES = {'single': 'single', 'many': 'many'}
 
 class BingDownloader(DefaultDownloader):
 
+    def __init__(self, config=None):
+        self.config = config
+        self._load_state(DOWNLOADER_TYPE)
+        super().__init__(config)
+
+    def __del__(self):
+        self.save_state(DOWNLOADER_TYPE)
+
     def get_downloader_type(self):
         return DOWNLOADER_TYPE
 
@@ -39,9 +47,12 @@ class BingDownloader(DefaultDownloader):
         return BASE_URL
 
     def get_next_image(self, last_image_counter=0):
-        """Retrieves a BING picture of the day and returns it
+        """
+        Retrieves a BING picture of the day and returns it
         as an instance of wariety wallpaper. Depending on the counter
         given by 'last_image_counter' returns the next picture.
+        :param last_image_counter:
+        :return next_image:
         """
         next_image = wariety_wallpaper.WarietyWallpaper()
         response = requests.get(START_URL)
@@ -68,4 +79,5 @@ class BingDownloader(DefaultDownloader):
         next_image.keywords = '{0} {1}'.format(image_title,image_copyright).strip()
         next_image.source_location = ''
         next_image.found_at_counter = last_image_counter + 1
+        self.state['last_image_counter'] = next_image.found_at_counter
         return next_image

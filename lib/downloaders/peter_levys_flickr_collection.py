@@ -25,6 +25,14 @@ CAPABILITIES = {'single': 'single', 'many': 'many'}
 
 class PeterLeviDownloader(DefaultDownloader):
 
+    def __init__(self, config=None):
+        self.config = config
+        self._load_state(DOWNLOADER_TYPE)
+        super().__init__(config)
+
+    def __del__(self):
+        self.save_state(DOWNLOADER_TYPE)
+
     def get_downloader_type(self):
         return DOWNLOADER_TYPE
 

@@ -5,6 +5,12 @@ import logging
 import sys
 
 logger = logging.getLogger(__name__)
+START_URL = ''
+BASE_URL = 'https://start_scraping_from.here'
+DOWNLOADER_TYPE = 'test'
+DOWNLOADER_DESCRIPTION = 'This is my Test Downloader'
+CAPABILITIES = {'single': 'single', 'many': 'many'}
+
 if getattr(sys, 'frozen', False):
     import wariety_wallpaper
     from lib.downloaders.default_downloader import DefaultDownloader
@@ -15,19 +21,27 @@ else:
 
 class TestDownloader(DefaultDownloader):
 
+    def __init__(self, config=None):
+        self.config = config
+        self._load_state(DOWNLOADER_TYPE)
+        super().__init__(config)
+
+    def __del__(self):
+        self.save_state(DOWNLOADER_TYPE)
+
     def get_next_image(self, last_image_counter=0):
         next_image = wariety_wallpaper.WarietyWallpaper()
         print(self.target_folder)
         return None
 
     def get_downloader_type(self):
-        return 'test'
+        return DOWNLOADER_TYPE
 
     def get_downloader_description(self):
-        return 'This is my Test Downloader'
+        return DOWNLOADER_DESCRIPTION
 
     def get_capability(self):
-        return self.capability
+        return CAPABILITIES['single']
 
     def get_base_url(self):
-        return 'https://start_scraping_from.here'
+        return BASE_URL
