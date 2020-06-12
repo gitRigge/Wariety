@@ -25,18 +25,18 @@ copyright = wariety.wariety.__copyright__
 
 
 version_info_dic = {
-    'R01':version_arr[0], # Version x.0.0.0
-    'R02':version_arr[1], # Version 0.x.0.0
-    'R03':version_arr[2], # Version 0.0.x.0
-    'R04':version_arr[3], # Version 0.0.0.x
-    'R05':author,  # CompanyName -> author
-    'R06':'Wallpaper manager for Windows',  # FileDescription
-    'R07':version_str,  # FileVersion -> version
-    'R08':appname,  # InternalName -> APP_NAME
-    'R09':copyright,  # LegalCopyright -> copyright
-    'R10':'wariety.exe',  # OriginalFilename
-    'R11':appname,  # ProductName -> APP_NAME
-    'R12':'{} ({} {})'.format(version_str, branch.split('\n')[0].strip(), cmt_msg)   # ProductVersion -> version + (cmt_msg)
+    'R01': version_arr[0], # Version x.0.0.0
+    'R02': version_arr[1], # Version 0.x.0.0
+    'R03': version_arr[2], # Version 0.0.x.0
+    'R04': version_arr[3], # Version 0.0.0.x
+    'R05': author,  # CompanyName -> author
+    'R06': 'Wallpaper manager for Windows',  # FileDescription
+    'R07': version_str,  # FileVersion -> version
+    'R08': appname,  # InternalName -> APP_NAME
+    'R09': copyright,  # LegalCopyright -> copyright
+    'R10': 'wariety.exe',  # OriginalFilename
+    'R11': appname,  # ProductName -> APP_NAME
+    'R12': '{} ({} {})'.format(version_str, branch.split('\n')[0].strip(), cmt_msg)   # ProductVersion -> version + (cmt_msg)
 }
 
 print('MAKE VERSION FILE: Read template')
