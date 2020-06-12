@@ -1,15 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-import sys, os
-
 file_content = """#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import logging
 import sys
 
-sys.path.insert(1, '../../lib')
-from downloaders.default_downloader import DefaultDownloader
+logger = logging.getLogger(__name__)
+if getattr(sys, 'frozen', False):
+    import wariety_wallpaper
+    from lib.downloaders.default_downloader import DefaultDownloader
+else:
+    import lib.wariety_wallpaper as wariety_wallpaper
+    from lib.downloaders.default_downloader import DefaultDownloader
+
 
 class www(DefaultDownloader):
 
