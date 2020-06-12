@@ -7,6 +7,7 @@ import logging
 import os
 import sys
 import time
+
 import wx
 import wx.adv
 from pubsub import pub
@@ -76,9 +77,9 @@ class WarietyMain(wx.adv.TaskBarIcon):
         # Instantiate the wallpaper downloader
         if self.myConfig.download_wallpaper:
             self.myDownloader = lib.wariety_downloader.WarietyDownloader(
-                self.myConfig.download_wallpaper_interval, self.myConfig.to_dict())
+                self.myConfig.download_wallpaper_interval, self.myConfig)
         else:
-            self.myDownloader = lib.wariety_downloader.WarietyDownloader(0, self.myConfig.to_dict())
+            self.myDownloader = lib.wariety_downloader.WarietyDownloader(0, self.myConfig)
         # Run Observer in any case
         self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(self.myConfig.to_dict())
 
@@ -210,10 +211,12 @@ class WarietyMain(wx.adv.TaskBarIcon):
     def update_downloader(self, msg):
         logging.debug('update_downloader()')
         self.myDownloader.stop()
+        self.myConfig = lib.wariety_config.WarietyConfig(CONFIGFILE)
         if msg['download_wallpaper']:
-            self.myDownloader = lib.wariety_downloader.WarietyDownloader(msg['download_wallpaper_interval'], msg)
+            self.myDownloader = lib.wariety_downloader.WarietyDownloader(msg['download_wallpaper_interval'],
+                                                                         self.myConfig)
         else:
-            self.myDownloader = lib.wariety_downloader.WarietyDownloader(0, msg)
+            self.myDownloader = lib.wariety_downloader.WarietyDownloader(0, self.myConfig)
 
     def update_updater(self, msg):
         logging.debug('update_updater()')
@@ -303,6 +306,7 @@ def init_logging(log_file=None, append=False, console_loglevel=logging.INFO):
     global LOG
     LOG = logging.getLogger(__name__)
 
+
 def main(icons):
     app = wx.App()
     WarietyMain(icons)
@@ -312,6 +316,7 @@ def main(icons):
 if __name__ == '__main__':
     if __status__ == 'Development':
         # Start Debug Logging if our status equals 'Development'
+        print("We're in DEVELOPMENT")
         myname = os.path.basename(__file__).split('.')[0]
         mypath = os.path.abspath(os.path.join(os.environ['LOCALAPPDATA'], APP_NAME))
         os.makedirs(mypath, exist_ok=True)

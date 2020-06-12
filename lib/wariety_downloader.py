@@ -15,29 +15,141 @@ import PIL.Image
 import requests
 import win32api
 
-import wariety_config
 import wariety_database
 
 logger = logging.getLogger(__name__)
+if getattr(sys, 'frozen', False):
+    from wariety.wariety import __status__ as __status__
+else:
+    try:
+        from wariety import __status__ as __status__
+    except ImportError:
+        logger.debug('get_download_folder_size() - ImportError'.format())
+        __status__ = 'Development'
+
+
+def get_download_folder_size(start_path='.'):
+    """
+    Tries to read the folder size of the folder given by 'start_path'.
+    Returns total folder size.
+    :param start_path:
+    :return total_size:
+    """
+    logger.debug('get_download_folder_size({})'.format(start_path))
+
+    # Default value
+    total_size = 0
+
+    try:
+        for dirpath, dirnames, filenames in os.walk(start_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                # skip if it is symbolic link
+                if not os.path.islink(fp):
+                    total_size += os.path.getsize(fp)
+    except:
+        e = sys.exc_info()[0]
+        logger.debug('get_download_folder_size() - {}'.format(e))
+
+    finally:
+        return total_size
+
+
+def get_correct_image_size(image_width, image_heigth, screen_width, screen_height):
+    """Calculates the correct proportional image size depending
+    on the current image width and height and on the screen's width
+    and height. Returns a tuple of width and height.
+    """
+    logger.debug(
+        'get_correct_image_size({}, {}, {}, {})'.format(image_width, image_heigth, screen_width, screen_height))
+    new_width = 0
+    new_height = 0
+    if (image_width / image_heigth) >= 1:
+        new_width = screen_width
+        new_height = int((image_heigth / image_width) * screen_width)
+    else:
+        new_height = screen_height
+        new_width = int((image_width / image_heigth) * screen_height)
+    return (new_width, new_height)
+
+
+def get_screen_height():
+    """Reads Windows System Metrics and returns screen heigth in pixel"""
+    logger.debug('get_screen_height()')
+    height = win32api.GetSystemMetrics(1)
+    return height
+
+
+def get_screen_width():
+    """Reads Windows System Metrics and returns screen width in pixel"""
+    logger.debug('get_screen_width()')
+    width = win32api.GetSystemMetrics(0)
+    return width
+
+
+def is_screen_landscape():
+    """Checks the current screen orientation and returns 'True' if the screen orientation
+    is landscape
+    """
+    logger.debug('is_screen_landscape()')
+    if get_screen_width() / get_screen_height() > 1:
+        return True
+    else:
+        return False
+
+
+def get_generated_image_name(full_image_url):
+    """Expects URL to an image, retrieves its file extension and returns
+    an image name based on the current date and with the correct file
+    extension
+    """
+    logger.debug('get_generated_image_name({})'.format(full_image_url))
+    image_name = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    image_extension = full_image_url.split(".")[-1]
+    image_name = image_name + "." + image_extension
+    return image_name
+
+
+def resize_image(full_image_path):
+    """Checks image size and resolution of image given by 'full_image_path'
+    and compares it with screen size and resolution. Resizes image if necessary
+    and overwrites image then.
+    """
+    logger.debug('resize_image({})'.format(full_image_path))
+    image = PIL.Image.open(full_image_path)
+    image_width = image.size[0]
+    image_heigth = image.size[1]
+    screen_width = get_screen_width()
+    screen_height = get_screen_height()
+    new_size = get_correct_image_size(image_width, image_heigth, screen_width, screen_height)
+    new_image = image.resize(new_size, PIL.Image.LANCZOS)
+    new_image.save(full_image_path, dpi=(72, 72))
 
 
 class WarietyDownloader(threading.Thread):
     """docstring for WarietyDownloader"""
 
-    def __init__(self, download_schedule=0, config={}):
+    def __init__(self, download_schedule=0, config=None):
         logger.debug('Starting downloader thread')
         logger.debug('__init__()')
         self.config = config
-        self.enabled_sources = {}
-        self.database = wariety_database.WarietyDatabase(self.config)
+        self.database = wariety_database.WarietyDatabase(self.config.to_dict())
+
         # Initial dl size check
         self.start_check_download_folder_size()
-        """Init Worker Thread Class."""
+
+        # Init Worker Thread Class.
         threading.Thread.__init__(self)
+
         self.down_sched = int(download_schedule)
-        self.seconds_until_fire = 60 * int(download_schedule)
+        if __status__ == 'Development':
+            logger.debug('__status__ == "Development"')
+            self.seconds_until_fire = 5 * int(download_schedule)
+        else:
+            self.seconds_until_fire = 60 * int(download_schedule)
         self.check_interval = 1
         self.keep_running = True
+
         if int(download_schedule) == 0:
             self.do_downloads = False
         else:
@@ -70,67 +182,87 @@ class WarietyDownloader(threading.Thread):
     def start_new_wallpaper_download(self):
         logger.debug('start_new_wallpaper_download()')
         my_downloader = self.get_random_downloader()
-        my_downloader_type = my_downloader.get_downloader_type()
-        my_downloader_capability = my_downloader.get_capability()
-        my_image = self.database.get_latest_image(source_type=my_downloader_type)
-        if my_downloader_capability == 'many':
-            # Get new full image urls until one is not yet in DB
-            while self.database.exists_image_by_url_or_path(my_image.image_url) or my_image.image_url == '':
-                my_get_counter = my_image.found_at_counter + 1
-                my_image = my_downloader.get_next_image(my_get_counter)
-            # Check image name
-            if my_image.image_name == '':
-                my_image.image_name = self.get_generated_image_name(my_image.image_url)
-            # Download image
-            my_image.image_path = self.download_image(my_image.image_url, my_image.image_name)
-            my_image.image_md5_hash = self.database.get_md5_hash_of_file(my_image.image_path)
-            # Turn of PIL DecompressionBombWarning
-            warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
-            if self.database.is_image_landscape(my_image.image_path):
-                my_image.image_orientation = my_image.wallpaper_orientations['landscape']
-            else:
-                my_image.image_orientation = my_image.wallpaper_orientations['portrait']
-            self.database.add_image_to_database(my_image)
-            self.resize_image(my_image.image_path)
-        elif my_downloader_capability == 'single':
-            my_get_counter = my_image.found_at_counter + 1
-            my_image = my_downloader.get_next_image(my_get_counter)
-            if not self.database.exists_image_by_url_or_path(my_image.image_url):
+        if my_downloader:
+            my_downloader_type = my_downloader.get_downloader_type()
+            my_downloader_capability = my_downloader.get_capability()
+            my_image = self.database.get_latest_image(source_type=my_downloader_type)
+            if my_downloader_capability == 'many':
+                # Get new full image urls until one is not yet in DB
+                while self.database.exists_image_by_url_or_path(my_image.image_url) or my_image.image_url == '':
+                    my_get_counter = my_image.found_at_counter + 1
+                    my_image = my_downloader.get_next_image(my_get_counter)
                 # Check image name
                 if my_image.image_name == '':
-                    my_image.image_name = self.get_generated_image_name(my_image.image_url)
+                    my_image.image_name = get_generated_image_name(my_image.image_url)
                 # Download image
                 my_image.image_path = self.download_image(my_image.image_url, my_image.image_name)
                 my_image.image_md5_hash = self.database.get_md5_hash_of_file(my_image.image_path)
                 # Turn of PIL DecompressionBombWarning
                 warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
-                if self.database.is_image_landscape(my_image.image_path) is True:
+                if self.database.is_image_landscape(my_image.image_path):
                     my_image.image_orientation = my_image.wallpaper_orientations['landscape']
                 else:
                     my_image.image_orientation = my_image.wallpaper_orientations['portrait']
                 self.database.add_image_to_database(my_image)
-                self.resize_image(my_image.image_path)
+                resize_image(my_image.image_path)
+            elif my_downloader_capability == 'single':
+                my_get_counter = my_image.found_at_counter + 1
+                my_image = my_downloader.get_next_image(my_get_counter)
+                if not self.database.exists_image_by_url_or_path(my_image.image_url):
+                    # Check image name
+                    if my_image.image_name == '':
+                        my_image.image_name = get_generated_image_name(my_image.image_url)
+                    # Download image
+                    my_image.image_path = self.download_image(my_image.image_url, my_image.image_name)
+                    my_image.image_md5_hash = self.database.get_md5_hash_of_file(my_image.image_path)
+                    # Turn of PIL DecompressionBombWarning
+                    warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
+                    if self.database.is_image_landscape(my_image.image_path) is True:
+                        my_image.image_orientation = my_image.wallpaper_orientations['landscape']
+                    else:
+                        my_image.image_orientation = my_image.wallpaper_orientations['portrait']
+                    self.database.add_image_to_database(my_image)
+                    resize_image(my_image.image_path)
+        else:
+            logger.debug('start_new_wallpaper_download() - No downloader is activated!')
 
-    def get_enabled_sources(self):
-        # TODO erweitern um additional downloaders!
+    def get_activated_sources(self):
+        """
+        Joins enabled built-in and enabled external sources and returns one list with
+        all enabled sources.
+        :return self.enabled_sources:
+        """
         logger.debug('get_enabled_sources()')
-        for key, value in self.config.items():
-            if key.startswith('source_') and value is True:
-                built_in_downloaders = wariety_config.BUILT_IN_DOWNLOADERS  # TODO
-                if key in built_in_downloaders:
-                    self.enabled_sources[key] = built_in_downloaders[key]
-                else:
-                    self.enabled_sources[key] = ''
-        return self.enabled_sources
+        _tmp = {**self.config.builtin_downloaders, **self.config.external_downloaders}
+        activated = {}
+        for dl in _tmp:
+            if _tmp[dl] is True:
+                activated[dl] = _tmp[dl]
+        return activated
+
+    def get_available_sources(self):
+        """
+        Joins available built-in and available external sources and returns one list with
+        all available sources.
+        :return:
+        """
+        logger.debug('get_available_sources()')
+        return {**self.config.available_builtin_downloaders, **self.config.available_external_downloaders}
 
     def get_random_downloader(self):
+        """
+        Selects randomly one of the enabled sources and returns an instance of it.
+        :return my_downloader:
+        """
         logger.debug('get_random_downloader()')
         try:
-            enabled_sources = self.get_enabled_sources()
-            my_downloader = __import__(random.choice(list(enabled_sources.values()))) # TODO Als Instanz einer Klasse?
+            my_downloader_name = random.choice(list(self.get_activated_sources().keys()))
+            _available_downloaders = self.get_available_sources()
+            my_downloader = _available_downloaders[my_downloader_name][5]  # TODO Not so nice :-(
             return my_downloader
         except IndexError:
-            return ''
+            e = sys.exc_info()[0]
+            logger.debug('get_random_downloader() - IndexError: {}'.format(e))
 
     def download_image(self, full_image_url, image_name):
         """Creates the folder 'WarietyWallpaperImages' in the temporary
@@ -138,7 +270,7 @@ class WarietyDownloader(threading.Thread):
         by 'full_image_url', stores it there and returns the path to it
         """
         logger.debug('download_image({}, {})'.format(full_image_url, image_name))
-        dir_path = self.config['download_wallpaper_folder']
+        dir_path = self.config.download_wallpaper_folder
         os.makedirs(dir_path, exist_ok=True)
         if os.path.isfile(full_image_url):
             im = PIL.Image.open(full_image_url)
@@ -150,71 +282,6 @@ class WarietyDownloader(threading.Thread):
                 handler.write(img_data)
         return os.path.join(dir_path, image_name)
 
-    def resize_image(self, full_image_path):
-        """Checks image size and resolution of image given by 'full_image_path'
-        and compares it with screen size and resolution. Resizes image if necessary
-        and overwrites image then.
-        """
-        logger.debug('resize_image({})'.format(full_image_path))
-        image = PIL.Image.open(full_image_path)
-        image_width = image.size[0]
-        image_heigth = image.size[1]
-        screen_width = self.get_screen_width()
-        screen_height = self.get_screen_height()
-        new_size = self.get_correct_image_size(image_width, image_heigth, screen_width, screen_height)
-        new_image = image.resize(new_size, PIL.Image.LANCZOS)
-        new_image.save(full_image_path, dpi=(72, 72))
-
-    def get_generated_image_name(self, full_image_url):
-        """Expects URL to an image, retrieves its file extension and returns
-        an image name based on the current date and with the correct file
-        extension
-        """
-        logger.debug('get_generated_image_name({})'.format(full_image_url))
-        image_name = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-        image_extension = full_image_url.split(".")[-1]
-        image_name = image_name + "." + image_extension
-        return image_name
-
-    def is_screen_landscape(self):
-        """Checks the current screen orientation and returns 'True' if the screen orientation
-        is landscape
-        """
-        logger.debug('is_screen_landscape()')
-        if self.get_screen_width() / self.get_screen_height() > 1:
-            return True
-        else:
-            return False
-
-    def get_screen_width(self):
-        """Reads Windows System Metrics and returns screen width in pixel"""
-        logger.debug('get_screen_width()')
-        width = win32api.GetSystemMetrics(0)
-        return width
-
-    def get_screen_height(self):
-        """Reads Windows System Metrics and returns screen heigth in pixel"""
-        logger.debug('get_screen_height()')
-        height = win32api.GetSystemMetrics(1)
-        return height
-
-    def get_correct_image_size(self, image_width, image_heigth, screen_width, screen_height):
-        """Calculates the correct proportional image size depending
-        on the current image width and height and on the screen's width
-        and height. Returns a tuple of width and height.
-        """
-        logger.debug(
-            'get_correct_image_size({}, {}, {}, {})'.format(image_width, image_heigth, screen_width, screen_height))
-        new_width = 0
-        new_height = 0
-        if (image_width / image_heigth) >= 1:
-            new_width = screen_width
-            new_height = int((image_heigth / image_width) * screen_width)
-        else:
-            new_height = screen_height
-            new_width = int((image_width / image_heigth) * screen_height)
-        return (new_width, new_height)
-
     def start_check_download_folder_size(self):
         """
         Reads download folder settings (path, max size), calculates limit and removes
@@ -222,13 +289,13 @@ class WarietyDownloader(threading.Thread):
         :return:
         """
         logger.debug('start_check_download_folder_size()')
-        download_folder_path = self.config['download_wallpaper_folder']
-        check_download_folder_size = self.config['max_wallpaper_folder']
-        download_folder_max_size = self.config['max_wallpaper_folder_size']
+        download_folder_path = self.config.download_wallpaper_folder
+        check_download_folder_size = self.config.max_wallpaper_folder
+        download_folder_max_size = self.config.max_wallpaper_folder_size
         limit = int(download_folder_max_size) * 1000 * 1000
         if check_download_folder_size:
             # Clear folder
-            while self.get_download_folder_size(download_folder_path) >= limit:
+            while get_download_folder_size(download_folder_path) >= limit:
                 my_image = self.database.get_oldest_image()
                 self.database.remove_image_by_id(my_image.id)
                 try:
@@ -239,29 +306,3 @@ class WarietyDownloader(threading.Thread):
                     e = sys.exc_info()[0]
                     logger.debug('start_check_download_folder_size() - {}'.format(e))
                 time.sleep(1)
-
-    def get_download_folder_size(self, start_path='.'):
-        """
-        Tries to read the folder size of the folder given by 'start_path'.
-        Returns total folder size.
-        :param start_path:
-        :return total_size:
-        """
-        logger.debug('get_download_folder_size({})'.format(start_path))
-
-        # Default value
-        total_size = 0
-
-        try:
-            for dirpath, dirnames, filenames in os.walk(start_path):
-                for f in filenames:
-                    fp = os.path.join(dirpath, f)
-                    # skip if it is symbolic link
-                    if not os.path.islink(fp):
-                        total_size += os.path.getsize(fp)
-        except:
-            e = sys.exc_info()[0]
-            logger.debug('get_download_folder_size() - {}'.format(e))
-
-        finally:
-            return total_size

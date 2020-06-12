@@ -99,13 +99,13 @@ class WarietyConfig(object):
 
     def on_close(self):
         """
-        Update, push and write config to file
+        Update, write config to file and then push.
         :return:
         """
         logger.debug('on_close()')
         self.set_config()
-        self.push_updated_config()
         self.write_config_file()
+        self.push_updated_config()
 
     def read_config_file(self):
         """
@@ -273,7 +273,7 @@ class WarietyConfig(object):
                     else:
                         my_class_name = inspect.getmembers(my_module, inspect.isclass)[0][0]
                     my_class = getattr(my_module, my_class_name)
-                    my_instance = my_class()
+                    my_instance = my_class(self.config)
                     _type = my_instance.get_downloader_type()
                     if _type != '':
                         logger.debug('identify_available_downloaders() - found type "{}"'.format(_type))
