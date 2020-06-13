@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
+import datetime
 import json
 import logging
 import sys
@@ -18,7 +19,7 @@ else:
 
 
 START_URL = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=en-US'
-BASE_URL = 'https://www.bing.com/HPImageArchive.aspx'
+BASE_URL = 'https://www.bing.com/'
 DOWNLOADER_TYPE = 'bing'
 DOWNLOADER_DESCRIPTION = 'Bing Image Of The Day'
 CAPABILITIES = {'single': 'single', 'many': 'many'}
@@ -70,7 +71,7 @@ class BingDownloader(DefaultDownloader):
             next_image.image_name = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url)).split('/')[-1].split('=')[-1]
         except:
             next_image.image_name = ''
-        next_image.source_url = urllib.parse.unquote(image_url)
+        next_image.source_url = urllib.parse.unquote(BASE_URL)
         next_image.source_type = DOWNLOADER_TYPE
         next_image.image_author = ''
         next_image.source_name = 'Bing Bild des Tages'
@@ -80,4 +81,7 @@ class BingDownloader(DefaultDownloader):
         next_image.source_location = ''
         next_image.found_at_counter = last_image_counter + 1
         self.state['last_image_counter'] = next_image.found_at_counter
+        startdate = datetime.datetime.now().strftime('%Y%m%y')
+        self.state['startdate'] = startdate
+        self.state['idx'] = 0
         return next_image
