@@ -81,7 +81,7 @@ class BingDownloader(DefaultDownloader):
         next_image.source_location = ''
         next_image.found_at_counter = last_image_counter + 1
         self.state['last_image_counter'] = next_image.found_at_counter
-        startdate = datetime.datetime.now().strftime('%Y%m%y')
+        startdate = datetime.datetime.now().strftime('%Y%m%d')
         self.state['startdate'] = startdate
         self.state['idx'] = 0
         return next_image
