@@ -167,7 +167,11 @@ class WarietyDownloader(threading.Thread):
         while self.keep_running:
             self.seconds_until_fire = self.seconds_until_fire - self.check_interval
             if self.seconds_until_fire == 0:
-                self.seconds_until_fire = 60 * self.down_sched
+                if __status__ == 'Development':
+                    logger.debug('__status__ == "Development"')
+                    self.seconds_until_fire = 5 * self.down_sched
+                else:
+                    self.seconds_until_fire = 60 * self.down_sched
                 self.start_new_wallpaper_download()
                 # check dl size after each download
                 self.start_check_download_folder_size()
