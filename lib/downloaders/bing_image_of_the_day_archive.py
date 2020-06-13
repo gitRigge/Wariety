@@ -3,6 +3,7 @@
 
 import datetime
 import json
+import locale
 import logging
 import sys
 import urllib.parse
@@ -19,13 +20,13 @@ else:
 
 
 START_URL = 'https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=en-US'
-BASE_URL = 'https://www.bing.com'
+BASE_URL = 'https://www.bing.com/'
 DOWNLOADER_TYPE = 'bingarchive'
 DOWNLOADER_DESCRIPTION = 'Bing Image Of The Day Archive'
 CAPABILITIES = {'single': 'single', 'many': 'many'}
 
 
-class BingDownloader(DefaultDownloader):
+class BingArchiveDownloader(DefaultDownloader):
 
     def __init__(self, config=None):
         self.config = config
@@ -48,10 +49,16 @@ class BingDownloader(DefaultDownloader):
         return BASE_URL
 
     def get_calculated_idx(self):
-        lastidx = self.state['idx']
-        laststartdate = self.state['startdate']
-        now_dtime = datetime.datetime.now()
-        laststartdate_dtime = datetime.datetime.strptime(self.state['startdate'], '%Y%m%d')
+        try:
+            lastidx = self.state['idx']
+            laststartdate = self.state['startdate']
+        except:
+            lastidx = 0
+            laststartdate = datetime.datetime.now().strftime('%Y%m%d')
+        locale.setlocale(locale.LC_TIME, "de_DE")
+        now = datetime.datetime.now().strftime('%Y%m%d')
+        now_dtime = datetime.datetime.strptime(now, '%Y%m%d')
+        laststartdate_dtime = datetime.datetime.strptime(laststartdate, '%Y%m%d')
         diff = now_dtime - laststartdate_dtime
         return diff.days + lastidx + 1
 
@@ -63,9 +70,9 @@ class BingDownloader(DefaultDownloader):
         :param last_image_counter:
         :return next_image:
         """
-        my_idx = self.get_calculated_idx()
-        my_start_url = START_URL.replace('0', my_idx)
         next_image = wariety_wallpaper.WarietyWallpaper()
+        my_idx = self.get_calculated_idx()
+        my_start_url = START_URL.replace('0', str(my_idx))
         response = requests.get(my_start_url)
         image_data = json.loads(response.text)
 
@@ -81,7 +88,7 @@ class BingDownloader(DefaultDownloader):
             next_image.image_name = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url)).split('/')[-1].split('=')[-1]
         except:
             next_image.image_name = ''
-        next_image.source_url = urllib.parse.unquote(image_url)
+        next_image.source_url = urllib.parse.unquote(BASE_URL)
         next_image.source_type = DOWNLOADER_TYPE
         next_image.image_author = ''
         next_image.source_name = 'Bing Bild des Tages Archiv'
@@ -91,7 +98,7 @@ class BingDownloader(DefaultDownloader):
         next_image.source_location = ''
         next_image.found_at_counter = last_image_counter + 1
         self.state['last_image_counter'] = next_image.found_at_counter
-        startdate = datetime.datetime.now().strftime('%Y%m%y')
+        startdate = datetime.datetime.now().strftime('%Y%m%d')
         self.state['startdate'] = startdate
         self.state['idx'] = my_idx
         return next_image
