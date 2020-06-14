@@ -8,6 +8,7 @@ import os
 import sys
 import time
 
+import win32com.client
 import wx
 import wx.adv
 from pubsub import pub
@@ -68,6 +69,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         pub.subscribe(self.update_downloader, "config updated")
         pub.subscribe(self.update_updater, "config updated")
         pub.subscribe(self.update_manual_fetcher, "config updated")
+        pub.subscribe(self.update_start_at_startup, "config updated")
         # Instantiate the wallpaper updater
         if self.myConfig.wallpaper_change:
             self.myUpdater = lib.wariety_updater.WarietyUpdater(
@@ -209,7 +211,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         wx.CallAfter(self.Destroy)
 
     def update_downloader(self, msg):
-        logging.debug('update_downloader()')
+        logging.debug('update_downloader(msg)')
         self.myDownloader.stop()
         self.myConfig = lib.wariety_config.WarietyConfig(CONFIGFILE)
         if msg['download_wallpaper']:
@@ -219,17 +221,126 @@ class WarietyMain(wx.adv.TaskBarIcon):
             self.myDownloader = lib.wariety_downloader.WarietyDownloader(0, self.myConfig)
 
     def update_updater(self, msg):
-        logging.debug('update_updater()')
+        logging.debug('update_updater(msg)')
         self.myUpdater.stop()
         if msg['wallpaper_change']:
-            self.myUpdater = lib.wariety_updater.WarietyUpdater(msg['wallpaper_change_interval'], msg)
+            self.myUpdater = lib.wariety_updater.WarietyUpdater(msg['wallpaper_change_interval'], msg)  # TODO myConfig statt msg
         else:
-            self.myUpdater = lib.wariety_updater.WarietyUpdater(0, msg)
+            self.myUpdater = lib.wariety_updater.WarietyUpdater(0, msg)  # TODO myConfig statt msg
 
     def update_manual_fetcher(self, msg):
-        logging.debug('update_manual_fetcher()')
+        logging.debug('update_manual_fetcher(msg)')
         self.myManualFetcher.on_thread_stop()
-        self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(msg)
+        self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(msg)  # TODO myConfig statt msg
+
+    def update_start_at_startup(self, msg):
+        logging.debug('update_start_at_startup(msg)')
+        shortcut_name = '{}.lnk'.format(APP_NAME)
+        if msg['start_at_startup']:
+            self.enable_start_at_startup(shortcut_name)
+        else:
+            self.disable_start_at_startup(shortcut_name)
+
+    def exists_start_at_startup_shortcut(self, shortcut_name):
+        """
+        Checks whether autostart shortcut exists. If it exists, returns 'True'.
+        Otherwise, returns 'False'.
+        :return startup_shortcut_exists:
+        """
+        logging.debug('exists_start_at_startup({})'.format(shortcut_name))
+        startup_shortcut_exists = False
+        my_startup_folder = self.get_path_to_startup_folder()
+        my_startup_shortcut_path = os.path.join(my_startup_folder, shortcut_name)
+        if os.path.isfile(my_startup_shortcut_path):
+            logging.debug('exists_start_at_startup() - Shortcut already exists')
+            startup_shortcut_exists = True
+        else:
+            logging.debug('exists_start_at_startup() - Shortcut does not exist')
+            pass
+        return startup_shortcut_exists
+
+    def enable_start_at_startup(self, shortcut_name):
+        """
+        Adds autostart shortcut.
+        :return:
+        """
+        logging.debug('enable_start_at_startup({})'.format(shortcut_name))
+        if not self.exists_start_at_startup_shortcut(shortcut_name):
+            logging.debug('enable_start_at_startup() - Need to create shortcut')
+            my_target = self.get_path_to_exe()
+            self.create_startup_shortcut(shortcut_name, my_target)
+        else:
+            logging.debug('enable_start_at_startup() - Nothing to do')
+            pass
+
+    def disable_start_at_startup(self, shortcut_name):
+        """
+        Removes autostart shortcut.
+        :return:
+        """
+        logging.debug('disable_start_at_startup({})'.format(shortcut_name))
+        if self.exists_start_at_startup_shortcut(shortcut_name):
+            logging.debug('disable_start_at_startup() - Need to remove shortcut')
+            self.remove_startup_shortcut(shortcut_name)
+        else:
+            logging.debug('disable_start_at_startup() - Nothing to do')
+            pass
+
+    def get_path_to_exe(self):
+        """
+        Determines and returns the path to this application. Assuming that the exe file has the same path
+        like this py file.
+        :return my_path:
+        """
+        logging.debug('get_path_to_exe()')
+        my_path = os.path.abspath(__file__)
+        my_path = my_path.replace('.py', '.exe')
+        return my_path
+
+    def get_path_to_startup_folder(self):
+        """
+        Determines, ensures that is exists and returns the absolute path to the user's
+        Windows Startup folder.
+        :return startup_abspath:
+        """
+        logging.debug('get_path_to_startup_folder()')
+        startup_path = os.path.join(os.environ['APPDATA'], r'Microsoft\Windows\Start Menu\Programs\Startup')
+        startup_abspath = os.path.abspath(startup_path)
+        os.makedirs(startup_abspath, exist_ok=True)
+        return startup_abspath
+
+    def create_startup_shortcut(self, shortcut_name, target):
+        """
+        Creates a startup shortcut with the name given by 'shortcut_name' and
+        the target given by 'target'. Sets working dir to target dir and icon
+        to target icon.
+        :param shortcut_name:
+        :param target:
+        :return:
+        """
+        logging.debug('create_shortcut({}, {})'.format(shortcut_name, target))
+        startup_path = self.get_path_to_startup_folder()
+        path = os.path.join(startup_path, shortcut_name)
+        wDir = os.path.dirname(target)
+        icon = target
+        shell = win32com.client.Dispatch('WScript.Shell')
+        shortcut = shell.CreateShortCut(path)
+        shortcut.Targetpath = target
+        shortcut.WorkingDirectory = wDir
+        shortcut.IconLocation = icon
+        shortcut.save()
+
+    def remove_startup_shortcut(self, shortcut_name):
+        """
+        Removes the startup shortcut given by the name 'shortcut_name'
+        :param shortcut_name:
+        :return:
+        """
+        logging.debug('remove_startup_shortcut({})'.format(shortcut_name))
+        startup_path = self.get_path_to_startup_folder()
+        path = os.path.join(startup_path, shortcut_name)
+        os.remove(path)
+
 
 def create_menu_item(menu, label, func):
     item = wx.MenuItem(menu, -1, label)
