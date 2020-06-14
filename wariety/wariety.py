@@ -55,35 +55,47 @@ class WarietyMain(wx.adv.TaskBarIcon):
         super(WarietyMain, self).__init__()
         self.set_icon()
         self.dbl_clk_delay = 200
+
         # Event bindings
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DOWN, self.on_left_down)
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DCLICK, self.on_left_double)
         self.Bind(wx.EVT_TIMER, self.on_left_single)
+
         # Configuration
         self.myConfig = lib.wariety_config.WarietyConfig(CONFIGFILE)
+
         # DB initializing
         self.database = lib.wariety_database.WarietyDatabase(self.myConfig.to_dict())
         self.database.database_maintenance()
         self.database.__del__()
+
         # Messaging
         pub.subscribe(self.update_downloader, "config updated")
         pub.subscribe(self.update_updater, "config updated")
         pub.subscribe(self.update_manual_fetcher, "config updated")
         pub.subscribe(self.update_start_at_startup, "config updated")
+
         # Instantiate the wallpaper updater
         if self.myConfig.wallpaper_change:
             self.myUpdater = lib.wariety_updater.WarietyUpdater(
                 self.myConfig.wallpaper_change_interval, self.myConfig.to_dict())
         else:
             self.myUpdater = lib.wariety_updater.WarietyUpdater(0, self.myConfig.to_dict())
+
         # Instantiate the wallpaper downloader
         if self.myConfig.download_wallpaper:
             self.myDownloader = lib.wariety_downloader.WarietyDownloader(
                 self.myConfig.download_wallpaper_interval, self.myConfig)
         else:
             self.myDownloader = lib.wariety_downloader.WarietyDownloader(0, self.myConfig)
+
         # Run Observer in any case
         self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(self.myConfig.to_dict())
+
+        # Check autostart settings
+        if self.myConfig.start_at_startup:
+            shortcut_name = '{}.lnk'.format(APP_NAME)
+            self.enable_start_at_startup(shortcut_name)
 
     def CreatePopupMenu(self):
         menu = wx.Menu()
