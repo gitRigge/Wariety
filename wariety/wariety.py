@@ -18,10 +18,11 @@ import lib.wariety_database
 import lib.wariety_downloader
 import lib.wariety_manual_fetcher
 import lib.wariety_updater
+import wariety_autostarter.setup_wariety_uploader
 
 __author__ = "Roland Rickborn (gitRigge)"
 __copyright__ = "Copyright (c) 2020 gitRigge"
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __desc__ = "[Description]"
 __status__ = "Development"
 __url__ = "https://github.com/gitRigge/wariety"
@@ -35,7 +36,9 @@ Copyright (c) 2020 gitRigge
 """
 
 APP_NAME = 'Wariety'
+CONFIGPATH = os.path.abspath(os.path.join(os.environ['LOCALAPPDATA'], APP_NAME))
 CONFIGFILE = os.path.join(os.environ['LOCALAPPDATA'], APP_NAME, 'config.ini')
+TOOL_NAME = 'wariety_set_wallpaper'
 
 def get_aboutDlg_args():
     __license__ = get_license()
@@ -74,6 +77,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         pub.subscribe(self.update_updater, "config updated")
         pub.subscribe(self.update_manual_fetcher, "config updated")
         pub.subscribe(self.update_start_at_startup, "config updated")
+        pub.subscribe(self.update_change_wallpaper_at_startup, "config updated")
 
         # Instantiate the wallpaper updater
         if self.myConfig.wallpaper_change:
@@ -95,7 +99,26 @@ class WarietyMain(wx.adv.TaskBarIcon):
         # Check autostart settings
         if self.myConfig.start_at_startup:
             shortcut_name = '{}.lnk'.format(APP_NAME)
-            self.enable_start_at_startup(shortcut_name)
+            my_target = self.get_path_to_exe()
+            hidden = False
+            self.enable_start_at_startup(my_target, shortcut_name, hidden)
+
+        # Check auto updater settings
+        my_updater_tool_name = '{}.bat'.format(TOOL_NAME)
+        my_updater_tool_path = os.path.abspath(os.path.join(CONFIGPATH, my_updater_tool_name))
+        if not os.path.isfile(my_updater_tool_path):
+            my_download_path = self.myConfig.download_wallpaper_folder
+            my_fetch_path = self.myConfig.manual_download_folder
+            wariety_autostarter.setup_wariety_uploader.write_batch_file(my_updater_tool_path, my_download_path,
+                                                                        my_fetch_path)
+        else:
+            pass
+        if self.myConfig.change_wallpaper_at_startup:
+            target = my_updater_tool_path
+            shortcut_name = '{}.lnk'.format(TOOL_NAME)
+            hidden = True
+            self.enable_start_at_startup(target, shortcut_name, hidden)
+
 
     def CreatePopupMenu(self):
         menu = wx.Menu()
@@ -247,9 +270,22 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
     def update_start_at_startup(self, msg):
         logging.debug('update_start_at_startup(msg)')
+        my_target = self.get_path_to_exe()
         shortcut_name = '{}.lnk'.format(APP_NAME)
+        hidden = False
         if msg['start_at_startup']:
-            self.enable_start_at_startup(shortcut_name)
+            self.enable_start_at_startup(my_target, shortcut_name, hidden)
+        else:
+            self.disable_start_at_startup(shortcut_name)
+
+    def update_change_wallpaper_at_startup(self, msg):
+        logging.debug('update_change_wallpaper_at_startup(msg)')
+        my_updater_tool_name = '{}.bat'.format(TOOL_NAME)
+        my_target = os.path.abspath(os.path.join(CONFIGPATH, my_updater_tool_name))
+        shortcut_name = '{}.lnk'.format(TOOL_NAME)
+        hidden = True
+        if msg['change_wallpaper_at_startup']:
+            self.enable_start_at_startup(my_target, shortcut_name, hidden)
         else:
             self.disable_start_at_startup(shortcut_name)
 
@@ -271,16 +307,15 @@ class WarietyMain(wx.adv.TaskBarIcon):
             pass
         return startup_shortcut_exists
 
-    def enable_start_at_startup(self, shortcut_name):
+    def enable_start_at_startup(self, target='', shortcut_name='', hidden=False):
         """
         Adds autostart shortcut.
         :return:
         """
-        logging.debug('enable_start_at_startup({})'.format(shortcut_name))
+        logging.debug('enable_start_at_startup({}, {}, {})'.format(target, shortcut_name, hidden))
         if not self.exists_start_at_startup_shortcut(shortcut_name):
             logging.debug('enable_start_at_startup() - Need to create shortcut')
-            my_target = self.get_path_to_exe()
-            self.create_startup_shortcut(shortcut_name, my_target)
+            self.create_startup_shortcut(target, shortcut_name, hidden)
         else:
             logging.debug('enable_start_at_startup() - Nothing to do')
             pass
@@ -321,7 +356,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         os.makedirs(startup_abspath, exist_ok=True)
         return startup_abspath
 
-    def create_startup_shortcut(self, shortcut_name, target):
+    def create_startup_shortcut(self, target, shortcut_name, hidden=False):
         """
         Creates a startup shortcut with the name given by 'shortcut_name' and
         the target given by 'target'. Sets working dir to target dir and icon
@@ -330,7 +365,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         :param target:
         :return:
         """
-        logging.debug('create_shortcut({}, {})'.format(shortcut_name, target))
+        logging.debug('create_shortcut({}, {}, {})'.format(shortcut_name, target, str(hidden)))
         startup_path = self.get_path_to_startup_folder()
         path = os.path.join(startup_path, shortcut_name)
         wDir = os.path.dirname(target)
@@ -340,6 +375,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
         shortcut.Targetpath = target
         shortcut.WorkingDirectory = wDir
         shortcut.IconLocation = icon
+        if hidden is True:
+            shortcut.WindowStyle = 7
         shortcut.save()
 
     def remove_startup_shortcut(self, shortcut_name):

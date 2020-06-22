@@ -7,6 +7,7 @@
       <sourceFolder url="file://$MODULE_DIR$/data" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/data/downloaders" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/lib/downloaders" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/wariety_autostarter" isTestSource="false" />
     </content>
     <orderEntry type="jdk" jdkName="Pipenv (wariety.git)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
