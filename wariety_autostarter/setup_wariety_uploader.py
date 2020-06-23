@@ -5,8 +5,8 @@ CONTENT = """@echo off
 
 setlocal enabledelayedexpansion
 
-set folder1=c:AAA
-set folder2=c:BBB
+set folder1=AAA
+set folder2=BBB
 
 set count=0
 set x=0
