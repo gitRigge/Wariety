@@ -5,15 +5,123 @@ import datetime
 import hashlib
 import logging
 import os
-import PIL.Image
 import random
 import sqlite3
 import sys
 import warnings
 
+import PIL.Image
+
 import wariety_wallpaper
 
 logger = logging.getLogger(__name__)
+
+
+def set_total_seen_number(wallpaper_id):
+    logger.debug('set_total_seen_number({})'.format(wallpaper_id))
+    pass
+
+
+def set_seen_date(wallpaper_id):
+    logger.debug('set_seen_date({})'.format(wallpaper_id))
+    pass
+
+
+def is_image_landscape(asset):
+    """Checks the orientation of the asset given by 'asset' and returns 'True' if the asset's
+    orientation is landscape. Returns 'False' in any other case.
+    """
+    # Turn of PIL DecompressionBombWarning
+    logger.debug('is_image_landscape({})'.format(asset))
+    warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
+
+    # Default value
+    myDim = 0
+
+    try:
+        im = PIL.Image.open(asset)
+        myDim = im.size
+        im.close()
+        if (myDim[0] > 0) and (myDim[1] > 0):
+            # Calculate Width:Height; > 0 == landscape; < 0 == portrait
+            if myDim[0]/myDim[1] > 1:
+                return True
+            else:
+                return False
+        else:
+            return False
+    except:
+        e = sys.exc_info()[0]
+        logger.debug('is_image_landscape() - {}'.format(e))
+
+
+def get_md5_hash_of_file(full_image_path):
+    """
+    Calculates and returns the MD5 hash value for the file given by 'full_image_path'.
+    :param full_image_path:
+    :return image_hash_value:
+    """
+    logger.debug('get_md5_hash_of_file({})'.format(full_image_path))
+
+    image_hash_value = 0
+
+    try:
+        hash_md5 = hashlib.md5()
+        with open(full_image_path, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        image_hash_value = hash_md5.hexdigest()
+    except FileNotFoundError as error:
+        logger.debug("Error while trying to access file", error)
+
+    finally:
+        return image_hash_value
+
+
+def remove_image_file(image_file_path):
+    """
+    Removes file given by 'image_file_path' from filesystem.
+    :param image_file_path:
+    :return:
+    """
+    logger.debug('remove_image_file({})'.format(image_file_path))
+
+    try:
+        if os.path.isfile(image_file_path):
+            os.remove(image_file_path)
+    except:
+        e = sys.exc_info()[0]
+        logger.debug('is_image_landscape() - {}'.format(e))
+
+
+def get_all_image_paths_from_folder_by_path(dir_path):
+    """
+    Reads the folder given by 'dir_path' and returns a list
+    of full image paths of all images currently stored there.
+    :return:
+    """
+    logging.debug('get_all_images_from_filesystem()')
+
+    all_full_image_paths = []
+    for my_file in os.listdir(dir_path):
+        if os.path.isfile(os.path.join(dir_path, my_file)):
+            all_full_image_paths.append(os.path.join(dir_path, my_file))
+            all_full_image_paths.append(os.path.join(dir_path, my_file))
+    return all_full_image_paths
+
+
+def get_empty_image():
+    """
+    Returns an empty wallpaper object.
+    :return: my_image:
+    """
+    logger.debug('get_empty_image()')
+
+    # Wallpaper
+    my_image = wariety_wallpaper.WarietyWallpaper()
+
+    return my_image
+
 
 class WarietyDatabase(object):
     """docstring for WarietyDatabase"""
@@ -268,18 +376,6 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
 
-    def get_empty_image(self):
-        """
-        Returns an empty wallpaper object.
-        :return: my_image:
-        """
-        logger.debug('get_empty_image()')
-
-        # Wallpaper
-        my_image = wariety_wallpaper.WarietyWallpaper()
-
-        return my_image
-
     def get_latest_image(self, source_type='*', status='DOWNLOADED'):
         """
         Returns the latest downloaded image at all. Or, if given, returns the
@@ -310,7 +406,7 @@ class WarietyDatabase(object):
             result = c.fetchone()
 
             if result is not None:
-                my_image = wariety_wallpaper.WarietyWallpaper().to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
+                my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
             else:
                 my_image.found_at_counter = -1
 
@@ -359,8 +455,8 @@ class WarietyDatabase(object):
             result = c.fetchone()
 
             if result is not None:
-                my_image = wariety_wallpaper.WarietyWallpaper().to_wallpaper(result,
-                                                                             wariety_wallpaper.WarietyWallpaper())
+                my_image = wariety_wallpaper.to_wallpaper(result,
+                                                          wariety_wallpaper.WarietyWallpaper())
             else:
                 my_image.found_at_counter = -1
 
@@ -372,7 +468,6 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
             return my_image
-
 
     def get_oldest_image(self, source_type='*', status='DOWNLOADED'):
         """
@@ -387,7 +482,7 @@ class WarietyDatabase(object):
         logger.debug('get_oldest_image({}, {})'.format(source_type, status))
 
         # Wallpaper
-        my_image = wariety_wallpaper.WarietyWallpaper()
+        my_image = wariety_wallpaper
 
         try:
             # Establish connection
@@ -406,6 +501,46 @@ class WarietyDatabase(object):
             result = c.fetchone()
             my_image = my_image.to_wallpaper(result, my_image)
             #except:
+            #    my_image.id = -1
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if (conn):
+                # Close connection
+                conn.close()
+            return my_image
+
+    def get_unseen_image(self, source_type='*', status='DOWNLOADED'):
+        logger.debug('get_unseen_image({}, {})'.format(source_type, status))
+
+        # Wallpaper
+        my_image = wariety_wallpaper
+
+        try:
+            # Establish connection
+            conn = sqlite3.connect(self.db_file)
+            c = conn.cursor()
+
+            # Select a row
+            if source_type == '*':
+                sql = 'SELECT * \
+                    FROM wallpapers \
+                    WHERE status = ? AND total_seen_number = 0 \
+                    ORDER BY download_date ASC LIMIT 1'
+                c.execute(sql, (status,))
+            else:
+                sql = 'SELECT * \
+                    FROM wallpapers \
+                    WHERE source_type = ? AND status = ? AND total_seen_number = 0 \
+                    ORDER BY download_date ASC LIMIT 1'
+                c.execute(sql, (source_type, status,))
+
+            # try:
+            result = c.fetchone()
+            my_image = my_image.to_wallpaper(result, my_image)
+            # except:
             #    my_image.id = -1
 
         except sqlite3.Error as error:
@@ -513,42 +648,12 @@ class WarietyDatabase(object):
 
         # Check temporary folder
         dir_path = self.config['download_wallpaper_folder']
-        all_image_file_paths = self.get_all_image_paths_from_folder_by_path(dir_path)
+        all_image_file_paths = get_all_image_paths_from_folder_by_path(dir_path)
         for image_file_path in all_image_file_paths:
             image_id = self.exists_image_by_url_or_path(image_file_path)
             if not image_id:
-                self.remove_image_file(image_file_path)
+                remove_image_file(image_file_path)
                 logging.debug('database_maintenance() - image not in database, deleted')
-
-    def get_all_image_paths_from_folder_by_path(self, dir_path):
-        """
-        Reads the folder given by 'dir_path' and returns a list
-        of full image paths of all images currently stored there.
-        :return:
-        """
-        logging.debug('get_all_images_from_filesystem()')
-
-        all_full_image_paths = []
-        for my_file in os.listdir(dir_path):
-            if os.path.isfile(os.path.join(dir_path, my_file)):
-                all_full_image_paths.append(os.path.join(dir_path, my_file))
-                all_full_image_paths.append(os.path.join(dir_path, my_file))
-        return all_full_image_paths
-
-    def remove_image_file(self, image_file_path):
-        """
-        Removes file given by 'image_file_path' from filesystem.
-        :param image_file_path:
-        :return:
-        """
-        logger.debug('remove_image_file({})'.format(image_file_path))
-
-        try:
-            if os.path.isfile(image_file_path):
-                os.remove(image_file_path)
-        except:
-            e = sys.exc_info()[0]
-            logger.debug('is_image_landscape() - {}'.format(e))
 
     def get_all_image_ids_and_paths_from_database(self):
         """
@@ -581,52 +686,3 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
                 return all_images
-
-    def get_md5_hash_of_file(self, full_image_path):
-        """
-        Calculates and returns the MD5 hash value for the file given by 'full_image_path'.
-        :param full_image_path:
-        :return image_hash_value:
-        """
-        logger.debug('get_md5_hash_of_file({})'.format(full_image_path))
-
-        image_hash_value = 0
-
-        try:
-            hash_md5 = hashlib.md5()
-            with open(full_image_path, "rb") as f:
-                for chunk in iter(lambda: f.read(4096), b""):
-                    hash_md5.update(chunk)
-            image_hash_value = hash_md5.hexdigest()
-        except FileNotFoundError as error:
-            logger.debug("Error while trying to access file", error)
-
-        finally:
-            return image_hash_value
-
-    def is_image_landscape(self, asset):
-        """Checks the orientation of the asset given by 'asset' and returns 'True' if the asset's
-        orientation is landscape. Returns 'False' in any other case.
-        """
-        # Turn of PIL DecompressionBombWarning
-        logger.debug('is_image_landscape({})'.format(asset))
-        warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
-
-        # Default value
-        myDim = 0
-
-        try:
-            im = PIL.Image.open(asset)
-            myDim = im.size
-            im.close()
-            if (myDim[0] > 0) and (myDim[1] > 0):
-                # Calculate Width:Height; > 0 == landscape; < 0 == portrait
-                if myDim[0]/myDim[1] > 1:
-                    return True
-                else:
-                    return False
-            else:
-                return False
-        except:
-            e = sys.exc_info()[0]
-            logger.debug('is_image_landscape() - {}'.format(e))

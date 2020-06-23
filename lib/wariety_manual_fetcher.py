@@ -3,14 +3,15 @@
 
 import datetime
 import logging
-import sys
 import os
-import PIL.Image
+import sys
 import time
 import warnings
+
+import PIL.Image
 from PIL import IptcImagePlugin
-from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 import wariety_database
 
@@ -38,7 +39,7 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
         if self.is_image_file(full_image_path) is True:
             if self.database.exists_image_by_url_or_path(full_image_path) == 0:
                 logger.debug('on_created() - add new image')
-                my_new_wallpaper = self.database.get_empty_image()
+                my_new_wallpaper = wariety_database.get_empty_image()
                 self.fill_image_metadata(full_image_path, my_new_wallpaper)
                 self.database.add_image_to_database(my_new_wallpaper)
             else:
@@ -78,12 +79,12 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
                 logger.debug('on_moved() - remove existing image')
                 self.database.remove_image_by_id(self.database.exists_image_by_url_or_path(full_image_path_old))
                 logger.debug('on_moved() - add moved image')
-                my_new_wallpaper = self.database.get_empty_image()
+                my_new_wallpaper = wariety_database.get_empty_image()
                 self.fill_image_metadata(full_image_path, my_new_wallpaper)
                 self.database.add_image_to_database(my_new_wallpaper)
             else:
                 logger.debug('on_moved() - add new image')
-                my_new_wallpaper = self.database.get_empty_image()
+                my_new_wallpaper = wariety_database.get_empty_image()
                 self.fill_image_metadata(full_image_path, my_new_wallpaper)
                 self.database.add_image_to_database(my_new_wallpaper)
         else:
@@ -132,7 +133,7 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
             wallpaper.image_name = str(os.path.basename(image_file_path))
         else:
             wallpaper.image_name = _i_name
-        wallpaper.image_md5_hash = self.database.get_md5_hash_of_file(image_file_path)
+        wallpaper.image_md5_hash = wariety_database.get_md5_hash_of_file(image_file_path)
         wallpaper.image_path = image_file_path
         wallpaper.source_url = '' # TODO
         wallpaper.source_type = 'fetched'
@@ -146,7 +147,7 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
             wallpaper.source_name = _s_name
         wallpaper.keywords = self.get_image_keywords_by_metadata(my_iptc)
         wallpaper.found_at_counter = 0
-        if self.database.is_image_landscape(image_file_path):
+        if wariety_database.is_image_landscape(image_file_path):
             wallpaper.image_orientation = wallpaper.wallpaper_orientations['landscape']
         else:
             wallpaper.image_orientation = wallpaper.wallpaper_orientations['portrait']
@@ -316,11 +317,11 @@ class WarietyManualFetcher(Observer):
         """
         logging.debug('initial_folder_scan()')
 
-        all_image_file_paths = self.database.get_all_image_paths_from_folder_by_path(fetch_dir)
+        all_image_file_paths = wariety_database.get_all_image_paths_from_folder_by_path(fetch_dir)
         for image_file_path in all_image_file_paths:
             image_id = self.database.exists_image_by_url_or_path(image_file_path)
             if not image_id:
                 logging.debug('initial_folder_scan() - add new image')
-                my_new_wallpaper = self.database.get_empty_image()
+                my_new_wallpaper = wariety_database.get_empty_image()
                 self.event_handler.fill_image_metadata(image_file_path, my_new_wallpaper)
                 self.database.add_image_to_database(my_new_wallpaper)

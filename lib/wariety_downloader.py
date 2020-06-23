@@ -133,7 +133,7 @@ class WarietyDownloaderThread(threading.Thread):
         logger.debug('Starting downloader thread')
         logger.debug('__init__()')
         self.config = config
-        self.database = wariety_database.WarietyDatabase(self.config.to_dict())
+        self.database = wariety_database.WarietyDatabase(self.config)
 
         # Initial dl size check
         self.start_check_download_folder_size()
@@ -200,10 +200,10 @@ class WarietyDownloaderThread(threading.Thread):
                     my_image.image_name = get_generated_image_name(my_image.image_url)
                 # Download image
                 my_image.image_path = self.download_image(my_image.image_url, my_image.image_name)
-                my_image.image_md5_hash = self.database.get_md5_hash_of_file(my_image.image_path)
+                my_image.image_md5_hash = wariety_database.get_md5_hash_of_file(my_image.image_path)
                 # Turn of PIL DecompressionBombWarning
                 warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
-                if self.database.is_image_landscape(my_image.image_path):
+                if wariety_database.is_image_landscape(my_image.image_path):
                     my_image.image_orientation = my_image.wallpaper_orientations['landscape']
                 else:
                     my_image.image_orientation = my_image.wallpaper_orientations['portrait']
@@ -218,10 +218,10 @@ class WarietyDownloaderThread(threading.Thread):
                         my_image.image_name = get_generated_image_name(my_image.image_url)
                     # Download image
                     my_image.image_path = self.download_image(my_image.image_url, my_image.image_name)
-                    my_image.image_md5_hash = self.database.get_md5_hash_of_file(my_image.image_path)
+                    my_image.image_md5_hash = wariety_database.get_md5_hash_of_file(my_image.image_path)
                     # Turn of PIL DecompressionBombWarning
                     warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
-                    if self.database.is_image_landscape(my_image.image_path) is True:
+                    if wariety_database.is_image_landscape(my_image.image_path) is True:
                         my_image.image_orientation = my_image.wallpaper_orientations['landscape']
                     else:
                         my_image.image_orientation = my_image.wallpaper_orientations['portrait']
@@ -303,7 +303,7 @@ class WarietyDownloaderThread(threading.Thread):
                 my_image = self.database.get_oldest_image()
                 self.database.remove_image_by_id(my_image.id)
                 try:
-                    self.database.remove_image_file(my_image.image_path)
+                    wariety_database.remove_image_file(my_image.image_path)
                 except PermissionError:
                     logger.debug('start_check_download_folder_size() - PermissionError')
                 except:

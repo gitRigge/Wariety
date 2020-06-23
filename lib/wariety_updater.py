@@ -11,6 +11,14 @@ import win32con
 logger = logging.getLogger(__name__)
 
 
+def update_wallpaper(new_wallpaper_path):
+    """Sets asset given by 'path' as current Desktop wallpaper"""
+    logger.debug('update_wallpaper()')
+
+    cs = ctypes.create_string_buffer(new_wallpaper_path.encode('utf-8'))
+    ok = ctypes.windll.user32.SystemParametersInfoA(win32con.SPI_SETDESKWALLPAPER, 0, cs, 0)
+
+
 class WarietyUpdaterThread(threading.Thread):
     """docstring for WarietyUpdaterThread"""
 
@@ -41,7 +49,7 @@ class WarietyUpdaterThread(threading.Thread):
             self.seconds_until_fire = self.seconds_until_fire - self.check_interval
             if self.seconds_until_fire == 0:
                 self.seconds_until_fire = 60 * self.updt_sched
-                self.update_wallpaper()
+                update_wallpaper("")  # TODO Check path!
             else:
                 time.sleep(self.check_interval)
 
@@ -49,10 +57,3 @@ class WarietyUpdaterThread(threading.Thread):
         logger.debug('stop()')
         self.seconds_until_fire = 1
         self.keep_running = False
-
-    def update_wallpaper(self, new_wallpaper_path):
-        """Sets asset given by 'path' as current Desktop wallpaper"""
-        logger.debug('update_wallpaper()')
-
-        cs = ctypes.create_string_buffer(new_wallpaper_path.encode('utf-8'))
-        ok = ctypes.windll.user32.SystemParametersInfoA(win32con.SPI_SETDESKWALLPAPER, 0, cs, 0)
