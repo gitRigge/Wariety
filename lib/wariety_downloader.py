@@ -126,8 +126,8 @@ def resize_image(full_image_path):
     new_image.save(full_image_path, dpi=(72, 72))
 
 
-class WarietyDownloader(threading.Thread):
-    """docstring for WarietyDownloader"""
+class WarietyDownloaderThread(threading.Thread):
+    """docstring for WarietyDownloaderThread"""
 
     def __init__(self, download_schedule=0, config=None):
         logger.debug('Starting downloader thread')

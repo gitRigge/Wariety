@@ -11,8 +11,8 @@ import win32con
 logger = logging.getLogger(__name__)
 
 
-class WarietyUpdater(threading.Thread):
-    """docstring for WarietyUpdater"""
+class WarietyUpdaterThread(threading.Thread):
+    """docstring for WarietyUpdaterThread"""
 
     def __init__(self, update_schedule=0, config={}):
         """Init Worker Thread Class."""
