@@ -18,7 +18,7 @@ import lib.wariety_database
 import lib.wariety_downloader
 import lib.wariety_manual_fetcher
 import lib.wariety_updater
-import wariety_autostarter.setup_wariety_uploader
+import wariety_autostarter.setup_wariety_updater
 
 __author__ = "Roland Rickborn (gitRigge)"
 __copyright__ = "Copyright (c) 2020 gitRigge"
@@ -109,8 +109,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
         if not os.path.isfile(my_updater_tool_path):
             my_download_path = self.myConfig.download_wallpaper_folder
             my_fetch_path = self.myConfig.manual_download_folder
-            wariety_autostarter.setup_wariety_uploader.write_batch_file(my_updater_tool_path, my_download_path,
-                                                                        my_fetch_path)
+            wariety_autostarter.setup_wariety_updater.write_batch_file(my_updater_tool_path, my_download_path,
+                                                                       my_fetch_path)
         else:
             pass
         if self.myConfig.change_wallpaper_at_startup:
