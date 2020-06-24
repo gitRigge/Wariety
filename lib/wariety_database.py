@@ -137,7 +137,7 @@ class WarietyDatabase(object):
             self.db_file = os.path.join(dir_path,'wariety.db')
         except:
             e = sys.exc_info()[0]
-            logger.debug('is_image_landscape() - {}'.format(e))
+            logger.debug('__init__() - {}'.format(e))
 
     def __del__(self):
         logger.debug('__del__()')

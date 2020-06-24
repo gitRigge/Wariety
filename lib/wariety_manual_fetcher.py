@@ -147,7 +147,7 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
             wallpaper.source_name = _s_name
         wallpaper.keywords = self.get_image_keywords_by_metadata(my_iptc)
         wallpaper.found_at_counter = 0
-        if wariety_database.is_image_landscape(image_file_path):
+        if wariety_database.is_image_landscape(image_file_path) is True:
             wallpaper.image_orientation = wallpaper.wallpaper_orientations['landscape']
         else:
             wallpaper.image_orientation = wallpaper.wallpaper_orientations['portrait']

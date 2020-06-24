@@ -203,7 +203,7 @@ class WarietyDownloaderThread(threading.Thread):
                 my_image.image_md5_hash = wariety_database.get_md5_hash_of_file(my_image.image_path)
                 # Turn of PIL DecompressionBombWarning
                 warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
-                if wariety_database.is_image_landscape(my_image.image_path):
+                if wariety_database.is_image_landscape(my_image.image_path) is True:
                     my_image.image_orientation = my_image.wallpaper_orientations['landscape']
                 else:
                     my_image.image_orientation = my_image.wallpaper_orientations['portrait']
