@@ -181,7 +181,10 @@ class WarietyDatabase(object):
             counter = 0
             for key, value in wallpaper_items.items():
                 if not self.column_exists(key):
-                    sql = 'ALTER TABLE wallpapers ADD {0} {1};'.format(key,value[0])
+                    _dftl_value = value[1]
+                    if _dftl_value == '':
+                        _dftl_value = '""'
+                    sql = 'ALTER TABLE wallpapers ADD {} {} default {};'.format(key, value[0], _dftl_value)
 
                     # Create table
                     c.execute(sql)
