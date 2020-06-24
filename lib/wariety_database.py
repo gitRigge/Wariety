@@ -178,6 +178,17 @@ class WarietyDatabase(object):
             # Save (commit) the changes
             conn.commit()
 
+            counter = 0
+            for key, value in wallpaper_items.items():
+                if not self.column_exists(key):
+                    sql = 'ALTER TABLE wallpapers ADD {0} {1};'.format(key,value[0])
+
+                    # Create table
+                    c.execute(sql)
+
+                    # Save (commit) the changes
+                    conn.commit()
+
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
 
@@ -186,80 +197,27 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
 
-    def rename_table_if_exists(self):
+    def column_exists(self, column_name):
         """
-        Rename table 'wallpapers' if it exitst to the temporary name 'wallpapers_old'.
+        Checks if the a column name given by 'column_name' exists in the table
+        'wallpapers'. If it exists, returns 'True' otherwise 'False'
+        :param column_name:
         :return:
         """
-        logger.debug('rename_table_if_exists()')
-
+        logger.debug('column_exists({})'.format(column_name))
         try:
             # Establish connection
             conn = sqlite3.connect(self.db_file)
             c = conn.cursor()
 
             # Create table
-            sql = 'ALTER TABLE wallpapers RENAME TO wallpapers_old;'
-            c.execute(sql)
+            sql = 'SELECT {} FROM wallpapers'.format(column_name)
+            try:
+                c.execute(sql)
+                return True
 
-            # Save (commit) the changes
-            conn.commit()
-
-        except sqlite3.Error as error:
-            # This error is expected
-            pass
-
-        finally:
-            if (conn):
-                # Close connection
-                conn.close()
-
-    def copy_table_if_exists(self):
-        """
-        Copies all data of table 'wallpapers_old' to table 'wallpapers' if it exists.
-        :return:
-        """
-        logger.debug('copy_table_if_exists()')
-
-        try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
-
-            # Create table
-            sql = 'INSERT INTO wallpapers SELECT * FROM wallpapers_old;'
-            c.execute(sql)
-
-            # Save (commit) the changes
-            conn.commit()
-
-        except sqlite3.Error as error:
-            # This error is expected
-            pass
-
-        finally:
-            if (conn):
-                # Close connection
-                conn.close()
-
-    def drop_table_if_exists(self):
-        """
-        Drops the old table 'wallpapers_old' if it exists.
-        :return:
-        """
-        logger.debug('drop_table_if_exists()')
-
-        try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
-
-            # Create table
-            sql = 'DROP TABLE wallpapers_old;'
-            c.execute(sql)
-
-            # Save (commit) the changes
-            conn.commit()
+            except sqlite3.OperationalError as error:
+                return False
 
         except sqlite3.Error as error:
             # This error is expected
@@ -634,10 +592,7 @@ class WarietyDatabase(object):
         logging.debug('database_maintenance()')
 
         # Ensure correct tables
-        self.rename_table_if_exists()
         self.create_or_alter_table()
-        self.copy_table_if_exists()
-        self.drop_table_if_exists()
 
         # Check synced database
         all_images = self.get_all_image_ids_and_paths_from_database()
