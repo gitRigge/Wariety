@@ -12,6 +12,7 @@ import warnings
 
 import PIL.Image
 
+import wariety_downloader
 import wariety_wallpaper
 
 logger = logging.getLogger(__name__)
@@ -305,14 +306,14 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
 
-    def remove_image_by_id(self, remove_wallpaper_id):
+    def remove_image_by_id(self, wallpaper_id):
         """
         Removes the wallpaper image given by 'remove_wallpaper_id' from
         the database.
-        :param remove_wallpaper_id:
+        :param wallpaper_id:
         :return:
         """
-        logger.debug('remove_image_by_id({})'.format(remove_wallpaper_id))
+        logger.debug('remove_image_by_id({})'.format(wallpaper_id))
 
         try:
             # Establish connection
@@ -324,7 +325,7 @@ class WarietyDatabase(object):
 
             # Select a row
             sql = 'UPDATE wallpapers SET status = ? WHERE id = ?'
-            c.execute(sql, (status, remove_wallpaper_id,))
+            c.execute(sql, (status, wallpaper_id,))
 
             # Save (commit) the changes
             conn.commit()
@@ -336,6 +337,43 @@ class WarietyDatabase(object):
             if (conn):
                 # Close connection
                 conn.close()
+
+    def get_image_by_id(self, wallpaper_id):
+        """
+        Returns the wallpaper image given by 'wallpaper_id' from
+        the database.
+        :param wallpaper_id:
+        :return my_image:
+        """
+        logger.debug('get_image_by_id({})'.format(wallpaper_id))
+
+        # Wallpaper
+        my_image = wariety_wallpaper.WarietyWallpaper()
+
+        try:
+            # Establish connection
+            conn = sqlite3.connect(self.db_file)
+            c = conn.cursor()
+
+            # Select a row
+            sql = 'SELECT * FROM wallpapers WHERE id = ?'
+            c.execute(sql, (wallpaper_id,))
+
+            result = c.fetchone()
+
+            if result is not None:
+                my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
+            else:
+                my_image.found_at_counter = -1
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if (conn):
+                # Close connection
+                conn.close()
+            return my_image
 
     def get_latest_image(self, source_type='*', status='DOWNLOADED'):
         """
@@ -612,6 +650,19 @@ class WarietyDatabase(object):
             if not image_id:
                 remove_image_file(image_file_path)
                 logging.debug('database_maintenance() - image not in database, deleted')
+
+        # Delete images with wrong orientation
+        if wariety_downloader.is_screen_landscape():
+            my_orientation = 'landscape'
+        else:
+            my_orientation = 'portrait'
+        all_images = self.get_all_image_ids_and_paths_from_database()
+        for image_id in all_images:
+            my_image = self.get_image_by_id(image_id)
+            if not my_image.image_orientation == my_orientation:
+                self.remove_image_by_id(image_id)
+                remove_image_file(my_image.image_path)
+                logging.debug('database_maintenance() - wrong orientation, deleted')
 
     def get_all_image_ids_and_paths_from_database(self):
         """
