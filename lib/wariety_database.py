@@ -18,16 +18,6 @@ import wariety_wallpaper
 logger = logging.getLogger(__name__)
 
 
-def set_total_seen_number(wallpaper_id):
-    logger.debug('set_total_seen_number({})'.format(wallpaper_id))
-    pass
-
-
-def set_seen_date(wallpaper_id):
-    logger.debug('set_seen_date({})'.format(wallpaper_id))
-    pass
-
-
 def is_image_landscape(asset):
     """Checks the orientation of the asset given by 'asset' and returns 'True' if the asset's
     orientation is landscape. Returns 'False' in any other case.
@@ -236,6 +226,41 @@ class WarietyDatabase(object):
             if conn:
                 # Close connection
                 conn.close()
+
+    def set_total_seen_number(self, wallpaper_id):
+        """
+        Increases the 'total_seen_number' counter with 1 of the image with
+        the ID given by 'wallpaper_id'.
+        :param wallpaper_id:
+        :return:
+        """
+
+        logger.debug('set_total_seen_number({})'.format(wallpaper_id))
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Build SQL string
+        sql = 'UPDATE wallpapers SET total_seen_number = total_seen_number + 1 WHERE id = ?'
+
+        try:
+            c.execute(sql, (wallpaper_id, ))
+
+            # Save (commit) the changes
+            conn.commit()
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+
+    def set_seen_date(self, wallpaper_id):
+        logger.debug('set_seen_date({})'.format(wallpaper_id))
+        pass
 
     def add_image_to_database(self, new_wallpaper):
         """

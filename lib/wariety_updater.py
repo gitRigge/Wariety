@@ -77,6 +77,7 @@ class WarietyUpdaterThread(threading.Thread):
                     self.seconds_until_fire = 60 * self.updt_sched
                 my_image = self.database.get_random_image()
                 update_wallpaper(my_image.image_path)
+                self.database.set_total_seen_number(my_image.id)
             else:
                 time.sleep(self.check_interval)
 
