@@ -37,15 +37,15 @@ def is_image_landscape(asset):
     warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
 
     # Default value
-    myDim = 0
+    my_dim = 0
 
     try:
         im = PIL.Image.open(asset)
-        myDim = im.size
+        my_dim = im.size
         im.close()
-        if (myDim[0] > 0) and (myDim[1] > 0):
+        if (my_dim[0] > 0) and (my_dim[1] > 0):
             # Calculate Width:Height; > 0 == landscape; < 0 == portrait
-            if myDim[0]/myDim[1] > 1:
+            if my_dim[0]/my_dim[1] > 1:
                 return True
             else:
                 return False
@@ -153,25 +153,26 @@ class WarietyDatabase(object):
         """
         logger.debug('create_or_alter_table()')
 
-        try:
-            # Wallpaper
-            my_image = wariety_wallpaper.WarietyWallpaper()
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
+        # Wallpaper
+        my_image = wariety_wallpaper.WarietyWallpaper()
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
 
-            # Build SQL string
-            sql = 'CREATE TABLE IF NOT EXISTS wallpapers ('
-            wallpaper_items = my_image.to_dict()
-            wallpaper_items_length = len(wallpaper_items)
-            counter = 0
-            for key, value in wallpaper_items.items():
-                counter = counter + 1
-                if counter < wallpaper_items_length:
-                    sql = sql + '{0} {1},'.format(key,value[0])
-                else:
-                    sql = sql + '{0} {1}'.format(key,value[0])
-            sql = sql + ');'
+        # Build SQL string
+        sql = 'CREATE TABLE IF NOT EXISTS wallpapers ('
+        wallpaper_items = my_image.to_dict()
+        wallpaper_items_length = len(wallpaper_items)
+        counter = 0
+        for key, value in wallpaper_items.items():
+            counter = counter + 1
+            if counter < wallpaper_items_length:
+                sql = sql + '{0} {1},'.format(key, value[0])
+            else:
+                sql = sql + '{0} {1}'.format(key, value[0])
+        sql = sql + ');'
+
+        try:
 
             # Create table
             c.execute(sql)
@@ -179,25 +180,30 @@ class WarietyDatabase(object):
             # Save (commit) the changes
             conn.commit()
 
-            counter = 0
-            for key, value in wallpaper_items.items():
-                if not self.column_exists(key):
-                    _dftl_value = value[1]
-                    if _dftl_value == '':
-                        _dftl_value = '""'
-                    sql = 'ALTER TABLE wallpapers ADD {} {} default {};'.format(key, value[0], _dftl_value)
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
 
-                    # Create table
-                    c.execute(sql)
+        counter = 0
+        for key, value in wallpaper_items.items():
+            if not self.column_exists(key):
+                _dftl_value = value[1]
+                if _dftl_value == '':
+                    _dftl_value = '""'
+                sql = 'ALTER TABLE wallpapers ADD {} {} default {};'.format(key, value[0], _dftl_value)
 
-                    # Save (commit) the changes
-                    conn.commit()
+        try:
+
+            # Create table
+            c.execute(sql)
+
+            # Save (commit) the changes
+            conn.commit()
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
 
@@ -209,26 +215,25 @@ class WarietyDatabase(object):
         :return:
         """
         logger.debug('column_exists({})'.format(column_name))
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Create table
+        sql = 'SELECT {} FROM wallpapers'.format(column_name)
         try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
+            c.execute(sql)
+            return True
 
-            # Create table
-            sql = 'SELECT {} FROM wallpapers'.format(column_name)
-            try:
-                c.execute(sql)
-                return True
-
-            except sqlite3.OperationalError as error:
-                return False
+        except sqlite3.OperationalError as error:
+            return False
 
         except sqlite3.Error as error:
-            # This error is expected
-            pass
+            logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
 
@@ -241,58 +246,59 @@ class WarietyDatabase(object):
         """
         logger.debug('add_image_to_database()')
 
+        # Wallpaper
+        my_image = wariety_wallpaper.WarietyWallpaper()
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Build SQL string
+        sql = 'INSERT INTO wallpapers ('
+        wallpaper_items = my_image.to_dict()
+        wallpaper_items_length = len(wallpaper_items)
+        counter = 0
+        # Add INSERTs
+        for key, value in wallpaper_items.items():
+            counter = counter + 1
+            if key == 'id':
+                # Do not insert 'id'
+                continue
+            elif counter < wallpaper_items_length:
+                sql = sql + '{0},'.format(key)
+            else:
+                sql = sql + '{0}'.format(key)
+        sql = sql + ') VALUES ('
+        new_wallpaper_items = new_wallpaper.to_dict()
+        new_wallpaper_items_length = len(new_wallpaper_items)
+        params = []
+        counter = 0
+        # Add VALUEs
+        for key, value in new_wallpaper_items.items():
+            counter = counter + 1
+            if key == 'id':
+                # Do not insert 'id'
+                continue
+            elif key == 'download_date' and counter < new_wallpaper_items_length:
+                sql = sql + '?,'
+                params.append(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
+            elif key == 'download_date' and counter == new_wallpaper_items_length:
+                sql = sql + '?'
+                params.append(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
+            elif key == 'status' and counter < new_wallpaper_items_length:
+                sql = sql + '?,'
+                params.append(wariety_wallpaper.WarietyWallpaper().wallpaper_statuses['DOWNLOADED'])
+            elif key == 'status' and counter == new_wallpaper_items_length:
+                sql = sql + '?'
+                params.append(wariety_wallpaper.WarietyWallpaper().wallpaper_statuses['DOWNLOADED'])
+            elif counter < new_wallpaper_items_length:
+                sql = sql + '?,'
+                params.append(value[1])
+            else:
+                sql = sql + '?'
+                params.append(value[1])
+        sql = sql + ');'
+
         try:
-            # Wallpaper
-            my_image = wariety_wallpaper.WarietyWallpaper()
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
-            
-            # Build SQL string
-            sql = 'INSERT INTO wallpapers ('
-            wallpaper_items = my_image.to_dict()
-            wallpaper_items_length = len(wallpaper_items)
-            counter = 0
-            # Add INSERTs
-            for key, value in wallpaper_items.items():
-                counter = counter + 1
-                if key == 'id':
-                    # Do not insert 'id'
-                    continue
-                elif counter < wallpaper_items_length:
-                    sql = sql + '{0},'.format(key)
-                else:
-                    sql = sql + '{0}'.format(key)
-            sql = sql + ') VALUES ('
-            new_wallpaper_items = new_wallpaper.to_dict()
-            new_wallpaper_items_length = len(new_wallpaper_items)
-            params = []
-            counter = 0
-            # Add VALUEs
-            for key, value in new_wallpaper_items.items():
-                counter = counter + 1
-                if key == 'id':
-                    # Do not insert 'id'
-                    continue
-                elif key == 'download_date' and counter < new_wallpaper_items_length:
-                    sql = sql + '?,'
-                    params.append(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
-                elif key == 'download_date' and counter == new_wallpaper_items_length:
-                    sql = sql + '?'
-                    params.append(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
-                elif key == 'status' and counter < new_wallpaper_items_length:
-                    sql = sql + '?,'
-                    params.append(wariety_wallpaper.WarietyWallpaper().wallpaper_statuses['DOWNLOADED'])
-                elif key == 'status' and counter == new_wallpaper_items_length:
-                    sql = sql + '?'
-                    params.append(wariety_wallpaper.WarietyWallpaper().wallpaper_statuses['DOWNLOADED'])
-                elif counter < new_wallpaper_items_length:
-                    sql = sql + '?,'
-                    params.append(value[1])
-                else:
-                    sql = sql + '?'
-                    params.append(value[1])
-            sql = sql + ');'
             c.execute(sql, tuple(params))
             
             # Save (commit) the changes
@@ -302,7 +308,7 @@ class WarietyDatabase(object):
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
 
@@ -315,16 +321,17 @@ class WarietyDatabase(object):
         """
         logger.debug('remove_image_by_id({})'.format(wallpaper_id))
 
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Define status
+        status = wariety_wallpaper.WarietyWallpaper().wallpaper_statuses['DELETED']
+
+        # Select a row
+        sql = 'UPDATE wallpapers SET status = ? WHERE id = ?'
+
         try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
-
-            # Define status
-            status = wariety_wallpaper.WarietyWallpaper().wallpaper_statuses['DELETED']
-
-            # Select a row
-            sql = 'UPDATE wallpapers SET status = ? WHERE id = ?'
             c.execute(sql, (status, wallpaper_id,))
 
             # Save (commit) the changes
@@ -334,7 +341,7 @@ class WarietyDatabase(object):
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
 
@@ -350,13 +357,14 @@ class WarietyDatabase(object):
         # Wallpaper
         my_image = wariety_wallpaper.WarietyWallpaper()
 
-        try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
 
-            # Select a row
-            sql = 'SELECT * FROM wallpapers WHERE id = ?'
+        # Select a row
+        sql = 'SELECT * FROM wallpapers WHERE id = ?'
+
+        try:
             c.execute(sql, (wallpaper_id,))
 
             result = c.fetchone()
@@ -370,7 +378,7 @@ class WarietyDatabase(object):
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
             return my_image
@@ -379,7 +387,8 @@ class WarietyDatabase(object):
         """
         Returns the latest downloaded image at all. Or, if given, returns the
         latest downloaded image of source type given by 'source type'. Returns
-        only downloaded images unless other status given as 'status'.
+        only downloaded images unless other status given as 'status'. Returns
+        -1 if no latest image is available.
         :param source_type:
         :param status:
         :return: my_image:
@@ -389,18 +398,24 @@ class WarietyDatabase(object):
         # Wallpaper
         my_image = wariety_wallpaper.WarietyWallpaper()
 
-        try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
 
+        try:
             # Build SQL string
             if source_type == '*':
-                sql = 'SELECT * FROM wallpapers WHERE download_date >= ? AND status = ? ORDER BY found_at_counter DESC LIMIT 1'
-                c.execute(sql,(datetime.datetime.now().strftime("%Y%m%d000000"),status,))
+                sql = 'SELECT * \
+                    FROM wallpapers \
+                    WHERE download_date >= ? AND status = ? \
+                    ORDER BY found_at_counter DESC LIMIT 1'
+                c.execute(sql, (datetime.datetime.now().strftime("%Y%m%d000000"), status, ))
             else:
-                sql = 'SELECT * FROM wallpapers WHERE source_type = ? AND download_date >= ? AND status = ? ORDER BY found_at_counter DESC LIMIT 1'
-                c.execute(sql, (source_type,datetime.datetime.now().strftime("%Y%m%d000000"),status,))
+                sql = 'SELECT * \
+                    FROM wallpapers \
+                    WHERE source_type = ? AND download_date >= ? AND status = ? \
+                    ORDER BY found_at_counter DESC LIMIT 1'
+                c.execute(sql, (source_type,datetime.datetime.now().strftime("%Y%m%d000000"), status, ))
 
             result = c.fetchone()
 
@@ -413,14 +428,17 @@ class WarietyDatabase(object):
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
             return my_image
 
     def get_random_image(self, source_type='*', status='DOWNLOADED'):
         """
-        Returns a random image from the database.
+        Returns a random image in the database. If given, returns a random
+        image in the database of the source type given by 'source_type'. Returns
+        only downloaded images unless other status given as 'status'. Returns
+        -1 if no random image is available.
         :param source_type:
         :param status:
         :return: my_image:
@@ -430,11 +448,11 @@ class WarietyDatabase(object):
         # Wallpaper
         my_image = wariety_wallpaper.WarietyWallpaper()
 
-        try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
 
+        try:
             # Build SQL string
             if source_type == '*':
                 sql = 'SELECT id FROM wallpapers WHERE status = ? ORDER BY id'
@@ -454,8 +472,7 @@ class WarietyDatabase(object):
             result = c.fetchone()
 
             if result is not None:
-                my_image = wariety_wallpaper.to_wallpaper(result,
-                                                          wariety_wallpaper.WarietyWallpaper())
+                my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
             else:
                 my_image.found_at_counter = -1
 
@@ -463,17 +480,17 @@ class WarietyDatabase(object):
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
             return my_image
 
     def get_oldest_image(self, source_type='*', status='DOWNLOADED'):
         """
-        Returns the oldest image in the database.
-        If given, returns the oldest image in the database
-        of the source type given by 'source_type'. Returns
-        only downloaded images unless other status given as 'status'.
+        Returns the oldest image in the database. If given, returns the oldest
+        image in the database of the source type given by 'source_type'. Returns
+        only downloaded images unless other status given as 'status'. Returns
+        -1 if no oldest image is available.
         :param source_type:
         :param status:
         :return: my_image:
@@ -481,47 +498,63 @@ class WarietyDatabase(object):
         logger.debug('get_oldest_image({}, {})'.format(source_type, status))
 
         # Wallpaper
-        my_image = wariety_wallpaper
+        my_image = wariety_wallpaper.WarietyWallpaper()
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
 
         try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
-
             # Select a row
             if source_type == '*':
-                sql = 'SELECT * FROM wallpapers WHERE status = ? ORDER BY download_date ASC LIMIT 1'
-                c.execute(sql,(status,))
+                sql = 'SELECT * \
+                    FROM wallpapers \
+                    WHERE status = ? \
+                    ORDER BY download_date ASC LIMIT 1'
+                c.execute(sql, (status, ))
             else:
-                sql = 'SELECT * FROM wallpapers WHERE source_type = ? AND status = ? ORDER BY download_date ASC LIMIT 1'
-                c.execute(sql,(source_type,status,))
+                sql = 'SELECT * \
+                    FROM wallpapers \
+                    WHERE source_type = ? AND status = ? \
+                    ORDER BY download_date ASC LIMIT 1'
+                c.execute(sql, (source_type,status, ))
 
-            #try:
             result = c.fetchone()
-            my_image = my_image.to_wallpaper(result, my_image)
-            #except:
-            #    my_image.id = -1
+
+            if result is not None:
+                my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
+            else:
+                my_image.found_at_counter = -1
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
             return my_image
 
     def get_unseen_image(self, source_type='*', status='DOWNLOADED'):
+        """
+        Returns the oldest unseen image in the database.
+        If given, returns the oldest unseen image in the database
+        of the source type given by 'source_type'. Returns
+        only downloaded images unless other status given as 'status'.
+        :param source_type:
+        :param status:
+        :return my_image:
+        """
         logger.debug('get_unseen_image({}, {})'.format(source_type, status))
 
         # Wallpaper
-        my_image = wariety_wallpaper
+        my_image = wariety_wallpaper.WarietyWallpaper()
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
 
         try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
-
             # Select a row
             if source_type == '*':
                 sql = 'SELECT * \
@@ -536,17 +569,14 @@ class WarietyDatabase(object):
                     ORDER BY download_date ASC LIMIT 1'
                 c.execute(sql, (source_type, status,))
 
-            # try:
             result = c.fetchone()
-            my_image = my_image.to_wallpaper(result, my_image)
-            # except:
-            #    my_image.id = -1
+            my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
             return my_image
@@ -562,13 +592,14 @@ class WarietyDatabase(object):
         # Default values
         image_id = 0
 
-        try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
 
-            # Select a row
-            sql = 'SELECT id FROM wallpapers WHERE image_md5_hash = ?'
+        # Select a row
+        sql = 'SELECT id FROM wallpapers WHERE image_md5_hash = ?'
+
+        try:
             c.execute(sql, (md5_hash_value))
             result = c.fetchone()
 
@@ -581,7 +612,7 @@ class WarietyDatabase(object):
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
             return image_id
@@ -599,14 +630,15 @@ class WarietyDatabase(object):
         # Default value
         image_id = 0
 
-        try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
 
-            # Select a row
-            _i = full_image_url_or_path
-            sql = 'SELECT id FROM wallpapers WHERE image_url LIKE ? OR image_path LIKE ?'
+        # Select a row
+        _i = full_image_url_or_path
+        sql = 'SELECT id FROM wallpapers WHERE image_url LIKE ? OR image_path LIKE ?'
+
+        try:
             c.execute(sql, (_i, _i))
             result = c.fetchone()
 
@@ -619,7 +651,7 @@ class WarietyDatabase(object):
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
             return image_id
@@ -674,13 +706,14 @@ class WarietyDatabase(object):
 
         all_images = {}
 
-        try:
-            # Establish connection
-            conn = sqlite3.connect(self.db_file)
-            c = conn.cursor()
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
 
-            # Select a row
-            sql = 'SELECT id, image_path FROM wallpapers WHERE status = ?'
+        # Select a row
+        sql = 'SELECT id, image_path FROM wallpapers WHERE status = ?'
+
+        try:
             c.execute(sql, (wariety_wallpaper.WarietyWallpaper().wallpaper_statuses['DOWNLOADED'],))
             result = c.fetchall()
 
@@ -691,7 +724,7 @@ class WarietyDatabase(object):
             logger.debug("Error while working with SQLite", error)
 
         finally:
-            if (conn):
+            if conn:
                 # Close connection
                 conn.close()
                 return all_images
