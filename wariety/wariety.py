@@ -1,5 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+
+# Wariety - A wallpaper manager for MS Windows operating system.
+# Copyright (C) 2020  Roland Rickborn <wariety@gmx.net>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see https://www.gnu.org/licenses/.
+
 import gettext
 import glob
 import locale
@@ -20,8 +36,8 @@ import lib.wariety_manual_fetcher
 import lib.wariety_updater
 import wariety_autostarter.setup_wariety_updater
 
-__author__ = "Roland Rickborn (gitRigge)"
-__copyright__ = "Copyright (c) 2020 gitRigge"
+__author__ = "Roland Rickborn"
+__copyright__ = "Copyright (c) 2020 {} <wariety@gmx.net>".format(__author__)
 __version__ = "0.0.4"
 __desc__ = "[Description]"
 __status__ = "Development"
@@ -40,6 +56,7 @@ CONFIGPATH = os.path.abspath(os.path.join(os.environ['LOCALAPPDATA'], APP_NAME))
 CONFIGFILE = os.path.join(os.environ['LOCALAPPDATA'], APP_NAME, 'config.ini')
 TOOL_NAME = 'wariety_set_wallpaper'
 
+
 def get_aboutDlg_args():
     __license__ = get_license()
     __desc__ = get_description()
@@ -47,10 +64,12 @@ def get_aboutDlg_args():
             'license': __license__}
     return args
 
+
 def get_settingsDlg_args():
     __releasenotes__ = get_release_notes()
     args = {"config_file": CONFIGFILE, 'releasenotes': __releasenotes__}
     return args
+
 
 class WarietyMain(wx.adv.TaskBarIcon):
 
@@ -118,7 +137,6 @@ class WarietyMain(wx.adv.TaskBarIcon):
             shortcut_name = '{}.lnk'.format(TOOL_NAME)
             hidden = True
             self.enable_start_at_startup(target, shortcut_name, hidden)
-
 
     def CreatePopupMenu(self):
         menu = wx.Menu()
@@ -259,7 +277,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
         logging.debug('update_updater(msg)')
         self.myUpdater.stop()
         if msg['wallpaper_change']:
-            self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(msg['wallpaper_change_interval'], msg)  # TODO myConfig statt msg
+            self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(msg['wallpaper_change_interval'],
+                                                                      msg)  # TODO myConfig statt msg
         else:
             self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(0, msg)  # TODO myConfig statt msg
 
@@ -441,6 +460,7 @@ def get_description():
     return _(
         "Wariety is a wallpaper manager for Windows systems. It is a clone of the famous Linux application Variety and covers its main functionality.")
 
+
 def init_logging(log_file=None, append=False, console_loglevel=logging.INFO):
     """Set up logging to file and console."""
     if log_file is not None:
@@ -450,7 +470,7 @@ def init_logging(log_file=None, append=False, console_loglevel=logging.INFO):
             filemode_val = 'w'
         logging.basicConfig(level=logging.DEBUG,
                             format="%(asctime)s %(levelname)s %(threadName)s %(name)s %(message)s",
-                            #format='%(asctime)s - %(message)s',
+                            # format='%(asctime)s - %(message)s',
                             # datefmt='%m-%d %H:%M',
                             datefmt='%Y-%m-%d %H:%M:%S',
                             filename=log_file,
