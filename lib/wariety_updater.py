@@ -27,15 +27,6 @@ import win32con
 import wariety_database
 
 logger = logging.getLogger(__name__)
-if getattr(sys, 'frozen', False):
-    from wariety.wariety import __status__ as __status__
-else:
-    try:
-        from wariety import __status__ as __status__
-    except ImportError:
-        logger.debug('get_download_folder_size() - ImportError'.format())
-        __status__ = 'Development'
-
 
 def update_wallpaper(new_wallpaper_path):
     """
@@ -61,7 +52,13 @@ class WarietyUpdaterThread(threading.Thread):
         threading.Thread.__init__(self)
 
         self.updt_sched = int(update_schedule)
-        if __status__ == 'Development':
+        if getattr(sys, 'frozen', False):
+            import wariety.wariety
+            my_status = wariety.wariety.__status__
+        else:
+            from wariety import __status__
+            my_status = __status__
+        if my_status == 'Development':
             logger.debug('__status__ == "Development"')
             self.seconds_until_fire = 5 * int(update_schedule)
         else:
@@ -85,7 +82,13 @@ class WarietyUpdaterThread(threading.Thread):
         while self.keep_running:
             self.seconds_until_fire = self.seconds_until_fire - self.check_interval
             if self.seconds_until_fire == 0:
-                if __status__ == 'Development':
+                if getattr(sys, 'frozen', False):
+                    import wariety.wariety
+                    my_status = wariety.wariety.__status__
+                else:
+                    from wariety import __status__
+                    my_status = __status__
+                if my_status == 'Development':
                     logger.debug('__status__ == "Development"')
                     self.seconds_until_fire = 5 * self.updt_sched
                 else:
