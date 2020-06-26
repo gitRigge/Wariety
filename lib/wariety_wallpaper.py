@@ -67,14 +67,6 @@ def to_wallpaper(list_of_values, wallpaper):
     wallpaper.status = list_of_values[i]
     i += 1
     wallpaper.total_seen_number = list_of_values[i]
-    i += 1
-    wallpaper.last_seen_date_1 = list_of_values[i]
-    i += 1
-    wallpaper.last_seen_date_2 = list_of_values[i]
-    i += 1
-    wallpaper.last_seen_date_3 = list_of_values[i]
-    i += 1
-    wallpaper.last_seen_date_4 = list_of_values[i]
     return wallpaper
 
 
@@ -112,10 +104,6 @@ class WarietyWallpaper(object):
         self.download_date = ''
         self.status = ''
         self.total_seen_number = 0
-        self.last_seen_date_1 = ''
-        self.last_seen_date_2 = ''
-        self.last_seen_date_3 = ''
-        self.last_seen_date_4 = ''
 
     def __del__(self):
         logger.debug('__del__()')
@@ -132,7 +120,7 @@ class WarietyWallpaper(object):
             'image_name': ['text', self.image_name],
             'image_md5_hash': ['text', self.image_md5_hash],
             'image_path': ['text', self.image_path],
-            'source_url': ['t ext', self.source_url],
+            'source_url': ['text', self.source_url],
             'source_type': ['text', self.source_type],
             'image_author': ['text', self.image_author],
             'source_name': ['text', self.source_name],
@@ -145,10 +133,6 @@ class WarietyWallpaper(object):
             'image_orientation': ['text', self.image_orientation],
             'download_date': ['text', self.download_date],
             'status': ['text', self.status],
-            'total_seen_number': ['integer', self.total_seen_number],
-            'last_seen_date_1': ['text', self.last_seen_date_1],
-            'last_seen_date_2': ['text', self.last_seen_date_2],
-            'last_seen_date_3': ['text', self.last_seen_date_3],
-            'last_seen_date_4': ['text', self.last_seen_date_4]
+            'total_seen_number': ['integer', self.total_seen_number]
         }
         return my_image

@@ -28,6 +28,7 @@ import warnings
 import PIL.Image
 
 import wariety_downloader
+import wariety_queue
 import wariety_wallpaper
 
 logger = logging.getLogger(__name__)
@@ -136,6 +137,7 @@ class WarietyDatabase(object):
         logger.debug('Starting DB')
         logger.debug('__init__()')
         self.config = config
+
         # DB settings
         dir_path = os.path.join(os.environ['LOCALAPPDATA'],'Wariety')  # TODO Replace static string 'Wariety'
         try:
@@ -149,9 +151,9 @@ class WarietyDatabase(object):
         logger.debug('__del__()')
         logger.debug('Stopping DB')
 
-    def create_or_alter_table(self):
+    def create_or_alter_tables(self):
         """
-        Creates the table 'walpapers' if it does not yet exist.
+        Creates the tables 'wallpapers' and 'queue' if it does not yet exist.
         Otherwise, alters the existing table by creating a new one,
         copying all data and removing the existing one.
         :return:
@@ -160,57 +162,69 @@ class WarietyDatabase(object):
 
         # Wallpaper
         my_image = wariety_wallpaper.WarietyWallpaper()
-        # Establish connection
-        conn = sqlite3.connect(self.db_file)
-        c = conn.cursor()
+
+        # Queue
+        my_queue = wariety_queue.WarietyQueue.instance()
+
+        # Objects
+        objects = {'wallpapers': my_image, 'queue': my_queue}
 
         # Build SQL string
-        sql = 'CREATE TABLE IF NOT EXISTS wallpapers ('
-        wallpaper_items = my_image.to_dict()
-        wallpaper_items_length = len(wallpaper_items)
-        counter = 0
-        for key, value in wallpaper_items.items():
-            counter = counter + 1
-            if counter < wallpaper_items_length:
-                sql = sql + '{0} {1},'.format(key, value[0])
-            else:
-                sql = sql + '{0} {1}'.format(key, value[0])
-        sql = sql + ');'
+        for obj in objects:
 
-        try:
+            tbl_name = obj
+            my_object = objects[obj]
 
-            # Create table
-            c.execute(sql)
+            # Establish connection
+            conn = sqlite3.connect(self.db_file)
+            c = conn.cursor()
 
-            # Save (commit) the changes
-            conn.commit()
+            sql = 'CREATE TABLE IF NOT EXISTS {0} ('.format(tbl_name)
+            items = my_object.to_dict()
+            items_length = len(items)
+            counter = 0
+            for key, value in items.items():
+                counter = counter + 1
+                if counter < items_length:
+                    sql = sql + '{0} {1},'.format(key, value[0])
+                else:
+                    sql = sql + '{0} {1}'.format(key, value[0])
+            sql = sql + ');'
 
-        except sqlite3.Error as error:
-            logger.debug("Error while working with SQLite", error)
+            try:
 
-        counter = 0
-        for key, value in wallpaper_items.items():
-            if not self.column_exists(key):
-                _dftl_value = value[1]
-                if _dftl_value == '':
-                    _dftl_value = '""'
-                sql = 'ALTER TABLE wallpapers ADD {} {} default {};'.format(key, value[0], _dftl_value)
+                # Create table
+                c.execute(sql)
 
-        try:
+                # Save (commit) the changes
+                conn.commit()
 
-            # Create table
-            c.execute(sql)
+            except sqlite3.Error as error:
+                logger.debug("Error while working with SQLite", error)
 
-            # Save (commit) the changes
-            conn.commit()
+            counter = 0
+            for key, value in items.items():
+                if not self.column_exists(key):
+                    _dftl_value = value[1]
+                    if _dftl_value == '':
+                        _dftl_value = '""'
+                    sql = 'ALTER TABLE {0} ADD {1} {2} default {3};'.format(tbl_name, key, value[0], _dftl_value)
 
-        except sqlite3.Error as error:
-            logger.debug("Error while working with SQLite", error)
+            try:
 
-        finally:
-            if conn:
-                # Close connection
-                conn.close()
+                # Alter table
+                c.execute(sql)
+
+                # Save (commit) the changes
+                conn.commit()
+
+            except sqlite3.Error as error:
+                logger.debug("Error while working with SQLite", error)
+
+            finally:
+                if conn:
+                    # Close connection
+                    conn.close()
 
     def column_exists(self, column_name):
         """
@@ -705,7 +719,7 @@ class WarietyDatabase(object):
         logging.debug('database_maintenance()')
 
         # Ensure correct tables
-        self.create_or_alter_table()
+        self.create_or_alter_tables()
 
         # Check synced database
         all_images = self.get_all_image_ids_and_paths_from_database()
