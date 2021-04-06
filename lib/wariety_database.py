@@ -26,6 +26,7 @@ import sys
 import warnings
 
 import PIL.Image
+from pubsub import pub
 
 import wariety_downloader
 import wariety_queue
@@ -130,6 +131,15 @@ def get_empty_image():
     return my_image
 
 
+def push_empty_queue():
+    """
+    Sends 'empty queue' message
+    :return:
+    """
+    logger.debug('push_empty_queue()')
+    pub.sendMessage("empty queue", msg='')
+
+
 class WarietyDatabase(object):
     """docstring for WarietyDatabase"""
 
@@ -179,17 +189,37 @@ class WarietyDatabase(object):
             conn = sqlite3.connect(self.db_file)
             c = conn.cursor()
 
-            sql = 'CREATE TABLE IF NOT EXISTS {0} ('.format(tbl_name)
-            items = my_object.to_dict()
-            items_length = len(items)
-            counter = 0
-            for key, value in items.items():
-                counter = counter + 1
-                if counter < items_length:
-                    sql = sql + '{0} {1},'.format(key, value[0])
-                else:
-                    sql = sql + '{0} {1}'.format(key, value[0])
-            sql = sql + ');'
+            sql = ''
+            if self.table_exists(tbl_name):
+
+                # Create table
+                sql = 'CREATE TABLE IF NOT EXISTS {0} ('.format(tbl_name)
+                items = my_object.to_dict()
+                items_length = len(items)
+                counter = 0
+                for key, value in items.items():
+                    counter = counter + 1
+                    _dftl_value = value[1]
+                    if _dftl_value == '':
+                        _dftl_value = '""'
+                    if counter < items_length:
+                        sql = sql + '{0} {1} default {2},'.format(key, value[0], _dftl_value)
+                    else:
+                        sql = sql + '{0} {1} default {2}'.format(key, value[0], _dftl_value)
+                sql = sql + ');'
+
+            else:
+
+                # Alter table
+                items = my_object.to_dict()
+                items_length = len(items)
+                counter = 0
+                for key, value in items.items():
+                    if not self.column_exists(key):
+                        _dftl_value = value[1]
+                        if _dftl_value == '':
+                            _dftl_value = '""'
+                        sql = 'ALTER TABLE {0} ADD {1} {2} default {3};'.format(tbl_name, key, value[0], _dftl_value)
 
             try:
 
@@ -202,29 +232,49 @@ class WarietyDatabase(object):
             except sqlite3.Error as error:
                 logger.debug("Error while working with SQLite", error)
 
-            counter = 0
-            for key, value in items.items():
-                if not self.column_exists(key):
-                    _dftl_value = value[1]
-                    if _dftl_value == '':
-                        _dftl_value = '""'
-                    sql = 'ALTER TABLE {0} ADD {1} {2} default {3};'.format(tbl_name, key, value[0], _dftl_value)
-
-            try:
-
-                # Alter table
-                c.execute(sql)
-
-                # Save (commit) the changes
-                conn.commit()
-
-            except sqlite3.Error as error:
-                logger.debug("Error while working with SQLite", error)
-
             finally:
                 if conn:
                     # Close connection
                     conn.close()
+
+    def table_exists(self, table_name):
+        """
+        Checks if the a table name given by 'table_name' exists in the
+        database. If it exists, returns 'True' otherwise 'False'
+        :param table_name:
+        :return:
+        """
+        logger.debug('table_exists({})'.format(table_name))
+
+        retval = False
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Build query
+        sql = 'SELECT name \
+                    FROM sqlite_master \
+                    WHERE type = ? AND \
+                    name = ?'
+
+        try:
+            c.execute(sql, ('table', table_name,))
+
+            results = c.fetchall()
+            if len(results) > 0:
+                if table_name in results[0]:
+                    retval = True
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+
+        return retval
 
     def column_exists(self, column_name):
         """
@@ -256,7 +306,7 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
 
-    def set_total_seen_number(self, wallpaper_id):
+    def set_total_seen_number_by_id(self, wallpaper_id):
         """
         Increases the 'total_seen_number' counter with 1 of the image with
         the ID given by 'wallpaper_id'.
@@ -264,7 +314,7 @@ class WarietyDatabase(object):
         :return:
         """
 
-        logger.debug('set_total_seen_number({})'.format(wallpaper_id))
+        logger.debug('set_total_seen_number_by_id({})'.format(wallpaper_id))
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
@@ -287,8 +337,197 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
 
-    def set_seen_date(self, wallpaper_id):
-        logger.debug('set_seen_date({})'.format(wallpaper_id))
+    def add_item_to_queue(self, new_queue_item):
+        """
+        Adds the queue item given by 'new_queue_item' to the database.
+        :param new_queue_item:
+        :return:
+        """
+        logger.debug('add_item_to_queue()')
+
+        my_queue = wariety_queue.WarietyQueue()
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Build SQL string
+        sql = 'INSERT INTO wallpapers ('
+        queue_item_items = my_queue.to_dict()
+        queue_item_items_length = len(queue_item_items)
+        counter = 0
+        # Add INSERTs
+        for key, value in queue_item_items.items():
+            counter = counter + 1
+            if key == 'id':
+                # Do not insert 'id'
+                continue
+            elif counter < queue_item_items_length:
+                sql = sql + '{0},'.format(key)
+            else:
+                sql = sql + '{0}'.format(key)
+        sql = sql + ') VALUES ('
+        queue_item_items = new_queue_item.to_dict()
+        queue_item_items_length = len(queue_item_items)
+        params = []
+        counter = 0
+        # Add VALUEs
+        for key, value in queue_item_items.items():
+            counter = counter + 1
+            if key == 'id':
+                # Do not insert 'id'
+                continue
+            elif counter < queue_item_items_length:
+                sql = sql + '?,'
+                params.append(value[1])
+            else:
+                sql = sql + '?'
+                params.append(value[1])
+        sql = sql + ');'
+
+        try:
+            c.execute(sql, tuple(params))
+
+            # Save (commit) the changes
+            conn.commit()
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+
+    def get_queue_id_by_id(self, wallpaper_id):
+        # TODO Fill method
+        pass
+
+    def set_seen_by_queue_id(self, queue_id, previous_queue_id):
+        """
+        Sets queue seen date to now, queue status to 'DONE' and previous queue ID to
+        the value given by 'previous_queue_id'
+        :param queue_id:
+        :param previous_queue_id:
+        :return:
+        """
+        logger.debug('set_seen_by_queue_id({}, {})'.format(queue_id, previous_queue_id))
+
+        # Queue status
+        _status = wariety_queue.WarietyQueue.queue_statuses['DONE']
+        _now = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Build SQL string
+        sql = 'UPDATE queue SET queue_status = ?, queue_seen_date = ?, previous_queue_id = ? \
+            WHERE id = ?'
+
+        try:
+            c.execute(sql, (_status, _now, previous_queue_id, queue_id,))
+
+            # Save (commit) the changes
+            conn.commit()
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+
+    def set_currently_seeing_by_queue_id(self, queue_id):
+        """
+        Sets queue status of queue item given by 'queue_id' to 'CURRENT'.
+        :param queue_id:
+        :return:
+        """
+        logger.debug('set_currently_seeing_by_queue_id({})'.format(queue_id))
+
+        # Queue status
+        _status = wariety_queue.WarietyQueue.queue_statuses['CURRENT']
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Build SQL string
+        sql = 'UPDATE queue SET queue_status = ? WHERE id = ?'
+
+        try:
+            c.execute(sql, (_status, queue_id,))
+
+            # Save (commit) the changes
+            conn.commit()
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+
+    def get_next_images_from_queue(self, number_of_images=1):
+        """
+        Returns images with the highest queue rank and status 'QUEUED', if available.
+        Otherwise, returns -1.
+        :param number_of_images:
+        :return:
+        """
+        logger.debug('get_next_images_from_queue({})'.format(number_of_images))
+
+        # Return values array
+        my_images = []
+
+        # Queue status
+        _status = wariety_queue.WarietyQueue.queue_statuses['QUEUED']
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Select a row
+        sql = 'SELECT * \
+            FROM wallpapers \
+            INNER JOIN queue ON wallpapers.id = queue.image_id \
+            WHERE queue.queue_status = ? \
+            ORDER BY queue.queue_rank DESC \
+            LIMIT ?'
+
+        try:
+            c.execute(sql, (_status, number_of_images, ))
+
+            results = c.fetchall()
+
+            for result in results:
+                # Wallpaper
+                my_image = wariety_wallpaper.WarietyWallpaper()
+
+                if result is not None:
+                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                else:
+                    my_image.found_at_counter = -1
+                my_images.append(my_image)
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return my_images
+
+    def get_previous_images_from_queue(self, number_of_images=1):
+        # TODO Fill method
+        pass
+
+    def get_previous_images_from_queue_by_queue_id(self, queue_id, number_of_images=1):
+        # TODO Fill method
         pass
 
     def add_image_to_database(self, new_wallpaper):
@@ -437,46 +676,40 @@ class WarietyDatabase(object):
                 conn.close()
             return my_image
 
-    def get_latest_image(self, source_type='*', status='DOWNLOADED'):
+    def get_total_number_of_images(self, source_table='wallpapers', status='DOWNLOADED'):
         """
-        Returns the latest downloaded image at all. Or, if given, returns the
-        latest downloaded image of source type given by 'source type'. Returns
-        only downloaded images unless other status given as 'status'. Returns
-        -1 if no latest image is available.
-        :param source_type:
+        Returns the total number of images of the table given by 'source_table' with the status given
+        by 'status'
+        :param source_table:
         :param status:
-        :return: my_image:
+        :return total_number_of_images_in_db:
         """
-        logger.debug('get_latest_image({}, {})'.format(source_type, status))
-        
-        # Wallpaper
-        my_image = wariety_wallpaper.WarietyWallpaper()
+        logger.debug('get_total_number_of_images({}, {})'.format(source_table, status))
+
+        total_number_of_images_in_db = 0
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
 
+        # SQL
+        sql = ''
+        if source_table == 'wallpapers':
+            sql = 'SELECT COUNT(id) FROM ? WHERE status == ?'
+        elif source_table == 'queue':
+            sql = 'SELECT COUNT(wallpapers.id) \
+                    FROM wallpapers \
+                    INNER JOIN ? ON wallpapers.id = queue.image_id \
+                    WHERE queue.queue_status = ?;'
+        else:
+            sql = 'upsi :-)'
+
         try:
-            # Build SQL string
-            if source_type == '*':
-                sql = 'SELECT * \
-                    FROM wallpapers \
-                    WHERE download_date >= ? AND status = ? \
-                    ORDER BY found_at_counter DESC LIMIT 1'
-                c.execute(sql, (datetime.datetime.now().strftime("%Y%m%d000000"), status, ))
-            else:
-                sql = 'SELECT * \
-                    FROM wallpapers \
-                    WHERE source_type = ? AND download_date >= ? AND status = ? \
-                    ORDER BY found_at_counter DESC LIMIT 1'
-                c.execute(sql, (source_type,datetime.datetime.now().strftime("%Y%m%d000000"), status, ))
+            c.execute(sql, (source_table, status, ))
 
             result = c.fetchone()
 
-            if result is not None:
-                my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
-            else:
-                my_image.found_at_counter = -1
+            total_number_of_images_in_db = int(result[0])
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
@@ -485,22 +718,125 @@ class WarietyDatabase(object):
             if conn:
                 # Close connection
                 conn.close()
-            return my_image
+            return total_number_of_images_in_db
 
-    def get_random_image(self, source_type='*', status='DOWNLOADED'):
+    def get_days_since_last_seen_by_id(self, wallpaper_id):
         """
-        Returns a random image in the database. If given, returns a random
-        image in the database of the source type given by 'source_type'. Returns
-        only downloaded images unless other status given as 'status'. Returns
-        -1 if no random image is available.
+        Returns the number of days between now and the date when the image given by 'wallpaper_id' has been
+        seen the last time. Returns -1 if the image haven't been seen at all.
+        :param wallpaper_id:
+        :return days_diff:
+        """
+        logger.debug('get_days_since_last_seen_by_id({})'.format(wallpaper_id))
+
+        _status = wariety_queue.WarietyQueue.queue_statuses['DONE']
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Return value
+        days_diff = 0
+
+        # Select a row
+        sql = 'SELECT queue.queue_seen_date \
+            FROM wallpapers \
+            INNER JOIN queue ON wallpapers.id = queue.image_id \
+            WHERE queue.queue_status = ? AND wallpapers.id = ? \
+            ORDER BY queue.queue_seen_date DESC LIMIT 1;'
+
+        try:
+            c.execute(sql, (_status, wallpaper_id, ))
+
+            result = c.fetchone()
+
+            if result is not None:
+                _now = datetime.datetime.now()
+                _last_seen_date = datetime.datetime.strptime(result[0], "%Y%m%d%H%M%S")
+                days_diff = (_now - _last_seen_date).days
+            else:
+                days_diff = -1
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return days_diff
+
+    def get_latest_image(self, number_of_images=1, source_type='*', status='DOWNLOADED'):
+        """
+        Returns the latest downloaded image(s) at all. Or, if given, returns the latest
+        downloaded image(s) of source type given by 'source type'. Returns only downloaded
+        images unless other status given as 'status'. Returns -1 if no latest image(s) is
+        available.
+        :param number_of_images:
         :param source_type:
         :param status:
-        :return: my_image:
+        :return my_images:
         """
-        logger.debug('get_latest_image({}, {})'.format(source_type, status))
+        logger.debug('get_latest_image({}, {}, {})'.format(number_of_images, source_type, status))
 
-        # Wallpaper
-        my_image = wariety_wallpaper.WarietyWallpaper()
+        # Return values array
+        my_images = []
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        try:
+            # Build SQL string
+            _now = datetime.datetime.now().strftime("%Y%m%d000000")
+            if source_type == '*':
+                sql = 'SELECT * \
+                    FROM wallpapers \
+                    WHERE download_date >= ? AND status = ? \
+                    ORDER BY found_at_counter DESC LIMIT ?'
+                c.execute(sql, (_now, status, number_of_images, ))
+            else:
+                sql = 'SELECT * \
+                    FROM wallpapers \
+                    WHERE source_type = ? AND download_date >= ? AND status = ? \
+                    ORDER BY found_at_counter DESC LIMIT ?'
+                c.execute(sql, (source_type, _now, status, number_of_images, ))
+
+            results = c.fetchall()
+
+            for result in results:
+                # Wallpaper
+                my_image = wariety_wallpaper.WarietyWallpaper()
+
+                if result is not None:
+                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                else:
+                    my_image.found_at_counter = -1
+                my_images.append(my_image)
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return my_images
+
+    def get_random_image(self, number_of_images=1, source_type='*', status='DOWNLOADED'):
+        """
+        Returns random image(s) in the database. If given, returns random image(s) in the
+        database of the source type given by 'source_type'. Returns only downloaded images
+        unless other status given as 'status'. Returns -1 if no random image(s) is available.
+        :param number_of_images:
+        :param source_type:
+        :param status:
+        :return my_images:
+        """
+        logger.debug('get_random_image({}, {}, {})'.format(number_of_images, source_type, status))
+
+        # Return values array
+        my_images = []
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
@@ -512,23 +848,27 @@ class WarietyDatabase(object):
                 sql = 'SELECT id FROM wallpapers WHERE status = ? ORDER BY id'
                 c.execute(sql, (status,))
             else:
-                sql = 'SELECT id FROM wallpapers WHERE WHERE source_type = ? AND status = ? ORDER BY id'
+                sql = 'SELECT id FROM wallpapers WHERE source_type = ? AND status = ? ORDER BY id'
                 c.execute(sql, (source_type, status,))
             result = c.fetchall()
 
-            _max = len(result)
-            _choice = random.randint(0, int(_max + _max * .5))
-            random_image_id = result[_choice][0]
+            for i in range(0, number_of_images):
+                _max = len(result)
+                _choice = random.randint(0, int(_max))
+                random_image_id = result[_choice][0]
 
-            # Build SQL string
-            sql = 'SELECT * FROM wallpapers WHERE id = ?'
-            c.execute(sql, (random_image_id,))
-            result = c.fetchone()
+                # Build SQL string
+                sql = 'SELECT * FROM wallpapers WHERE id = ?'
+                c.execute(sql, (random_image_id,))
+                result = c.fetchone()
 
-            if result is not None:
-                my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
-            else:
-                my_image.found_at_counter = -1
+                # Wallpaper
+                my_image = wariety_wallpaper.WarietyWallpaper()
+                if result is not None:
+                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                else:
+                    my_image.found_at_counter = -1
+                my_images.append(my_image)
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
@@ -537,22 +877,23 @@ class WarietyDatabase(object):
             if conn:
                 # Close connection
                 conn.close()
-            return my_image
+            return my_images
 
-    def get_oldest_image(self, source_type='*', status='DOWNLOADED'):
+    def get_oldest_image(self, number_of_images=1, source_type='*', status='DOWNLOADED'):
         """
-        Returns the oldest image in the database. If given, returns the oldest
-        image in the database of the source type given by 'source_type'. Returns
-        only downloaded images unless other status given as 'status'. Returns
-        -1 if no oldest image is available.
+        Returns the oldest image(s) in the database. If given, returns the oldest image(s)
+        in the database of the source type given by 'source_type'. Returns only downloaded
+        images unless other status given as 'status'. Returns -1 if no oldest image(s) is
+        available.
+        :param number_of_images:
         :param source_type:
         :param status:
-        :return: my_image:
+        :return my_images:
         """
-        logger.debug('get_oldest_image({}, {})'.format(source_type, status))
+        logger.debug('get_oldest_image({}, {}, {})'.format(number_of_images, source_type, status))
 
-        # Wallpaper
-        my_image = wariety_wallpaper.WarietyWallpaper()
+        # Return values array
+        my_images = []
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
@@ -564,21 +905,25 @@ class WarietyDatabase(object):
                 sql = 'SELECT * \
                     FROM wallpapers \
                     WHERE status = ? \
-                    ORDER BY download_date ASC LIMIT 1'
-                c.execute(sql, (status, ))
+                    ORDER BY download_date ASC LIMIT ?'
+                c.execute(sql, (status, number_of_images, ))
             else:
                 sql = 'SELECT * \
                     FROM wallpapers \
                     WHERE source_type = ? AND status = ? \
-                    ORDER BY download_date ASC LIMIT 1'
-                c.execute(sql, (source_type,status, ))
+                    ORDER BY download_date ASC LIMIT ?'
+                c.execute(sql, (source_type,status, number_of_images, ))
 
-            result = c.fetchone()
+            results = c.fetchall()
 
-            if result is not None:
-                my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
-            else:
-                my_image.found_at_counter = -1
+            for result in results:
+                # Wallpaper
+                my_image = wariety_wallpaper.WarietyWallpaper()
+                if result is not None:
+                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                else:
+                    my_image.found_at_counter = -1
+                my_images.append(my_image)
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
@@ -587,22 +932,24 @@ class WarietyDatabase(object):
             if conn:
                 # Close connection
                 conn.close()
-            return my_image
+            return my_images
 
-    def get_unseen_image(self, source_type='*', status='DOWNLOADED'):
+    def get_seen_image(self, number_of_images=1, seen=0, source_type='*', status='DOWNLOADED'):
         """
-        Returns the oldest unseen image in the database.
-        If given, returns the oldest unseen image in the database
-        of the source type given by 'source_type'. Returns
-        only downloaded images unless other status given as 'status'.
+        Returns the oldest image(s) in the database which has a total_seen value of 'seen' or less.
+        If given, returns the oldest image(s) in the database which has a total_seen value of 'seen'
+        or less of the source type given by 'source_type'. Returns only downloaded images unless
+        other status given as 'status'. Returns -1 if no seen images are available.
+        :param number_of_images:
+        :param seen:
         :param source_type:
         :param status:
-        :return my_image:
+        :return my_images:
         """
-        logger.debug('get_unseen_image({}, {})'.format(source_type, status))
+        logger.debug('get_seen_image({}, {}, {})'.format(seen, source_type, status))
 
-        # Wallpaper
-        my_image = wariety_wallpaper.WarietyWallpaper()
+        # Return values array
+        my_images = []
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
@@ -613,18 +960,26 @@ class WarietyDatabase(object):
             if source_type == '*':
                 sql = 'SELECT * \
                     FROM wallpapers \
-                    WHERE status = ? AND total_seen_number = 0 \
-                    ORDER BY download_date ASC LIMIT 1'
-                c.execute(sql, (status,))
+                    WHERE status = ? AND total_seen_number <= ? \
+                    ORDER BY download_date ASC LIMIT ?'
+                c.execute(sql, (status, seen, number_of_images, ))
             else:
                 sql = 'SELECT * \
                     FROM wallpapers \
-                    WHERE source_type = ? AND status = ? AND total_seen_number = 0 \
-                    ORDER BY download_date ASC LIMIT 1'
-                c.execute(sql, (source_type, status,))
+                    WHERE source_type = ? AND status = ? AND total_seen_number <= ? \
+                    ORDER BY download_date ASC LIMIT ?'
+                c.execute(sql, (source_type, status, seen, number_of_images, ))
 
-            result = c.fetchone()
-            my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
+            results = c.fetchall()
+
+            for result in results:
+                # Wallpaper
+                my_image = wariety_wallpaper.WarietyWallpaper()
+                if result is not None:
+                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                else:
+                    my_image.found_at_counter = -1
+                my_images.append(my_image)
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
@@ -633,7 +988,120 @@ class WarietyDatabase(object):
             if conn:
                 # Close connection
                 conn.close()
-            return my_image
+            return my_images
+
+    def get_rated_image(self, number_of_images=1, rating=0, source_type='*', status='DOWNLOADED'):
+        """
+        Returns the oldest images in the database which are rated with rate 'rating' or less. If given,
+        returns the oldest images in the database of the source type given by 'source_type' which are
+        rated with rate 'rating' or less. Returns only downloaded images unless other status given as
+        'status'.  Returns -1 if no rated images are available.
+        :param number_of_images:
+        :param rating:
+        :param source_type:
+        :param status:
+        :return my_images:
+        """
+        logger.debug('get_rated_image({}, {}, {}, {})'.format(number_of_images, rating, source_type, status))
+
+        # Return values array
+        my_images = []
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        try:
+            # Select a row
+            if source_type == '*':
+                sql = 'SELECT * \
+                            FROM wallpapers \
+                            WHERE status = ? AND image_rating <= ? \
+                            ORDER BY download_date ASC, image_rating DESC LIMIT ?'
+                c.execute(sql, (status, rating, number_of_images, ))
+            else:
+                sql = 'SELECT * \
+                            FROM wallpapers \
+                            WHERE source_type = ? AND status = ? AND image_rating <= ? \
+                            ORDER BY download_date ASC, image_rating DESC LIMIT ?'
+                c.execute(sql, (source_type, status, rating, number_of_images, ))
+
+            results = c.fetchall()
+
+            for result in results:
+                # Wallpaper
+                my_image = wariety_wallpaper.WarietyWallpaper()
+                if result is not None:
+                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                else:
+                    my_image.found_at_counter = -1
+                my_images.append(my_image)
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return my_images
+
+    def get_most_recent_seen_image(self, number_of_images=1, source_type='*', status='DONE'):
+        """
+        Returns the most recent seen images in the database. If given, returns the most recent
+        seen images in the database of the source type given by 'source_type'. Returns only
+        downloaded images unless other status given as 'status'.  Returns -1 if no recent seen
+        images are available.
+        :param number_of_images:
+        :param source_type:
+        :param status:
+        :return my_images:
+        """
+        logger.debug('get_most_recent_seen_image({}, {}, {})'.format(number_of_images, source_type, status))
+
+        # Return values array
+        my_images = []
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        try:
+            # Select a row
+            if source_type == '*':
+                sql = 'SELECT * \
+                        FROM wallpapers \
+                        INNER JOIN queue ON wallpapers.id = queue.image_id \
+                        WHERE queue.queue_status = ? \
+                        ORDER BY queue.queue_seen_date ASC LIMIT 1'
+                c.execute(sql, (status,))
+            else:
+                sql = 'SELECT * \
+                        FROM wallpapers \
+                        INNER JOIN queue ON wallpapers.id = queue.image_id \
+                        WHERE source_type = ? AND queue.queue_status = ? \
+                        ORDER BY queue.queue_seen_date ASC LIMIT 1'
+                c.execute(sql, (source_type, status,))
+
+            results = c.fetchall()
+
+            for result in results:
+                # Wallpaper
+                my_image = wariety_wallpaper.WarietyWallpaper()
+                if result is not None:
+                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                else:
+                    my_image.found_at_counter = -1
+                my_images.append(my_image)
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return my_images
 
     def exists_image_by_md5_hash(self, md5_hash_value):
         """
