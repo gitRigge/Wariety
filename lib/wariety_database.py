@@ -192,6 +192,19 @@ class WarietyDatabase(object):
             sql = ''
             if self.table_exists(tbl_name):
 
+                # Alter table
+                items = my_object.to_dict()
+                items_length = len(items)
+                counter = 0
+                for key, value in items.items():
+                    if not self.column_exists(key):
+                        _dftl_value = value[1]
+                        if _dftl_value == '':
+                            _dftl_value = '""'
+                        sql = 'ALTER TABLE {0} ADD {1} {2} default {3};'.format(tbl_name, key, value[0], _dftl_value)
+
+            else:
+
                 # Create table
                 sql = 'CREATE TABLE IF NOT EXISTS {0} ('.format(tbl_name)
                 items = my_object.to_dict()
@@ -207,19 +220,6 @@ class WarietyDatabase(object):
                     else:
                         sql = sql + '{0} {1} default {2}'.format(key, value[0], _dftl_value)
                 sql = sql + ');'
-
-            else:
-
-                # Alter table
-                items = my_object.to_dict()
-                items_length = len(items)
-                counter = 0
-                for key, value in items.items():
-                    if not self.column_exists(key):
-                        _dftl_value = value[1]
-                        if _dftl_value == '':
-                            _dftl_value = '""'
-                        sql = 'ALTER TABLE {0} ADD {1} {2} default {3};'.format(tbl_name, key, value[0], _dftl_value)
 
             try:
 
@@ -239,7 +239,7 @@ class WarietyDatabase(object):
 
     def table_exists(self, table_name):
         """
-        Checks if the a table name given by 'table_name' exists in the
+        Checks if a table name given by 'table_name' exists in the
         database. If it exists, returns 'True' otherwise 'False'
         :param table_name:
         :return:
@@ -278,7 +278,7 @@ class WarietyDatabase(object):
 
     def column_exists(self, column_name):
         """
-        Checks if the a column name given by 'column_name' exists in the table
+        Checks if a column name given by 'column_name' exists in the table
         'wallpapers'. If it exists, returns 'True' otherwise 'False'
         :param column_name:
         :return:
@@ -400,8 +400,49 @@ class WarietyDatabase(object):
                 conn.close()
 
     def get_queue_id_by_id(self, wallpaper_id):
-        # TODO Fill method
-        pass
+        """
+        Re
+        :param wallpaper_id:
+        :return:
+        """
+
+        logger.debug('get_queue_id_by_id({})'.format(wallpaper_id))
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Select a row
+        sql = 'SELECT * \
+                    FROM wallpapers \
+                    INNER JOIN queue ON wallpapers.id = queue.image_id \
+                    WHERE queue.queue_status = ? \
+                    ORDER BY queue.queue_rank DESC \
+                    LIMIT ?'
+
+        try:
+            c.execute(sql, (_status, number_of_images,))
+
+            results = c.fetchall()
+
+            for result in results:
+                # Wallpaper
+                my_image = wariety_wallpaper.WarietyWallpaper()
+
+                if result is not None:
+                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                else:
+                    my_image.found_at_counter = -1
+                my_images.append(my_image)
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return my_images
 
     def set_seen_by_queue_id(self, queue_id, previous_queue_id):
         """
@@ -476,7 +517,7 @@ class WarietyDatabase(object):
         Returns images with the highest queue rank and status 'QUEUED', if available.
         Otherwise, returns -1.
         :param number_of_images:
-        :return:
+        :return: my_images
         """
         logger.debug('get_next_images_from_queue({})'.format(number_of_images))
 
