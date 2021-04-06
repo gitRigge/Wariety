@@ -28,6 +28,7 @@ import wariety_database
 
 logger = logging.getLogger(__name__)
 
+
 def update_wallpaper(new_wallpaper_path):
     """
     Sets asset given by 'path' as current Desktop wallpaper
@@ -93,9 +94,17 @@ class WarietyUpdaterThread(threading.Thread):
                     self.seconds_until_fire = 5 * self.updt_sched
                 else:
                     self.seconds_until_fire = 60 * self.updt_sched
-                my_image = self.database.get_random_image()
-                update_wallpaper(my_image.image_path)
-                self.database.set_total_seen_number(my_image.id)
+
+                my_images = self.database.get_next_images_from_queue(1)
+                # Queue management
+                my_queue_id = self.database.get_queue_id_by_id(my_images[0].id)
+                _no_of_imgs_in_queue = self.database.get_total_number_of_images('queue', 'QUEUED')
+                if _no_of_imgs_in_queue == 1:
+                    wariety_database.push_empty_queue()
+                self.database.set_currently_seeing_by_queue_id(my_queue_id)
+                update_wallpaper(my_images[0].image_path)
+                self.database.set_total_seen_number_by_id(my_images[0].id)
+                self.database.set_currently_seeing_by_queue_id(my_images[0].id)
             else:
                 time.sleep(self.check_interval)
 
