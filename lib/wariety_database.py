@@ -197,7 +197,7 @@ class WarietyDatabase(object):
                 items_length = len(items)
                 counter = 0
                 for key, value in items.items():
-                    if not self.column_exists(key):
+                    if not self.column_exists(key, tbl_name):
                         _dftl_value = value[1]
                         if _dftl_value == '':
                             _dftl_value = '""'
@@ -239,7 +239,7 @@ class WarietyDatabase(object):
 
     def table_exists(self, table_name):
         """
-        Checks if a table name given by 'table_name' exists in the
+        Checks if the table name given by 'table_name' exists in the
         database. If it exists, returns 'True' otherwise 'False'
         :param table_name:
         :return:
@@ -276,27 +276,29 @@ class WarietyDatabase(object):
 
         return retval
 
-    def column_exists(self, column_name):
+    def column_exists(self, column_name, table_name):
         """
-        Checks if a column name given by 'column_name' exists in the table
-        'wallpapers'. If it exists, returns 'True' otherwise 'False'
+        Checks if the column name given by 'column_name' exists in the table
+        given by 'table_name'. If it exists, returns 'True' otherwise 'False'
         :param column_name:
-        :return:
+        :return: retval
         """
-        logger.debug('column_exists({})'.format(column_name))
+        logger.debug('column_exists({}, {})'.format(column_name, table_name))
+
+        retval = False
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
 
         # Create table
-        sql = 'SELECT {} FROM wallpapers'.format(column_name)
+        sql = 'SELECT {} FROM {}'.format(column_name, table_name)
         try:
             c.execute(sql)
-            return True
+            retval = True
 
         except sqlite3.OperationalError as error:
-            return False
+            retval = False
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
@@ -305,6 +307,8 @@ class WarietyDatabase(object):
             if conn:
                 # Close connection
                 conn.close()
+
+        return retval
 
     def set_total_seen_number_by_id(self, wallpaper_id):
         """
