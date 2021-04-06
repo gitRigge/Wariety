@@ -405,39 +405,36 @@ class WarietyDatabase(object):
 
     def get_queue_id_by_id(self, wallpaper_id):
         """
-        Re
+        Get ID of queued image with image ID given by 'wallpaper_id' and
+        status 'QUEUED', if available.
+        Otherwise, returns -1
         :param wallpaper_id:
-        :return:
+        :return: queued_image_id
         """
 
         logger.debug('get_queue_id_by_id({})'.format(wallpaper_id))
+
+        queued_image_id = -1
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
 
+        # Queue status
+        _status = wariety_queue.WarietyQueue.queue_statuses['QUEUED']
+
         # Select a row
-        sql = 'SELECT * \
-                    FROM wallpapers \
-                    INNER JOIN queue ON wallpapers.id = queue.image_id \
-                    WHERE queue.queue_status = ? \
-                    ORDER BY queue.queue_rank DESC \
-                    LIMIT ?'
+        sql = 'SELECT id \
+                FROM queue \
+                WHERE queue_status = ? AND \
+                image_id = ?'
 
         try:
-            c.execute(sql, (_status, number_of_images,))
+            c.execute(sql, (_status, wallpaper_id,))
 
-            results = c.fetchall()
+            result = c.fetchone()
 
-            for result in results:
-                # Wallpaper
-                my_image = wariety_wallpaper.WarietyWallpaper()
-
-                if result is not None:
-                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
-                else:
-                    my_image.found_at_counter = -1
-                my_images.append(my_image)
+            queued_image_id = int(result[0])
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
@@ -446,7 +443,8 @@ class WarietyDatabase(object):
             if conn:
                 # Close connection
                 conn.close()
-            return my_images
+
+        return queued_image_id
 
     def set_seen_by_queue_id(self, queue_id, previous_queue_id):
         """
