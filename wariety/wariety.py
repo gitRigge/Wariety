@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # Wariety - A wallpaper manager for MS Windows operating system.
-# Copyright (C) 2020  Roland Rickborn <wariety@gmx.net>
+# Copyright (C) 2021  Roland Rickborn <wariety@gmx.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -84,7 +84,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         self.Bind(wx.EVT_TIMER, self.on_left_single)
 
         # Configuration
-        self.myConfig = lib.wariety_config.WarietyConfig(CONFIGFILE)
+        self.myConfig = lib.wariety_config.WarietyConfig(CONFIGFILE)  # TODO Rename myConfig to my_config
 
         # DB initializing
         self.database = lib.wariety_database.WarietyDatabase(self.myConfig.to_dict())
