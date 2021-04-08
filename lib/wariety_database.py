@@ -130,16 +130,6 @@ def get_empty_image():
 
     return my_image
 
-
-def push_empty_queue():
-    """
-    Sends 'empty queue' message
-    :return:
-    """
-    logger.debug('push_empty_queue()')
-    pub.sendMessage("empty queue", msg='')
-
-
 class WarietyDatabase(object):
     """docstring for WarietyDatabase"""
 
@@ -147,6 +137,7 @@ class WarietyDatabase(object):
         logger.debug('Starting DB')
         logger.debug('__init__()')
         self.config = config
+        self.my_queue = wariety_queue.WarietyQueue.instance(self.config)
 
         # DB settings
         dir_path = os.path.join(os.environ['LOCALAPPDATA'],'Wariety')  # TODO Replace static string 'Wariety'
@@ -160,6 +151,14 @@ class WarietyDatabase(object):
     def __del__(self):
         logger.debug('__del__()')
         logger.debug('Stopping DB')
+
+    def push_empty_queue(self):
+        """
+        Sends 'empty queue' message
+        :return:
+        """
+        logger.debug('push_empty_queue()')
+        pub.sendMessage("empty queue", cls=self.my_queue, msg='')
 
     def create_or_alter_tables(self):
         """
@@ -273,8 +272,7 @@ class WarietyDatabase(object):
             if conn:
                 # Close connection
                 conn.close()
-
-        return retval
+            return retval
 
     def column_exists(self, column_name, table_name):
         """
@@ -307,8 +305,7 @@ class WarietyDatabase(object):
             if conn:
                 # Close connection
                 conn.close()
-
-        return retval
+            return retval
 
     def set_total_seen_number_by_id(self, wallpaper_id):
         """
@@ -349,14 +346,14 @@ class WarietyDatabase(object):
         """
         logger.debug('add_item_to_queue()')
 
-        my_queue = wariety_queue.WarietyQueue()
+        my_queue = wariety_queue.WarietyQueue.instance()
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
 
         # Build SQL string
-        sql = 'INSERT INTO wallpapers ('
+        sql = 'INSERT INTO queue ('
         queue_item_items = my_queue.to_dict()
         queue_item_items_length = len(queue_item_items)
         counter = 0
@@ -443,8 +440,7 @@ class WarietyDatabase(object):
             if conn:
                 # Close connection
                 conn.close()
-
-        return queued_image_id
+            return queued_image_id
 
     def set_seen_by_queue_id(self, queue_id, previous_queue_id):
         """
@@ -484,24 +480,28 @@ class WarietyDatabase(object):
 
     def set_currently_seeing_by_queue_id(self, queue_id):
         """
-        Sets queue status of queue item given by 'queue_id' to 'CURRENT'.
+        Sets queue status of queue item given by 'queue_id' to 'CURRENT'
+        and sets queue status to 'DONE' where it was set to 'CURRENT' before
         :param queue_id:
         :return:
         """
         logger.debug('set_currently_seeing_by_queue_id({})'.format(queue_id))
 
         # Queue status
-        _status = wariety_queue.WarietyQueue.queue_statuses['CURRENT']
+        _status_crnt = wariety_queue.WarietyQueue.queue_statuses['CURRENT']
+        _status_done = wariety_queue.WarietyQueue.queue_statuses['DONE']
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
 
-        # Build SQL string
-        sql = 'UPDATE queue SET queue_status = ? WHERE id = ?'
+        # Build SQL strings
+        sql1 = 'UPDATE queue SET queue_status = ? WHERE queue_status = ?'
+        sql2 = 'UPDATE queue SET queue_status = ? WHERE id = ?'
 
         try:
-            c.execute(sql, (_status, queue_id,))
+            c.execute(sql1, (_status_done, _status_crnt,))
+            c.execute(sql2, (_status_crnt, queue_id,))
 
             # Save (commit) the changes
             conn.commit()
@@ -517,9 +517,9 @@ class WarietyDatabase(object):
     def get_next_images_from_queue(self, number_of_images=1):
         """
         Returns images with the highest queue rank and status 'QUEUED', if available.
-        Otherwise, returns -1.
+        Otherwise, returns empty images with counter -1
         :param number_of_images:
-        :return: my_images
+        :return: my_images[]
         """
         logger.debug('get_next_images_from_queue({})'.format(number_of_images))
 
@@ -545,15 +545,20 @@ class WarietyDatabase(object):
             c.execute(sql, (_status, number_of_images, ))
 
             results = c.fetchall()
+            if len(results) > 0:
+                for result in results:
+                    # Wallpaper
+                    my_image = wariety_wallpaper.WarietyWallpaper()
 
-            for result in results:
+                    if result is not None:
+                        my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
+                    else:
+                        my_image.found_at_counter = -1
+                    my_images.append(my_image)
+            else:
                 # Wallpaper
                 my_image = wariety_wallpaper.WarietyWallpaper()
-
-                if result is not None:
-                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
-                else:
-                    my_image.found_at_counter = -1
+                my_image.found_at_counter = -1
                 my_images.append(my_image)
 
         except sqlite3.Error as error:
@@ -738,17 +743,17 @@ class WarietyDatabase(object):
         # SQL
         sql = ''
         if source_table == 'wallpapers':
-            sql = 'SELECT COUNT(id) FROM ? WHERE status == ?'
+            sql = 'SELECT COUNT(id) FROM wallpapers WHERE status = ?'
         elif source_table == 'queue':
             sql = 'SELECT COUNT(wallpapers.id) \
                     FROM wallpapers \
-                    INNER JOIN ? ON wallpapers.id = queue.image_id \
-                    WHERE queue.queue_status = ?;'
+                    INNER JOIN queue ON wallpapers.id = queue.image_id \
+                    WHERE queue.queue_status = ?'
         else:
             sql = 'upsi :-)'
 
         try:
-            c.execute(sql, (source_table, status, ))
+            c.execute(sql, (status, ))
 
             result = c.fetchone()
 
@@ -846,15 +851,20 @@ class WarietyDatabase(object):
                 c.execute(sql, (source_type, _now, status, number_of_images, ))
 
             results = c.fetchall()
+            if len(results) > 0:
+                for result in results:
+                    # Wallpaper
+                    my_image = wariety_wallpaper.WarietyWallpaper()
 
-            for result in results:
+                    if result is not None:
+                        my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                    else:
+                        my_image.found_at_counter = -1
+                    my_images.append(my_image)
+            else:
                 # Wallpaper
                 my_image = wariety_wallpaper.WarietyWallpaper()
-
-                if result is not None:
-                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
-                else:
-                    my_image.found_at_counter = -1
+                my_image.found_at_counter = -1
                 my_images.append(my_image)
 
         except sqlite3.Error as error:
@@ -908,7 +918,7 @@ class WarietyDatabase(object):
                 # Wallpaper
                 my_image = wariety_wallpaper.WarietyWallpaper()
                 if result is not None:
-                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                    my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
                 else:
                     my_image.found_at_counter = -1
                 my_images.append(my_image)
@@ -958,15 +968,21 @@ class WarietyDatabase(object):
                 c.execute(sql, (source_type,status, number_of_images, ))
 
             results = c.fetchall()
-
-            for result in results:
+            if len(results) > 0:
+                for result in results:
+                    # Wallpaper
+                    my_image = wariety_wallpaper.WarietyWallpaper()
+                    if result is not None:
+                        my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                    else:
+                        my_image.found_at_counter = -1
+                    my_images.append(my_image)
+            else:
                 # Wallpaper
                 my_image = wariety_wallpaper.WarietyWallpaper()
-                if result is not None:
-                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
-                else:
-                    my_image.found_at_counter = -1
+                my_image.found_at_counter = -1
                 my_images.append(my_image)
+
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
@@ -1014,15 +1030,15 @@ class WarietyDatabase(object):
                 c.execute(sql, (source_type, status, seen, number_of_images, ))
 
             results = c.fetchall()
-
-            for result in results:
-                # Wallpaper
-                my_image = wariety_wallpaper.WarietyWallpaper()
-                if result is not None:
-                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
-                else:
-                    my_image.found_at_counter = -1
-                my_images.append(my_image)
+            if len(results) > 0:
+                for result in results:
+                    # Wallpaper
+                    my_image = wariety_wallpaper.WarietyWallpaper()
+                    if result is not None:
+                        my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
+                    else:
+                        my_image.found_at_counter = -1
+                    my_images.append(my_image)
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
@@ -1070,15 +1086,15 @@ class WarietyDatabase(object):
                 c.execute(sql, (source_type, status, rating, number_of_images, ))
 
             results = c.fetchall()
-
-            for result in results:
-                # Wallpaper
-                my_image = wariety_wallpaper.WarietyWallpaper()
-                if result is not None:
-                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
-                else:
-                    my_image.found_at_counter = -1
-                my_images.append(my_image)
+            if len(results) > 0:
+                for result in results:
+                    # Wallpaper
+                    my_image = wariety_wallpaper.WarietyWallpaper()
+                    if result is not None:
+                        my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
+                    else:
+                        my_image.found_at_counter = -1
+                    my_images.append(my_image)
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
@@ -1127,15 +1143,16 @@ class WarietyDatabase(object):
                 c.execute(sql, (source_type, status,))
 
             results = c.fetchall()
-
-            for result in results:
-                # Wallpaper
-                my_image = wariety_wallpaper.WarietyWallpaper()
-                if result is not None:
-                    my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
-                else:
-                    my_image.found_at_counter = -1
-                my_images.append(my_image)
+            if len(results) > 0:
+                for result in results:
+                    # Wallpaper
+                    my_image = wariety_wallpaper.WarietyWallpaper()
+                    if result is not None:
+                        my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
+                    else:
+                        my_image.found_at_counter = -1
+                    my_images.append(my_image)
+                    print('append3', my_image.id)
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
