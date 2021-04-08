@@ -106,7 +106,7 @@ class WarietyQueue(object):
         }
         return queue_item_dict
 
-    def update_queuer(self, msg):
+    def update_queuer(cls, msg):
         """
         Starts the process of receiving wallpaper images from the database, calculating their rankings and
         sending them to the queue.
@@ -115,14 +115,14 @@ class WarietyQueue(object):
         :return:
         """
         logging.debug('update_downloader(msg)')
-        self.get_queue_images()
-        self.calculate_queue_image_rankings()
-        self.send_queue_images_to_database()
+        cls.get_queue_images()
+        cls.calculate_queue_image_rankings()
+        cls.send_queue_images_to_database()
 
     def get_queue_images(self):
         """
         Receives a number of wallpapers from the database and fills it in 'queue_images'. The received
-        number of images depend on the weights.
+        number of images depends on the weights.
         :return:
         """
         logger.debug('get_queue_images()')
@@ -166,6 +166,7 @@ class WarietyQueue(object):
             _random = random.randint(0, 10)
             _point = _point + _random * factor * self.weight_random
             _tmp[image.id] = _point
+
         self.queue_rankings = _tmp
 
     def send_queue_images_to_database(self):
@@ -182,5 +183,5 @@ class WarietyQueue(object):
             _queue_seen_date = ''
             _previous_queue_id = -1
             _queue_values = [_image_id, _queue_rank, _queue_status, _queue_seen_date, _previous_queue_id]
-            _queue_item = to_queue_item(_queue_values, WarietyQueue())
+            _queue_item = to_queue_item(_queue_values, WarietyQueue.instance())
             self.database.add_item_to_queue(_queue_item)
