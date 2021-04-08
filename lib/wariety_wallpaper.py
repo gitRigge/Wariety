@@ -86,6 +86,8 @@ class WarietyWallpaper(object):
     def __init__(self):
         logger.debug('Starting wallpaper')
         logger.debug('__init__()')
+
+        # Wallpaper Item properties
         self.id = ''
         self.image_name = ''
         self.image_md5_hash = ''
@@ -94,7 +96,7 @@ class WarietyWallpaper(object):
         self.source_type = ''
         self.image_author = ''
         self.source_name = ''
-        self.image_rating = ''
+        self.image_rating = 0
         self.image_url = ''
         self.location = ''
         self.keywords = ''
