@@ -919,9 +919,7 @@ class WarietyDatabase(object):
                 my_image = wariety_wallpaper.WarietyWallpaper()
                 if result is not None:
                     my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
-                else:
-                    my_image.found_at_counter = -1
-                my_images.append(my_image)
+                    my_images.append(my_image)
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
