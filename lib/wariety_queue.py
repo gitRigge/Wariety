@@ -140,6 +140,7 @@ class WarietyQueue(object):
         """
         Calculates the ranking for each image in 'queue_images' based on the weights, the total no. of
         wallpaper images in the databases and the wallpaper change interval.
+        Image rankings may be negative!
         :return:
         """
         logger.debug('calculate_queue_image_rankings()')
