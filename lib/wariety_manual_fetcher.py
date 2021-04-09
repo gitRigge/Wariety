@@ -52,7 +52,8 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
         logger.debug('on_created()')
         full_image_path = event.src_path
         if self.is_image_file(full_image_path) is True:
-            if self.database.exists_image_by_url_or_path(full_image_path) == 0:
+            image_hash = wariety_database.get_md5_hash_of_file(full_image_path)
+            if self.database.exists_image_by_md5_hash(image_hash) == 0:
                 logger.debug('on_created() - add new image')
                 my_new_wallpaper = wariety_database.get_empty_image()
                 self.fill_image_metadata(full_image_path, my_new_wallpaper)
@@ -72,9 +73,9 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
         """
         logger.debug('on_deleted()')
         full_image_path = event.src_path
-        if self.database.exists_image_by_url_or_path(full_image_path):
+        if self.database.exists_image_by_url_or_path(full_image_path) == 0:  # MD5 check is not working here!
             logger.debug('on_deleted() - remove image from DB.')
-            self.database.remove_image_by_id(self.database.exists_image_by_url_or_path(full_image_path))
+            self.database.remove_image_by_id(self.database.exists_image_by_url_or_path(full_image_path))  # MD5 check is not working here!
         else:
             logger.debug('on_deleted() - image is not in DB.')
 
@@ -334,7 +335,8 @@ class WarietyManualFetcher(Observer):
 
         all_image_file_paths = wariety_database.get_all_image_paths_from_folder_by_path(fetch_dir)
         for image_file_path in all_image_file_paths:
-            image_id = self.database.exists_image_by_url_or_path(image_file_path)
+            image_hash = wariety_database.get_md5_hash_of_file(image_file_path)
+            image_id = self.database.exists_image_by_md5_hash(image_hash)
             if not image_id:
                 logging.debug('initial_folder_scan() - add new image')
                 my_new_wallpaper = wariety_database.get_empty_image()
