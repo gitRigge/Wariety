@@ -1,8 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-# Wariety - A wallpaper manager for MS Windows operating system.
-# Copyright (C) 2021  Roland Rickborn <wariety@gmx.net>
+#  Wariety - A wallpaper manager for MS Windows operating system.
+#  Copyright (C) 2021 Roland Rickborn <wariety@gmx.net>
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, version 3 of the License.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see https://www.gnu.org/licenses/.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -37,7 +49,7 @@ import lib.wariety_updater
 import wariety_autostarter.setup_wariety_updater
 
 __author__ = "Roland Rickborn"
-__copyright__ = "Copyright (c) 2020 {} <wariety@gmx.net>".format(__author__)
+__copyright__ = "Copyright (c) 2021 {} <wariety@gmx.net>".format(__author__)
 __version__ = "0.0.4"
 __desc__ = "[Description]"
 __status__ = "Development"
@@ -47,7 +59,7 @@ __releasenotes__ = """[version]
 """
 __license__ = """GPL v3 License
 
-Copyright (c) 2020 gitRigge
+Copyright (c) 2021 gitRigge
 
 """
 
