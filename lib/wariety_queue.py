@@ -26,8 +26,19 @@ import wariety_database
 logger = logging.getLogger(__name__)
 
 def to_queue_item(list_of_values, queue_item):
+    """
+    Expects a list of values and converts them into a
+    queue item given by 'queue_item'. Returns the filled
+    queue_item.
+    Note: the sort order is important!
+    :param list_of_values:
+    :param queue_item:
+    :return: queue_item
+    """
     logger.debug('to_queue_item()')
     i = 0
+    queue_item.id = list_of_values[i]
+    i += 1
     queue_item.image_id = list_of_values[i]
     i += 1
     queue_item.queue_rank = list_of_values[i]
@@ -183,6 +194,6 @@ class WarietyQueue(object):
             _queue_status = self.queue_status
             _queue_seen_date = ''
             _previous_queue_id = -1
-            _queue_values = [_image_id, _queue_rank, _queue_status, _queue_seen_date, _previous_queue_id]
+            _queue_values = [-1, _image_id, _queue_rank, _queue_status, _queue_seen_date, _previous_queue_id]
             _queue_item = to_queue_item(_queue_values, WarietyQueue.instance())
             self.database.add_item_to_queue(_queue_item)

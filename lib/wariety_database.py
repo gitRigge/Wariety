@@ -442,15 +442,15 @@ class WarietyDatabase(object):
                 conn.close()
             return queued_image_id
 
-    def set_seen_by_queue_id(self, queue_id, previous_queue_id):
+    def set_previous_seen_by_queue_id(self, queue_id, previous_queue_id):
         """
-        Sets queue seen date to now, queue status to 'DONE' and previous queue ID to
-        the value given by 'previous_queue_id'
+        Sets previous queue ID to the value given by 'previous_queue_id' of
+        the image specified by 'queue_id'
         :param queue_id:
         :param previous_queue_id:
         :return:
         """
-        logger.debug('set_seen_by_queue_id({}, {})'.format(queue_id, previous_queue_id))
+        logger.debug('set_previous_seen_by_queue_id({}, {})'.format(queue_id, previous_queue_id))
 
         # Queue status
         _status = wariety_queue.WarietyQueue.queue_statuses['DONE']
@@ -570,13 +570,60 @@ class WarietyDatabase(object):
                 conn.close()
             return my_images
 
-    def get_previous_images_from_queue(self, number_of_images=1):
-        # TODO Fill method
-        pass
+    def get_previous_queue_items_by_queue_id(self, queue_id, number_of_items=1):
+        """
+        Returns queue items which have been seen previously to the image specified by 'queue_id'.
+        Returns amount of queue items specified by 'number_of_images'.
+        :param queue_id:
+        :param number_of_items:
+        :return: my_queue_items[]:
+        """
+        logger.debug('get_previous_images_from_queue_by_queue_id({}, {})'.format(queue_id, number_of_items))
 
-    def get_previous_images_from_queue_by_queue_id(self, queue_id, number_of_images=1):
-        # TODO Fill method
-        pass
+        # Return values array
+        my_queue_items = []
+
+        # Seen date of image specified by 'queue_id'
+        image_seen_date = self.get_seen_date_by_queue_id(queue_id)
+
+        # Queue status
+        _status = wariety_queue.WarietyQueue.queue_statuses['DONE']
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Build SQL string
+        sql = 'SELECT * \
+                FROM queue \
+                WHERE queue_seen_date < ? AND queue_status = ? \
+                ORDER BY queue_seen_date DESC \
+                LIMIT ?'
+
+        try:
+            c.execute(sql, (image_seen_date, _status, number_of_items, ))
+
+            results = c.fetchall()
+            if len(results) > 0:
+                for result in results:
+
+                    # Queue item
+                    my_queue_item = wariety_queue.WarietyQueue.instance()
+
+                    if result is not None:
+                        my_queue_item = wariety_queue.to_queue_item(result, wariety_queue.WarietyQueue.instance())
+                    else:
+                        my_queue_item.id = -1
+                    my_queue_items.append(my_queue_item)
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return my_queue_items
 
     def add_image_to_database(self, new_wallpaper):
         """
@@ -814,7 +861,7 @@ class WarietyDatabase(object):
                 conn.close()
             return days_diff
 
-    def set_last_seen_date_by_queue_id(self, queue_id, last_seen_date = '00000000000000'):
+    def set_last_seen_date_by_queue_id(self, queue_id, last_seen_date='00000000000000'):
         """
         Sets the last seen date given by 'last_seen_date' of the image specified by
         'queue_id'. If no last seen date is given, sets the last seen date to now.
@@ -1026,6 +1073,41 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
             return my_images
+
+    def get_seen_date_by_queue_id(self, queue_id):
+        """
+        Returns the seen date of the image specified by 'queue_id', if
+        available. Otherwise, returns '19700101000000'
+        :param queue_id:
+        :return: seen_date
+        """
+
+        logger.debug('get_seen_date_by_queue_id({})'.format(queue_id))
+
+        seen_date = '19700101000000'
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Select a row
+        sql = 'SELECT queue_seen_date FROM queue WHERE id = ?'
+
+        try:
+            c.execute(sql, (queue_id,))
+
+            result = c.fetchone()
+
+            seen_date = str(result[0])
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return seen_date
 
     def get_seen_image(self, number_of_images=1, seen=0, source_type='*', status='DOWNLOADED'):
         """
