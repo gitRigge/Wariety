@@ -105,8 +105,8 @@ class WarietyUpdaterThread(threading.Thread):
                         self.database.push_empty_queue()
                     self.database.set_currently_seeing_by_queue_id(my_queue_id)
                     update_wallpaper(my_images[0].image_path)
+                    self.database.set_last_seen_date_by_queue_id(my_queue_id)
                     self.database.set_total_seen_number_by_id(my_images[0].id)
-                    self.database.set_currently_seeing_by_queue_id(my_images[0].id)
                 else:
                     self.database.push_empty_queue()
             else:

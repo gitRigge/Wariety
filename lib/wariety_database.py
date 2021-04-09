@@ -814,6 +814,42 @@ class WarietyDatabase(object):
                 conn.close()
             return days_diff
 
+    def set_last_seen_date_by_queue_id(self, queue_id, last_seen_date = '00000000000000'):
+        """
+        Sets the last seen date given by 'last_seen_date' of the image specified by
+        'queue_id'. If no last seen date is given, sets the last seen date to now.
+        :param queue_id:
+        :param last_seen_date:
+        """
+        logger.debug('set_last_seen_date_by_queue_id({})'.format(queue_id))
+
+        _last_seen_date = ''
+
+        if last_seen_date == '00000000000000':
+            _last_seen_date = datetime.datetime.now()
+        else:
+            _last_seen_date = datetime.datetime.strptime(last_seen_date, "%Y%m%d%H%M%S")
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        try:
+            # Build SQL string
+            sql = 'UPDATE queue SET queue_seen_date = ? WHERE id = ?'
+            c.execute(sql, (_last_seen_date.strftime("%Y%m%d%H%M%S"),queue_id,))
+
+            # Save (commit) the changes
+            conn.commit()
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+
     def get_latest_image(self, number_of_images=1, source_type='*', status='DOWNLOADED'):
         """
         Returns the latest downloaded image(s) at all. Or, if given, returns the latest
