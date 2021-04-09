@@ -1,20 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-# Wariety - A wallpaper manager for MS Windows operating system.
-# Copyright (C) 2021  Roland Rickborn <wariety@gmx.net>
+#  Wariety - A wallpaper manager for MS Windows operating system.
+#  Copyright (C) 2021 Roland Rickborn <wariety@gmx.net>
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3 of the License.
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, version 3 of the License.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#  GNU General Public License for more details.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see https://www.gnu.org/licenses/.
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see https://www.gnu.org/licenses/.
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, version 3 of the License.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see https://www.gnu.org/licenses/.
 
 import datetime
 import hashlib
@@ -1180,7 +1192,7 @@ class WarietyDatabase(object):
         sql = 'SELECT id FROM wallpapers WHERE image_md5_hash = ?'
 
         try:
-            c.execute(sql, (md5_hash_value))
+            c.execute(sql, (md5_hash_value,))
             result = c.fetchone()
 
             if result is not None:
