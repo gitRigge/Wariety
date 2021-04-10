@@ -2,6 +2,7 @@ _README.txt
 VERSION
 Backup
 build
+Release Notes.txt
 **/.idea/workspace.xml
 **/.idea/tasks.xml
 *.iws
@@ -20,11 +21,10 @@ __pycache__/
 *.mo
 *.pot
 
-*.bat
-
 .env
 .venv
 env/
 venv/
 ENV/
 /bin/*.exe
+/Release Notes.txt
