@@ -23,6 +23,7 @@ import threading
 import time
 
 import win32con
+from pubsub import pub
 
 import wariety_database
 import wariety_queue
@@ -40,6 +41,15 @@ def update_wallpaper(new_wallpaper_path):
 
     cs = ctypes.create_string_buffer(new_wallpaper_path.encode('utf-8'))
     ok = ctypes.windll.user32.SystemParametersInfoA(win32con.SPI_SETDESKWALLPAPER, 0, cs, 0)
+
+
+def push_wallpaper_updated(self):
+    """
+    Sends 'wallpaper updated' message
+    :return:
+    """
+    logger.debug('push_wallpaper_updated()')
+    pub.sendMessage("wallpaper updated", event='')
 
 
 class WarietyUpdaterThread(threading.Thread):
@@ -108,6 +118,8 @@ class WarietyUpdaterThread(threading.Thread):
                     if _no_of_imgs_in_queue < 2:
                         self.database.push_empty_queue()
                     update_wallpaper(my_images[0].image_path)
+                    if self.config['animate_system_tray_icon']:
+                        push_wallpaper_updated(self)
                     self.database.set_last_seen_date_by_queue_id(my_queue_id)
                     self.database.set_total_seen_number_by_id(my_images[0].id)
                     previous_queue_items = self.database.get_previous_queue_items_by_queue_id(my_queue_id)

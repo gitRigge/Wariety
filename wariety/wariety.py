@@ -109,6 +109,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         pub.subscribe(self.update_manual_fetcher, "config updated")
         pub.subscribe(self.update_start_at_startup, "config updated")
         pub.subscribe(self.update_change_wallpaper_at_startup, "config updated")
+        pub.subscribe(self.animate_icon, "wallpaper updated")
 
         # Instantiate the wallpaper updater
         if self.myConfig.wallpaper_change:
@@ -143,7 +144,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
             wariety_autostarter.setup_wariety_updater.write_batch_file(my_updater_tool_path, my_download_path,
                                                                        my_fetch_path)
         else:
-            pass
+            logging.debug('no updater tool present!')
+
         if self.myConfig.change_wallpaper_at_startup:
             target = my_updater_tool_path
             shortcut_name = '{}.lnk'.format(TOOL_NAME)
@@ -258,13 +260,15 @@ class WarietyMain(wx.adv.TaskBarIcon):
         top.Show()
 
     def animate_icon(self, event):
+        logging.debug('animate_icon(event)')
         myIcons = icons.copy()
         myIcons_copy = myIcons.copy()
         myIcons_copy.reverse()
-        myIcons.extend(myIcons_copy)
+        myIcons.extend(myIcons_copy+myIcons)
         for i in myIcons_copy:
             icon = wx.Icon(i)
             self.SetIcon(icon, APP_NAME)
+            time.sleep(0.1)
 
     def show_balloon_msg(self, event, title, msg):
         self.ShowBalloon(title, msg, msec=0, flags=0)
