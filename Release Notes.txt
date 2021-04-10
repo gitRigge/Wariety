@@ -1,2 +1,4 @@
+0.0.4     3rd Initial Commit (eaae8dd)
+0.0.3     New autostart uploader (based on batch file) (eabcdcf)
 0.0.2     2nd Initial Commit (4ac4396)
 0.0.1     Initial Commit (9672eff)
