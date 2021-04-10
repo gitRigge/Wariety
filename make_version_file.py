@@ -37,7 +37,10 @@ version_arr = get_version_array(version_str)
 author = wariety.__author__
 appname = wariety.APP_NAME
 copyright = wariety.__copyright__
-
+status_str = wariety.__status__
+err_code = 0  # Error code 0 => Non Dev status
+if status_str == 'Development':
+    err_code = 1  # Error code 1 => Dev status
 
 version_info_dic = {
     'R01': version_arr[0], # Version x.0.0.0
@@ -68,4 +71,4 @@ f.write(template)
 f.close()
 
 print('MAKE VERSION FILE: Successfully finished')
-sys.exit()
+sys.exit(err_code)

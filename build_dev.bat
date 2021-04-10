@@ -4,8 +4,11 @@ set PATH=c:\Python36\;c:\Python36\Lib\site-packages\;c:\Python36\Scripts\;%PATH%
 set PYTHONPATH=c:\Python36\Lib\
 set PYTHONHOME=c:\Python36\
 git pull origin master
-python fetch_release_notes.py
+
 python make_version_file.py
+REM Error code 1 == Dev status
+if %ERRORLEVEL%==1 (
+python fetch_release_notes.py
 pyinstaller ^
     --onefile ^
     --console ^
@@ -32,6 +35,11 @@ pyinstaller ^
     --add-data %cd%\data\icons\*.png;data\icons\ ^
     --clean ^
     wariety\wariety.py
-del VERSION
 rmdir /S /Q build\wariety
+) else (
+    echo.
+    echo Non-Development status found - no DEV build
+)
+@echo off
+del VERSION
 pause
