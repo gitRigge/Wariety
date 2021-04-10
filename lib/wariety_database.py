@@ -1268,7 +1268,6 @@ class WarietyDatabase(object):
                     else:
                         my_image.found_at_counter = -1
                     my_images.append(my_image)
-                    print('append3', my_image.id)
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)

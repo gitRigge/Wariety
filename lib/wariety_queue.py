@@ -31,6 +31,7 @@ def to_queue_item(list_of_values, queue_item):
     queue item given by 'queue_item'. Returns the filled
     queue_item.
     Note: the sort order is important!
+    Caution: this method sets queue status indirectly!
     :param list_of_values:
     :param queue_item:
     :return: queue_item
@@ -184,6 +185,7 @@ class WarietyQueue(object):
     def send_queue_images_to_database(self):
         """
         Adds each queue ranking to the database.
+        Caution: this method sets queue status indirectly!
         :return:
         """
         logger.debug('send_queue_images_to_database()')
@@ -194,6 +196,6 @@ class WarietyQueue(object):
             _queue_status = self.queue_status
             _queue_seen_date = ''
             _previous_queue_id = -1
-            _queue_values = [-1, _image_id, _queue_rank, _queue_status, _queue_seen_date, _previous_queue_id]
+            _queue_values = [0, _image_id, _queue_rank, _queue_status, _queue_seen_date, _previous_queue_id]
             _queue_item = to_queue_item(_queue_values, WarietyQueue.instance())
             self.database.add_item_to_queue(_queue_item)
