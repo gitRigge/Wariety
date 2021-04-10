@@ -130,6 +130,7 @@ class WarietyQueue(object):
         cls.get_queue_images()
         cls.calculate_queue_image_rankings()
         cls.send_queue_images_to_database()
+        cls.queue_images.clear()
 
     def get_queue_images(self):
         """
