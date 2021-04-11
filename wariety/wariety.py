@@ -109,7 +109,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
         pub.subscribe(self.update_manual_fetcher, "config updated")
         pub.subscribe(self.update_start_at_startup, "config updated")
         pub.subscribe(self.update_change_wallpaper_at_startup, "config updated")
-        pub.subscribe(self.animate_icon, "wallpaper updated")
+        pub.subscribe(self.animate_icon, "show icon animation")
+        pub.subscribe(self.show_balloon_msg, "show balloon msg")
 
         # Instantiate the wallpaper updater
         if self.myConfig.wallpaper_change:
@@ -271,6 +272,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
             time.sleep(0.1)
 
     def show_balloon_msg(self, event, title, msg):
+        logging.debug('show_balloon_msg(event, title, msg)')
         self.ShowBalloon(title, msg, msec=0, flags=0)
 
     def on_exit(self, event):

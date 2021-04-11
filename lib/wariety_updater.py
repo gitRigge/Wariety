@@ -43,13 +43,22 @@ def update_wallpaper(new_wallpaper_path):
     ok = ctypes.windll.user32.SystemParametersInfoA(win32con.SPI_SETDESKWALLPAPER, 0, cs, 0)
 
 
-def push_wallpaper_updated(self):
+def push_show_icon_animation(self):
     """
-    Sends 'wallpaper updated' message
+    Sends 'show icon animation' message
     :return:
     """
-    logger.debug('push_wallpaper_updated()')
-    pub.sendMessage("wallpaper updated", event='')
+    logger.debug('push_show_icon_animation()')
+    pub.sendMessage("show icon animation", event='')
+
+
+def push_show_balloon_msg(self, title, desc):
+    """
+    Sends 'show balloon msg' message
+    :return:
+    """
+    logger.debug('show_balloon_msg()')
+    pub.sendMessage("show balloon msg", event='', title=title, msg=desc)
 
 
 class WarietyUpdaterThread(threading.Thread):
@@ -110,26 +119,46 @@ class WarietyUpdaterThread(threading.Thread):
 
                 # Queue management
                 if my_images[0].found_at_counter != -1:
-                    # Queue status
+
+                    # Set queue status to 'QUEUED'
                     _status = wariety_queue.WarietyQueue.queue_statuses['QUEUED']
                     wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status to "QUEUED"!
+
+                    # Proceed with current image
                     my_queue_id = self.database.get_queue_id_by_id(my_images[0].id)
                     _no_of_imgs_in_queue = self.database.get_total_number_of_images('queue', _status)
+
+                    # Put new items to the queue in case there are less than 2 items
                     if _no_of_imgs_in_queue < 2:
                         self.database.push_empty_queue()
+
+                    # Update desktop wallpaper with current image
                     update_wallpaper(my_images[0].image_path)
+
+                    # Show animation, if necessary
                     if self.config['animate_system_tray_icon']:
-                        push_wallpaper_updated(self)
+                        push_show_icon_animation(self)
+
+                    # Show balloon message, if necessary
+                    if self.config['show_balloon_message']:
+                        my_title = my_images[0].image_name
+                        my_desc = self.database.get_image_description_by_id(my_images[0].id)
+                        push_show_balloon_msg(self, my_title, my_desc)
+                    # Update database
                     self.database.set_last_seen_date_by_queue_id(my_queue_id)
                     self.database.set_total_seen_number_by_id(my_images[0].id)
                     previous_queue_items = self.database.get_previous_queue_items_by_queue_id(my_queue_id)
+
+                    # Re-set queue status to 'QUEUED'
                     wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status back to "QUEUED"!
                     if len(previous_queue_items) > 0:
                         previous_queue_item = previous_queue_items[0]
                         self.database.set_previous_seen_by_queue_id(my_queue_id, previous_queue_item.id)
                     self.database.set_currently_seeing_by_queue_id(my_queue_id)
+
                 else:
                     self.database.push_empty_queue()
+
             else:
                 time.sleep(self.check_interval)
 

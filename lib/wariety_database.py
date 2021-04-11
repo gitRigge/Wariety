@@ -1425,3 +1425,50 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
                 return all_images
+
+    def get_image_description_by_id(self, wallpaper_id):
+        """
+        Returns the description of the wallpaper image specified by
+        'wallpaper_id'.
+        :return image_desc:
+        """
+        logging.debug('get_image_description_by_id({})'.format(wallpaper_id))
+
+        image_desc = ''
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Select a row
+        sql = 'SELECT image_author,location,source_name FROM wallpapers WHERE id = ?'
+
+        try:
+            c.execute(sql, (wallpaper_id,))
+            result = c.fetchone()
+
+            if result[0] != '':
+                if image_desc == '':
+                    image_desc = 'By {}'.format(result[0])
+                else:
+                    image_desc = image_desc + ', by {}'.format(result[0])
+            if result[1] != '':
+                if image_desc == '':
+                    image_desc = 'Location: {}'.format(result[1])
+                else:
+                    image_desc = image_desc + ', location: {}'.format(result[1])
+            if result[2] != '':
+                if image_desc == '':
+                    image_desc = 'Source: {}'.format(result[2])
+                else:
+                    image_desc = image_desc + ', source: {}'.format(result[2])
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+            image_desc = 'No description available'
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return image_desc
