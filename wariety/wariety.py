@@ -1,20 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-#  Wariety - A wallpaper manager for MS Windows operating system.
-#  Copyright (C) 2021 Roland Rickborn <wariety@gmx.net>
-#
-#  This program is free software: you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation, version 3 of the License.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License
-#  along with this program.  If not, see https://www.gnu.org/licenses/.
+# Wariety - A wallpaper manager for MS Windows operating system.
+# Copyright (C) 2021  Roland Rickborn <wariety@gmx.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -273,6 +261,20 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
     def show_balloon_msg(self, event, title, msg):
         logging.debug('show_balloon_msg(event, title, msg)')
+        _By = _("By")
+        _by = _("by")
+        _Location = _("Location")
+        _location = _("location")
+        _Source = _("Source")
+        _source = _("source")
+        _translations = {"By": _By,
+                         "by": _by,
+                         "Location": _Location,
+                         "location": _location,
+                         "Source": _Source,
+                         "source": _source}
+        for item in _translations:
+            msg = msg.replace(item, _translations[item])
         self.ShowBalloon(title, msg, msec=0, flags=0)
 
     def on_exit(self, event):
