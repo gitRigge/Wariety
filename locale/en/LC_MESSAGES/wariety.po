@@ -1,19 +1,29 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR ORGANIZATION
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Wariety - A wallpaper manager for MS Windows operating system.
+# Copyright (C) 2021  Roland Rickborn <wariety@gmx.net>
 #
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see https://www.gnu.org/licenses/.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2019-11-05 14:58+0100\n"
-"PO-Revision-Date: 2019-11-05 15:19+0100\n"
+"PO-Revision-Date: 2021-04-11 10:36+0200\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 2.2.4\n"
-"Last-Translator: \n"
+"X-Generator: Poedit 2.3.1\n"
+"Last-Translator: Roland Rickborn\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Language: en\n"
 
@@ -88,3 +98,27 @@ msgstr "Single Click"
 #: wariety\wariety.py:153
 msgid "Bye, then"
 msgstr "Bye, bye"
+
+#: wariety\wariety.py:276
+msgid "By"
+msgstr "By"
+
+#: wariety\wariety.py:277
+msgid "by"
+msgstr "by"
+
+#: wariety\wariety.py:278
+msgid "Location"
+msgstr "Location"
+
+#: wariety\wariety.py:279
+msgid "location"
+msgstr "location"
+
+#: wariety\wariety.py:280
+msgid "Source"
+msgstr "Source"
+
+#: wariety\wariety.py:281
+msgid "source"
+msgstr "source"
