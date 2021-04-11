@@ -166,7 +166,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         create_submenu_item(menu, subsubmenu, u'\u2605\u2605\u2605', self.on_three_star)
         create_submenu_item(menu, subsubmenu, u'\u2605\u2605', self.on_two_star)
         create_submenu_item(menu, subsubmenu, u'\u2605', self.on_one_star)
-        create_submenu_item(menu, subsubmenu, _('No Vote'), self.on_one_star)
+        create_submenu_item(menu, subsubmenu, _('No Vote'), self.on_no_star)
         submenu.AppendSubMenu(subsubmenu, _('Vote'))
         menu.AppendSubMenu(submenu, _('Image'))
         menu.AppendSeparator()
@@ -199,36 +199,50 @@ class WarietyMain(wx.adv.TaskBarIcon):
         del self.timer1
 
     def on_next(self, event):
-        pass
+        logging.debug('on_next(event)')
+        pub.sendMessage("show next image")
 
     def on_previous(self, event):
-        pass
+        logging.debug('on_previous(event)')
+        pub.sendMessage("show previous image")
 
     def on_keep(self, event):
-        pass
+        logging.debug('on_previous(event)')
+        pub.sendMessage("show previous image")
 
     def on_show_source(self, event):
-        pass
+        logging.debug('on_previous(event)')
+        pub.sendMessage("show previous image")
 
     def on_image_search(self, event):
         pass
 
+    def on_no_star(self, event):
+        logging.debug('on_no_star(event)')
+        pub.sendMessage("show previous image")
+
     def on_one_star(self, event):
-        pass
+        logging.debug('on_one_star(event)')
+        pub.sendMessage("show previous image")
 
     def on_two_star(self, event):
-        pass
+        logging.debug('on_two_star(event)')
+        pub.sendMessage("show previous image")
 
     def on_three_star(self, event):
-        pass
+        logging.debug('on_three_star(event)')
+        pub.sendMessage("show previous image")
 
     def on_four_star(self, event):
-        pass
+        logging.debug('on_four_star(event)')
+        pub.sendMessage("show previous image")
 
     def on_five_star(self, event):
-        pass
+        logging.debug('on_five_star(event)')
+        pub.sendMessage("show previous image")
 
     def on_name(self, event):
+        # What should this method do?
         pass
 
     def on_source(self, event):
@@ -267,12 +281,14 @@ class WarietyMain(wx.adv.TaskBarIcon):
         _location = _("location")
         _Source = _("Source")
         _source = _("source")
+        _Rating = _("Rating")
         _translations = {"By": _By,
                          "by": _by,
                          "Location": _Location,
                          "location": _location,
                          "Source": _Source,
-                         "source": _source}
+                         "source": _source,
+                         "Rating": _Rating}
         for item in _translations:
             msg = msg.replace(item, _translations[item])
         self.ShowBalloon(title, msg, msec=0, flags=0)

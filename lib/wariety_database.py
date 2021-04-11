@@ -1441,27 +1441,44 @@ class WarietyDatabase(object):
         c = conn.cursor()
 
         # Select a row
-        sql = 'SELECT image_author,location,source_name FROM wallpapers WHERE id = ?'
+        sql = 'SELECT image_author,location,source_name,image_rating FROM wallpapers WHERE id = ?'
 
         try:
             c.execute(sql, (wallpaper_id,))
             result = c.fetchone()
 
+            # image_author
             if result[0] != '':
                 if image_desc == '':
                     image_desc = 'By {}'.format(result[0])
                 else:
                     image_desc = image_desc + ', by {}'.format(result[0])
+
+            # location
             if result[1] != '':
                 if image_desc == '':
                     image_desc = 'Location: {}'.format(result[1])
                 else:
                     image_desc = image_desc + ', location: {}'.format(result[1])
+
+            # source_name
             if result[2] != '':
                 if image_desc == '':
                     image_desc = 'Source: {}'.format(result[2])
                 else:
                     image_desc = image_desc + ', source: {}'.format(result[2])
+
+            # image_rating
+            if int(result[3]) > 0:
+                _rating = ''  # u'\u2605'
+                i = 0
+                while i < int(result[3]):
+                    _rating = _rating + u'\u2605'
+                    i = i + 1
+                if image_desc == '':
+                    image_desc = 'Rating: {}'.format(_rating)
+                else:
+                    image_desc = image_desc + '\nRating: {}'.format(_rating)
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)

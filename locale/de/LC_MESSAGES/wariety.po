@@ -12,11 +12,12 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see https://www.gnu.org/licenses/.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2020-05-27 22:32+0200\n"
-"PO-Revision-Date: 2021-04-11 10:35+0200\n"
+"PO-Revision-Date: 2021-04-11 17:40+0200\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -126,6 +127,10 @@ msgstr "Quelle"
 #: wariety\wariety.py:281
 msgid "source"
 msgstr "Quelle"
+
+#: wariety\wariety.py:284
+msgid "Rating"
+msgstr "Bewertung"
 
 #: wariety\wariety.py:264
 msgid ""
