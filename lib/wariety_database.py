@@ -1489,3 +1489,43 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
             return image_desc
+
+    def set_ranking_of_current_image(self, my_rating):
+        """
+        Set ranking of image with status 'CURRENT' to ranking
+        value given by 'ranking'
+        :param my_rating:
+        :return:
+        """
+
+        logger.debug('set_ranking_of_current_image({})'.format(my_rating))
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # My status
+        _status = wariety_queue.WarietyQueue.queue_statuses['CURRENT']
+
+        # Build SQL string
+        sql = 'UPDATE wallpapers \
+            SET image_rating = ? \
+            where EXISTS ( \
+                SELECT id \
+                    FROM queue \
+                    WHERE image_id = wallpapers.id AND queue_status = ? \
+            )'
+
+        try:
+            c.execute(sql, (my_rating, _status,))
+
+            # Save (commit) the changes
+            conn.commit()
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()

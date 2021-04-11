@@ -219,27 +219,27 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
     def on_no_star(self, event):
         logging.debug('on_no_star(event)')
-        pub.sendMessage("show previous image")
+        self.database.set_ranking_of_current_image(my_rating=0)
 
     def on_one_star(self, event):
         logging.debug('on_one_star(event)')
-        pub.sendMessage("show previous image")
+        self.database.set_ranking_of_current_image(my_rating=1)
 
     def on_two_star(self, event):
         logging.debug('on_two_star(event)')
-        pub.sendMessage("show previous image")
+        self.database.set_ranking_of_current_image(my_rating=2)
 
     def on_three_star(self, event):
         logging.debug('on_three_star(event)')
-        pub.sendMessage("show previous image")
+        self.database.set_ranking_of_current_image(my_rating=3)
 
     def on_four_star(self, event):
         logging.debug('on_four_star(event)')
-        pub.sendMessage("show previous image")
+        self.database.set_ranking_of_current_image(my_rating=4)
 
     def on_five_star(self, event):
         logging.debug('on_five_star(event)')
-        pub.sendMessage("show previous image")
+        self.database.set_ranking_of_current_image(my_rating=5)
 
     def on_name(self, event):
         # What should this method do?
