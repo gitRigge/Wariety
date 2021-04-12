@@ -1490,15 +1490,17 @@ class WarietyDatabase(object):
                 conn.close()
             return image_desc
 
-    def set_ranking_of_current_image(self, my_rating):
+    def get_current_image(self):
         """
-        Set ranking of image with status 'CURRENT' to ranking
-        value given by 'ranking'
-        :param my_rating:
-        :return:
+        Returns the wallpaper image object of the image which has the
+        status 'CURRENT' in the queue.
+        :return: my_image
         """
 
-        logger.debug('set_ranking_of_current_image({})'.format(my_rating))
+        # Wallpaper
+        my_image = wariety_wallpaper.WarietyWallpaper()
+
+        logger.debug('get_current_image()')
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
@@ -1507,17 +1509,55 @@ class WarietyDatabase(object):
         # My status
         _status = wariety_queue.WarietyQueue.queue_statuses['CURRENT']
 
+        # SQL
+        sql = 'SELECT wallpapers.* \
+                FROM wallpapers \
+                INNER JOIN queue ON wallpapers.id = queue.image_id \
+                WHERE queue.queue_status = ?'
+
+        try:
+            c.execute(sql, (_status,))
+            result = c.fetchone()
+
+            if result is not None:
+                my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
+            else:
+                my_image.found_at_counter = -1
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return my_image
+
+    def set_ranking_of_image_by_id(self, wallpaper_id, my_rating):
+        """
+        Set ranking of image with status 'CURRENT' to ranking
+        value given by 'ranking'
+        :param my_rating:
+        :return:
+        """
+
+        logger.debug('set_ranking_of_image_by_id({}, {})'.format(wallpaper_id, my_rating))
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
         # Build SQL string
         sql = 'UPDATE wallpapers \
             SET image_rating = ? \
             where EXISTS ( \
                 SELECT id \
                     FROM queue \
-                    WHERE image_id = wallpapers.id AND queue_status = ? \
+                    WHERE image_id = wallpapers.id AND wallpapers.id = ? \
             )'
 
         try:
-            c.execute(sql, (my_rating, _status,))
+            c.execute(sql, (my_rating, wallpaper_id,))
 
             # Save (commit) the changes
             conn.commit()

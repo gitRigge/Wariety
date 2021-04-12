@@ -105,6 +105,7 @@ class WarietyUpdaterThread(threading.Thread):
         """Run Worker Thread."""
         logger.debug('run()')
         while self.keep_running:
+
             self.seconds_until_fire = self.seconds_until_fire - self.check_interval
             if self.seconds_until_fire == 0:
                 if getattr(sys, 'frozen', False):
