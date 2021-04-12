@@ -27,6 +27,7 @@ from pubsub import pub
 
 import wariety_database
 import wariety_queue
+import wariety_wallpaper
 
 logger = logging.getLogger(__name__)
 
@@ -68,8 +69,11 @@ class WarietyUpdaterThread(threading.Thread):
         """Init Worker Thread Class."""
         logger.debug('Starting updater thread')
         logger.debug('__init__()')
+
         self.config = config
         self.database = wariety_database.WarietyDatabase(self.config)
+        self.current_wallpaper = wariety_wallpaper.WarietyWallpaper()
+
         threading.Thread.__init__(self)
 
         self.updt_sched = int(update_schedule)
@@ -120,12 +124,15 @@ class WarietyUpdaterThread(threading.Thread):
                 # Queue management
                 if my_images[0].found_at_counter != -1:
 
+                    # Current image
+                    self.current_wallpaper = my_images[0]
+
                     # Set queue status to 'QUEUED'
                     _status = wariety_queue.WarietyQueue.queue_statuses['QUEUED']
                     wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status to "QUEUED"!
 
                     # Proceed with current image
-                    my_queue_id = self.database.get_queue_id_by_id(my_images[0].id)
+                    my_queue_id = self.database.get_queue_id_by_id(self.current_wallpaper.id)
                     _no_of_imgs_in_queue = self.database.get_total_number_of_images('queue', _status)
 
                     # Put new items to the queue in case there are less than 2 items
@@ -133,7 +140,7 @@ class WarietyUpdaterThread(threading.Thread):
                         self.database.push_empty_queue()
 
                     # Update desktop wallpaper with current image
-                    update_wallpaper(my_images[0].image_path)
+                    update_wallpaper(self.current_wallpaper.image_path)
 
                     # Show animation, if necessary
                     if self.config['animate_system_tray_icon']:
@@ -141,12 +148,13 @@ class WarietyUpdaterThread(threading.Thread):
 
                     # Show balloon message, if necessary
                     if self.config['show_balloon_message']:
-                        my_title = my_images[0].image_name
-                        my_desc = self.database.get_image_description_by_id(my_images[0].id)
+                        my_title = self.current_wallpaper.image_name
+                        my_desc = self.database.get_image_description_by_id(self.current_wallpaper.id)
                         push_show_balloon_msg(self, my_title, my_desc)
+
                     # Update database
                     self.database.set_last_seen_date_by_queue_id(my_queue_id)
-                    self.database.set_total_seen_number_by_id(my_images[0].id)
+                    self.database.set_total_seen_number_by_id(self.current_wallpaper.id)
                     previous_queue_items = self.database.get_previous_queue_items_by_queue_id(my_queue_id)
 
                     # Re-set queue status to 'QUEUED'

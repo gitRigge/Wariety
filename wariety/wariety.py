@@ -146,8 +146,14 @@ class WarietyMain(wx.adv.TaskBarIcon):
         create_menu_item(menu, _('Next'), self.on_next)
         create_menu_item(menu, _('Previous'), self.on_previous)
         menu.AppendSeparator()
-        create_menu_item(menu, _('Image Name'), self.on_name)
-        create_menu_item(menu, _('Image Source'), self.on_source)
+        _title = self.myUpdater.current_wallpaper.image_name
+        if _title == '':
+            _title = _('No Image')
+        create_menu_item(menu, _title, self.on_name)
+        _source = self.myUpdater.current_wallpaper.source_name
+        if _source == '':
+            _source = _('No Source')
+        create_menu_item(menu, _source, self.on_source)
         create_menu_item(menu, _('Add to Favorites'), self.on_favorite)
         create_menu_item(menu, _('Delete Image'), self.on_delete)
         menu.AppendSeparator()
@@ -155,7 +161,13 @@ class WarietyMain(wx.adv.TaskBarIcon):
         create_submenu_item(menu, submenu, _('Next'), self.on_next)
         create_submenu_item(menu, submenu, _('Previous'), self.on_previous)
         submenu.AppendSeparator()
-        create_submenu_item(menu, submenu, _('Keep Current'), self.on_keep)
+        if self.myConfig.wallpaper_change:
+            if self.myUpdater.keep_running:
+                create_submenu_item(menu, submenu, _('Keep Current'), self.on_keep)
+            else:
+                create_submenu_item(menu, submenu, _('Continue'), self.on_keep)
+        else:
+            create_submenu_item(menu, submenu, _('Keep Current'), self.on_keep, False)
         submenu.AppendSeparator()
         create_submenu_item(menu, submenu, _('Show Source'), self.on_show_source)
         create_submenu_item(menu, submenu, _('Google Image Search'), self.on_image_search)
@@ -207,8 +219,17 @@ class WarietyMain(wx.adv.TaskBarIcon):
         pub.sendMessage("show previous image")
 
     def on_keep(self, event):
-        logging.debug('on_previous(event)')
-        pub.sendMessage("show previous image")
+        logging.debug('on_keep(event)')
+        if self.myUpdater.keep_running:
+            self.myUpdater.keep_running = False
+            self.myUpdater.stop()
+        else:
+            self.myUpdater.keep_running = True
+            if self.myConfig.wallpaper_change:
+                self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(
+                    self.myConfig.wallpaper_change_interval, self.myConfig.to_dict())
+            else:
+                self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(0, self.myConfig.to_dict())
 
     def on_show_source(self, event):
         logging.debug('on_previous(event)')
@@ -242,10 +263,11 @@ class WarietyMain(wx.adv.TaskBarIcon):
         self.database.set_ranking_of_current_image(my_rating=5)
 
     def on_name(self, event):
-        # What should this method do?
+        # Open image in default image view application
         pass
 
     def on_source(self, event):
+        # Open settings dialog with specified source
         pass
 
     def on_favorite(self, event):
@@ -446,17 +468,19 @@ class WarietyMain(wx.adv.TaskBarIcon):
         os.remove(path)
 
 
-def create_menu_item(menu, label, func):
+def create_menu_item(menu, label, func, enabled=True):
     item = wx.MenuItem(menu, -1, label)
     menu.Bind(wx.EVT_MENU, func, id=item.GetId())
     menu.Append(item)
+    item.Enable(enabled)
     return item
 
 
-def create_submenu_item(menu, submenu, label, func):
+def create_submenu_item(menu, submenu, label, func, enabled=True):
     item = wx.MenuItem(submenu, -1, label)
     menu.Bind(wx.EVT_MENU, func, id=item.GetId())
     submenu.Append(item)
+    item.Enable(enabled)
     return item
 
 

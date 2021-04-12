@@ -16,8 +16,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2020-05-27 22:32+0200\n"
-"PO-Revision-Date: 2021-04-11 17:40+0200\n"
+"POT-Creation-Date: 2021-04-12 21:12+0200\n"
+"PO-Revision-Date: 2021-04-12 21:17+0200\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -36,13 +36,13 @@ msgstr "Nächstes"
 msgid "Previous"
 msgstr "Vorheriges"
 
-#: wariety\wariety.py:76
-msgid "Image Name"
-msgstr "Bildname"
+#: wariety\wariety.py:151
+msgid "No Image"
+msgstr "Kein Bild"
 
-#: wariety\wariety.py:77
-msgid "Image Source"
-msgstr "Bildquelle"
+#: wariety\wariety.py:155
+msgid "No Source"
+msgstr "Keine Quelle"
 
 #: wariety\wariety.py:78
 msgid "Add to Favorites"
@@ -55,6 +55,10 @@ msgstr "Bild löschen"
 #: wariety\wariety.py:85
 msgid "Keep Current"
 msgstr "Aktuelles behalten"
+
+#: wariety\wariety.py:168
+msgid "Continue"
+msgstr "Fortsetzen"
 
 #: wariety\wariety.py:87
 msgid "Show Source"
