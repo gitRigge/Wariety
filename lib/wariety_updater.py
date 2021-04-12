@@ -27,7 +27,6 @@ from pubsub import pub
 
 import wariety_database
 import wariety_queue
-import wariety_wallpaper
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +71,7 @@ class WarietyUpdaterThread(threading.Thread):
 
         self.config = config
         self.database = wariety_database.WarietyDatabase(self.config)
-        self.current_wallpaper = wariety_wallpaper.WarietyWallpaper()
+        self.current_wallpaper = self.database.get_current_image()
 
         threading.Thread.__init__(self)
 
