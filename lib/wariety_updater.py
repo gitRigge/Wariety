@@ -100,13 +100,21 @@ class WarietyUpdaterThread(threading.Thread):
         logger.debug('Stopping updater thread')
         pass
 
+    def set_keep_running(self, new_keep_runnin):
+        logger.debug('set_keep_running({})'.format(str(new_keep_runnin)))
+        self.keep_running = new_keep_runnin
+
+    def set_seconds_until_fire(self, new_set_seconds_until_fire):
+        logger.debug('set_seconds_until_fire({})'.format(new_set_seconds_until_fire))
+        self.seconds_until_fire = new_set_seconds_until_fire
+
     def run(self):
         """Run Worker Thread."""
         logger.debug('run()')
         while self.keep_running:
 
             self.seconds_until_fire = self.seconds_until_fire - self.check_interval
-            if self.seconds_until_fire == 0:
+            if self.seconds_until_fire <= 0:
                 if getattr(sys, 'frozen', False):
                     import wariety.wariety
                     my_status = wariety.wariety.__status__

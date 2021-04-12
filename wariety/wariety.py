@@ -212,19 +212,19 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
     def on_next(self, event):
         logging.debug('on_next(event)')
-        pub.sendMessage("show next image")
+        self.myUpdater.set_seconds_until_fire(0)
 
     def on_previous(self, event):
         logging.debug('on_previous(event)')
-        pub.sendMessage("show previous image")
+
 
     def on_keep(self, event):
         logging.debug('on_keep(event)')
         if self.myUpdater.keep_running:
-            self.myUpdater.keep_running = False
+            self.myUpdater.set_keep_running(False)
             self.myUpdater.stop()
         else:
-            self.myUpdater.keep_running = True
+            self.myUpdater.set_keep_running(True)
             if self.myConfig.wallpaper_change:
                 self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(
                     self.myConfig.wallpaper_change_interval, self.myConfig.to_dict())
