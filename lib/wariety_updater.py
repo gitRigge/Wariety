@@ -89,6 +89,8 @@ class WarietyUpdaterThread(threading.Thread):
             self.seconds_until_fire = 60 * int(update_schedule)
         self.check_interval = 1
         self.keep_running = True
+        self.backward = False
+        self.do_updates = False
         if int(update_schedule) == 0:
             self.do_updates = False
         else:
@@ -108,13 +110,19 @@ class WarietyUpdaterThread(threading.Thread):
         logger.debug('set_seconds_until_fire({})'.format(new_set_seconds_until_fire))
         self.seconds_until_fire = new_set_seconds_until_fire
 
+    def go_backward(self):
+        self.backward = True
+
+    def go_forward(self):
+        self.backward = False
+
     def run(self):
         """Run Worker Thread."""
         logger.debug('run()')
         while self.keep_running:
 
             self.seconds_until_fire = self.seconds_until_fire - self.check_interval
-            if self.seconds_until_fire <= 0:
+            if self.seconds_until_fire <= 0 and self.do_updates:
                 if getattr(sys, 'frozen', False):
                     import wariety.wariety
                     my_status = wariety.wariety.__status__
@@ -127,7 +135,21 @@ class WarietyUpdaterThread(threading.Thread):
                 else:
                     self.seconds_until_fire = 60 * self.updt_sched
 
-                my_images = self.database.get_next_images_from_queue(1)
+                # Which direction in the queue
+                my_images = []
+                if self.backward:
+                    # Set queue status to 'QUEUED'
+                    _status = wariety_queue.WarietyQueue.queue_statuses['DONE']
+                    wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status to "QUEUED"!
+                    my_queue_id = self.database.get_queue_id_by_id_and_status(self.current_wallpaper.id, _status)
+                    previous_queue_items = self.database.get_previous_queue_items_by_queue_id(my_queue_id, 1)
+                    print('New image ID = ', previous_queue_items[0].image_id)
+                    my_images.append(self.database.get_image_by_id(previous_queue_items[0].image_id))
+                else:
+                    # Set queue status to 'QUEUED'
+                    _status = wariety_queue.WarietyQueue.queue_statuses['QUEUED']
+                    wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status to "QUEUED"!
+                    my_images = self.database.get_next_images_from_queue(1)
 
                 # Queue management
                 if my_images[0].found_at_counter != -1:
@@ -135,12 +157,8 @@ class WarietyUpdaterThread(threading.Thread):
                     # Current image
                     self.current_wallpaper = my_images[0]
 
-                    # Set queue status to 'QUEUED'
-                    _status = wariety_queue.WarietyQueue.queue_statuses['QUEUED']
-                    wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status to "QUEUED"!
-
                     # Proceed with current image
-                    my_queue_id = self.database.get_queue_id_by_id(self.current_wallpaper.id)
+                    my_queue_id = self.database.get_queue_id_by_id_and_status(self.current_wallpaper.id, _status)
                     _no_of_imgs_in_queue = self.database.get_total_number_of_images('queue', _status)
 
                     # Put new items to the queue in case there are less than 2 items
@@ -163,14 +181,21 @@ class WarietyUpdaterThread(threading.Thread):
                     # Update database
                     self.database.set_last_seen_date_by_queue_id(my_queue_id)
                     self.database.set_total_seen_number_by_id(self.current_wallpaper.id)
-                    previous_queue_items = self.database.get_previous_queue_items_by_queue_id(my_queue_id)
+                    previous_queue_items = []
+                    if self.backward:
+                        pass
+                    else:
+                        previous_queue_items = self.database.get_previous_queue_items_by_queue_id(my_queue_id)
 
-                    # Re-set queue status to 'QUEUED'
-                    wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status back to "QUEUED"!
-                    if len(previous_queue_items) > 0:
-                        previous_queue_item = previous_queue_items[0]
-                        self.database.set_previous_seen_by_queue_id(my_queue_id, previous_queue_item.id)
-                    self.database.set_currently_seeing_by_queue_id(my_queue_id)
+                        # Re-set queue status to 'QUEUED'
+                        wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status back to "QUEUED"!
+                        if len(previous_queue_items) > 0:
+                            previous_queue_item = previous_queue_items[0]
+                            self.database.set_previous_seen_by_queue_id(my_queue_id, previous_queue_item.id)
+                    self.database.set_currently_seeing_by_queue_id(my_queue_id, self.backward)
+
+                    # Set direction back to default (forward)
+                    self.go_forward()
 
                 else:
                     self.database.push_empty_queue()

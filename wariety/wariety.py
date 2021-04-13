@@ -216,7 +216,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
     def on_previous(self, event):
         logging.debug('on_previous(event)')
-
+        self.myUpdater.go_backward()
+        self.myUpdater.set_seconds_until_fire(0)
 
     def on_keep(self, event):
         logging.debug('on_keep(event)')

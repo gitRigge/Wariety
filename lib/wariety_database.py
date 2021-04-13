@@ -400,7 +400,7 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
 
-    def get_queue_id_by_id(self, wallpaper_id):
+    def get_queue_id_by_id_and_status(self, wallpaper_id, status='QUEUED'):
         """
         Get ID of queued image with image ID given by 'wallpaper_id' and
         status 'QUEUED', if available.
@@ -417,17 +417,25 @@ class WarietyDatabase(object):
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
 
-        # Queue status
-        _status = wariety_queue.WarietyQueue.queue_statuses['QUEUED']
-
         # Select a row
-        sql = 'SELECT id \
-                FROM queue \
-                WHERE queue_status = ? AND \
-                image_id = ?'
+        sql = ''
+        if status == 'QUEUED':
+            sql = 'SELECT id \
+                    FROM queue \
+                    WHERE queue_status = ? AND image_id = ?'
+        elif status == 'DONE':
+            sql = 'SELECT id \
+                    FROM queue \
+                    WHERE queue_status = ? AND image_id = ? \
+                    ORDER BY queue_seen_date DESC'
+        else:
+            status = wariety_queue.WarietyQueue.queue_statuses['CURRENT']
+            sql = 'SELECT id \
+                    FROM queue \
+                    WHERE queue_status = ? AND image_id = ?'
 
         try:
-            c.execute(sql, (_status, wallpaper_id,))
+            c.execute(sql, (status, wallpaper_id,))
 
             result = c.fetchone()
 
@@ -478,11 +486,13 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
 
-    def set_currently_seeing_by_queue_id(self, queue_id):
+    def set_currently_seeing_by_queue_id(self, queue_id, backward=False):
         """
         Sets queue status of queue item given by 'queue_id' to 'CURRENT'
-        and sets queue status to 'DONE' where it was set to 'CURRENT' before
+        and sets queue status to either 'DONE' or 'QUEUED' where it was
+        set to 'CURRENT' before, depending on the durection given by 'backward'
         :param queue_id:
+        :param backward:
         :return:
         """
         logger.debug('set_currently_seeing_by_queue_id({})'.format(queue_id))
@@ -490,6 +500,7 @@ class WarietyDatabase(object):
         # Queue status
         _status_crnt = wariety_queue.WarietyQueue.queue_statuses['CURRENT']
         _status_done = wariety_queue.WarietyQueue.queue_statuses['DONE']
+        _status_queued = wariety_queue.WarietyQueue.queue_statuses['QUEUED']
 
         # Establish connection
         conn = sqlite3.connect(self.db_file)
@@ -500,8 +511,12 @@ class WarietyDatabase(object):
         sql2 = 'UPDATE queue SET queue_status = ? WHERE id = ?'
 
         try:
-            c.execute(sql1, (_status_done, _status_crnt,))
-            c.execute(sql2, (_status_crnt, queue_id,))
+            if backward:
+                c.execute(sql1, (_status_queued, _status_crnt,))
+                c.execute(sql2, (_status_crnt, queue_id,))
+            else:
+                c.execute(sql1, (_status_done, _status_crnt,))
+                c.execute(sql2, (_status_crnt, queue_id,))
 
             # Save (commit) the changes
             conn.commit()
