@@ -90,7 +90,8 @@ class WarietyUpdaterThread(threading.Thread):
         self.check_interval = 1
         self.keep_running = True
         self.backward = False
-        self.do_updates = False
+        self.do_updates = False  # config['change wallpaper']
+        self.do_once = False  # On Next
         if int(update_schedule) == 0:
             self.do_updates = False
         else:
@@ -102,12 +103,13 @@ class WarietyUpdaterThread(threading.Thread):
         logger.debug('Stopping updater thread')
         pass
 
-    def set_keep_running(self, new_keep_runnin):
-        logger.debug('set_keep_running({})'.format(str(new_keep_runnin)))
-        self.keep_running = new_keep_runnin
+    def set_keep_running(self, new_keep_running):
+        logger.debug('set_keep_running({})'.format(str(new_keep_running)))
+        self.keep_running = new_keep_running
 
     def set_seconds_until_fire(self, new_set_seconds_until_fire):
         logger.debug('set_seconds_until_fire({})'.format(new_set_seconds_until_fire))
+        self.do_once = True
         self.seconds_until_fire = new_set_seconds_until_fire
 
     def go_backward(self):
@@ -116,13 +118,29 @@ class WarietyUpdaterThread(threading.Thread):
     def go_forward(self):
         self.backward = False
 
+    def ensure_filled_queue(self):
+        """
+        Ensures that the queue is alwayas filled with queue items
+        with the status 'QUEUED'
+        """
+        #logger.debug('ensure_filled_queue()')
+
+        # Set queue status to 'QUEUED'
+        _status = wariety_queue.WarietyQueue.queue_statuses['QUEUED']
+        wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status to "QUEUED"!
+        _no_of_imgs_in_queue = self.database.get_total_number_of_images('queue', _status)
+        # Put new items to the queue in case there are less than 2 items
+        if _no_of_imgs_in_queue < 2:
+            self.database.push_empty_queue()
+
     def run(self):
         """Run Worker Thread."""
         logger.debug('run()')
         while self.keep_running:
 
             self.seconds_until_fire = self.seconds_until_fire - self.check_interval
-            if self.seconds_until_fire <= 0 and self.do_updates:
+            if (self.seconds_until_fire <= 0 and self.do_updates) or self.do_once:
+                self.do_once = False  # Default is False
                 if getattr(sys, 'frozen', False):
                     import wariety.wariety
                     my_status = wariety.wariety.__status__
@@ -135,72 +153,107 @@ class WarietyUpdaterThread(threading.Thread):
                 else:
                     self.seconds_until_fire = 60 * self.updt_sched
 
-                # Which direction in the queue
-                my_images = []
+                _current_image = self.database.get_current_image()
                 if self.backward:
-                    # Set queue status to 'QUEUED'
-                    _status = wariety_queue.WarietyQueue.queue_statuses['DONE']
-                    wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status to "QUEUED"!
-                    my_queue_id = self.database.get_queue_id_by_id_and_status(self.current_wallpaper.id, _status)
-                    previous_queue_items = self.database.get_previous_queue_items_by_queue_id(my_queue_id, 1)
-                    print('New image ID = ', previous_queue_items[0].image_id)
-                    my_images.append(self.database.get_image_by_id(previous_queue_items[0].image_id))
-                else:
-                    # Set queue status to 'QUEUED'
-                    _status = wariety_queue.WarietyQueue.queue_statuses['QUEUED']
-                    wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status to "QUEUED"!
-                    my_images = self.database.get_next_images_from_queue(1)
+                    # Go backward
+                    self.backward = False  # Reset
 
-                # Queue management
-                if my_images[0].found_at_counter != -1:
+                    # Current
+                    self.current_wallpaper = self.database.get_current_image()
+                    if self.current_wallpaper.found_at_counter == -1:
 
-                    # Current image
-                    self.current_wallpaper = my_images[0]
+                        # Init queue
+                        _random_images = self.database.get_random_image()
+                        self.current_wallpaper = _random_images[0]
+                        update_wallpaper(self.current_wallpaper.image_path)
+                        _current_image = self.current_wallpaper
+                        self.database.add_currently_seen_by_queue_id(self.current_wallpaper.id)
 
-                    # Proceed with current image
-                    my_queue_id = self.database.get_queue_id_by_id_and_status(self.current_wallpaper.id, _status)
-                    _no_of_imgs_in_queue = self.database.get_total_number_of_images('queue', _status)
+                        # Update database
+                        self.database.set_total_seen_number_by_id(self.current_wallpaper.id)
+                        continue
 
-                    # Put new items to the queue in case there are less than 2 items
-                    if _no_of_imgs_in_queue < 2:
-                        self.database.push_empty_queue()
+                    # Previous
+                    _status = wariety_queue.WarietyQueue.queue_statuses['CURRENT']
+                    _current_queue_id = self.database.get_queue_id_by_id_and_status(self.current_wallpaper.id, _status)
 
-                    # Update desktop wallpaper with current image
-                    update_wallpaper(self.current_wallpaper.image_path)
+                    # Next
+                    _previous_queue_ids = self.database.get_previous_queue_ids_by_queue_id(_current_queue_id, 2)
+                    if len(_previous_queue_ids) == 0:
 
-                    # Show animation, if necessary
-                    if self.config['animate_system_tray_icon']:
-                        push_show_icon_animation(self)
+                        # We're at the beginning of the queue
+                        self.database.set_previously_seen(True)
+                        _random_images = self.database.get_random_image()
+                        self.current_wallpaper = _random_images[0]
+                        update_wallpaper(self.current_wallpaper.image_path)
+                        _current_image = self.current_wallpaper
 
-                    # Show balloon message, if necessary
-                    if self.config['show_balloon_message']:
-                        my_title = self.current_wallpaper.image_name
-                        my_desc = self.database.get_image_description_by_id(self.current_wallpaper.id)
-                        push_show_balloon_msg(self, my_title, my_desc)
+                        # Update database
+                        self.database.add_currently_seen_by_queue_id(self.current_wallpaper.id)
+                        self.database.set_total_seen_number_by_id(self.current_wallpaper.id)
+
+                    elif len(_previous_queue_ids) == 1:
+                        pass
+                    elif len(_previous_queue_ids) >= 2:
+
+                        # We're in the middle of the queue
+                        self.database.set_previously_seen(True)
+                        _next_image = self.database.get_image_by_id(_previous_queue_ids[0]['image_id'])
+                        update_wallpaper(_next_image.image_path)
+                        _current_image = _next_image
+
+                        # Update database
+                        self.database.set_currently_seen_by_queue_id(_previous_queue_ids[0]['id'], _previous_queue_ids[1]['id'])
+                        self.database.set_total_seen_number_by_id(_next_image.id)
+
+                elif not self.backward:
+                    # Go forward
+                    self.backward = False  # Reset
+
+                    # Current
+                    self.current_wallpaper = self.database.get_current_image()
+                    if self.current_wallpaper.found_at_counter == -1:
+
+                        # Init queue
+                        self.current_wallpaper = self.database.get_highest_ranked_image_from_queue()
+                        _current_queue_id = self.database.get_queue_id_by_id_and_status(self.current_wallpaper.id)
+                        update_wallpaper(self.current_wallpaper.image_path)
+                        _current_image = self.current_wallpaper
+                        self.database.set_currently_seen_by_queue_id(_current_queue_id)
+
+                        # Update database
+                        self.database.set_last_seen_date_by_queue_id(_current_queue_id)
+                        self.database.set_total_seen_number_by_id(self.current_wallpaper.id)
+                        continue
+
+                    # Previous
+                    _status = wariety_queue.WarietyQueue.queue_statuses['CURRENT']
+                    _current_queue_id = self.database.get_queue_id_by_id_and_status(self.current_wallpaper.id, _status)
+                    self.database.set_previous_seen_by_queue_id(_current_queue_id, -1)
+
+                    # Next
+                    _next_images = self.database.get_next_images_from_queue()
+                    _next_queue_id = self.database.get_queue_id_by_id_and_status(_next_images[0].id)
+                    update_wallpaper(_next_images[0].image_path)
+                    _current_image = _next_images[0]
+                    self.database.set_currently_seen_by_queue_id(_next_queue_id, _current_queue_id)
 
                     # Update database
-                    self.database.set_last_seen_date_by_queue_id(my_queue_id)
-                    self.database.set_total_seen_number_by_id(self.current_wallpaper.id)
-                    previous_queue_items = []
-                    if self.backward:
-                        pass
-                    else:
-                        previous_queue_items = self.database.get_previous_queue_items_by_queue_id(my_queue_id)
+                    self.database.set_last_seen_date_by_queue_id(_next_queue_id)
+                    self.database.set_total_seen_number_by_id(_next_images[0].id)
 
-                        # Re-set queue status to 'QUEUED'
-                        wariety_queue.WarietyQueue.instance().queue_status = _status  # Set queue instance status back to "QUEUED"!
-                        if len(previous_queue_items) > 0:
-                            previous_queue_item = previous_queue_items[0]
-                            self.database.set_previous_seen_by_queue_id(my_queue_id, previous_queue_item.id)
-                    self.database.set_currently_seeing_by_queue_id(my_queue_id, self.backward)
+                # Show animation, if necessary
+                if self.config['animate_system_tray_icon']:
+                    push_show_icon_animation(self)
 
-                    # Set direction back to default (forward)
-                    self.go_forward()
-
-                else:
-                    self.database.push_empty_queue()
+                # Show balloon message, if necessary
+                if self.config['show_balloon_message']:
+                    my_title = _current_image.image_name
+                    my_desc = self.database.get_image_description_by_id(_current_image.id)
+                    push_show_balloon_msg(self, my_title, my_desc)
 
             else:
+                self.ensure_filled_queue()
                 time.sleep(self.check_interval)
 
     def stop(self):

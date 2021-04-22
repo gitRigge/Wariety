@@ -25,6 +25,7 @@ import wariety_database
 
 logger = logging.getLogger(__name__)
 
+
 def to_queue_item(list_of_values, queue_item):
     """
     Expects a list of values and converts them into a
@@ -56,11 +57,11 @@ class WarietyQueue(object):
 
     _instance = None
 
-    weight_unseen = 2
-    weight_rating = 3
+    weight_unseen = 3
+    weight_rating = 1
     weight_total_seen = 1
-    weight_last_seen = 1
-    weight_random = 3
+    weight_last_seen = 2
+    weight_random = 10
 
     queue_statuses = {
         'QUEUED': 'QUEUED',
@@ -140,13 +141,24 @@ class WarietyQueue(object):
         """
         logger.debug('get_queue_images()')
 
-        _seen = 0
+        _seen = 0  # 0 means, image has never been seen
         self.queue_images = self.queue_images + self.database.get_seen_image(self.weight_unseen, _seen)
-        _rating = 5
+        _rating = 5  # 5 means, image has 5 stars
+        self.queue_images = self.queue_images + self.database.get_rated_image(self.weight_rating+4, _rating)
+        _rating = 4  # 4 means, image has 4 stars
+        self.queue_images = self.queue_images + self.database.get_rated_image(self.weight_rating+3, _rating)
+        _rating = 3  # 3 means, image has 3 stars
+        self.queue_images = self.queue_images + self.database.get_rated_image(self.weight_rating+2, _rating)
+        _rating = 2  # 2 means, image has 2 stars
+        self.queue_images = self.queue_images + self.database.get_rated_image(self.weight_rating+1, _rating)
+        _rating = 1  # 1 means, image has 1 stars
         self.queue_images = self.queue_images + self.database.get_rated_image(self.weight_rating, _rating)
-        _total_seen = 3
+        _total_seen = 1  # 1 means, image has been seen 1 time
+        self.queue_images = self.queue_images + self.database.get_seen_image(self.weight_total_seen+2, _total_seen)
+        _total_seen = 2  # 1 means, image has been seen 2 times
+        self.queue_images = self.queue_images + self.database.get_seen_image(self.weight_total_seen + 1, _total_seen)
+        _total_seen = 3  # 1 means, image has been seen 2 times
         self.queue_images = self.queue_images + self.database.get_seen_image(self.weight_total_seen, _total_seen)
-        self.queue_images = self.queue_images + self.database.get_most_recent_seen_image(self.weight_last_seen)
         self.queue_images = self.queue_images + self.database.get_random_image(self.weight_random)
 
     def calculate_queue_image_rankings(self):
