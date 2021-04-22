@@ -38,9 +38,9 @@ import wariety_autostarter.setup_wariety_updater
 
 __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (c) 2021 {} <wariety@gmx.net>".format(__author__)
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 __desc__ = "[Description]"
-__status__ = "Development"
+__status__ = "Alpha Release"  # Development
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]
