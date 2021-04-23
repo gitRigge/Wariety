@@ -40,7 +40,7 @@ __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (c) 2021 {} <wariety@gmx.net>".format(__author__)
 __version__ = "0.0.5"
 __desc__ = "[Description]"
-__status__ = "Alpha Release"  # Development
+__status__ = "Development"
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]
@@ -55,6 +55,15 @@ APP_NAME = 'Wariety'
 CONFIGPATH = os.path.abspath(os.path.join(os.environ['LOCALAPPDATA'], APP_NAME))
 CONFIGFILE = os.path.join(os.environ['LOCALAPPDATA'], APP_NAME, 'config.ini')
 TOOL_NAME = 'wariety_set_wallpaper'
+
+
+def get_rating_stars_as_string(rating_int=0):
+    rating_str = ''
+    i = 0
+    while i < rating_int:
+        rating_str = rating_str + u'\u2605'
+        i = i + 1
+    return rating_str
 
 
 def get_aboutDlg_args():
@@ -146,14 +155,23 @@ class WarietyMain(wx.adv.TaskBarIcon):
         create_menu_item(menu, _('Next'), self.on_next)
         create_menu_item(menu, _('Previous'), self.on_previous)
         menu.AppendSeparator()
+
+        # Build title
         _title = self.myUpdater.current_wallpaper.image_name
         if _title == '':
             _title = _('No Image')
+        else:
+            _rating = self.myUpdater.current_wallpaper.image_rating
+            if _rating > 0:
+                _title = _title + " (" + get_rating_stars_as_string(_rating) + ")"
         create_menu_item(menu, _title, self.on_name)
+
+        # Build source
         _source = self.myUpdater.current_wallpaper.source_name
         if _source == '':
             _source = _('No Source')
         create_menu_item(menu, _source, self.on_source)
+
         create_menu_item(menu, _('Add to Favorites'), self.on_favorite)
         create_menu_item(menu, _('Delete Image'), self.on_delete)
         menu.AppendSeparator()
@@ -173,11 +191,11 @@ class WarietyMain(wx.adv.TaskBarIcon):
         create_submenu_item(menu, submenu, _('Google Image Search'), self.on_image_search)
         submenu.AppendSeparator()
         subsubmenu = wx.Menu()
-        create_submenu_item(menu, subsubmenu, u'\u2605\u2605\u2605\u2605\u2605', self.on_five_star)
-        create_submenu_item(menu, subsubmenu, u'\u2605\u2605\u2605\u2605', self.on_four_star)
-        create_submenu_item(menu, subsubmenu, u'\u2605\u2605\u2605', self.on_three_star)
-        create_submenu_item(menu, subsubmenu, u'\u2605\u2605', self.on_two_star)
-        create_submenu_item(menu, subsubmenu, u'\u2605', self.on_one_star)
+        create_submenu_item(menu, subsubmenu, get_rating_stars_as_string(5), self.on_five_star)
+        create_submenu_item(menu, subsubmenu, get_rating_stars_as_string(4), self.on_four_star)
+        create_submenu_item(menu, subsubmenu, get_rating_stars_as_string(3), self.on_three_star)
+        create_submenu_item(menu, subsubmenu, get_rating_stars_as_string(2), self.on_two_star)
+        create_submenu_item(menu, subsubmenu, get_rating_stars_as_string(1), self.on_one_star)
         create_submenu_item(menu, subsubmenu, _('No Vote'), self.on_no_star)
         submenu.AppendSubMenu(subsubmenu, _('Vote'))
         menu.AppendSubMenu(submenu, _('Image'))
