@@ -157,7 +157,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
         menu.AppendSeparator()
 
         # Build title
-        _title = self.myUpdater.current_wallpaper.image_name
+        _crnt_img = self.database.get_current_image()
+        _title = _crnt_img.image_name
         if _title == '':
             _title = _('No Image')
         else:
@@ -295,7 +296,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
     def on_name(self, event):
         # Open image in default image view application
-        pass
+        _crnt_img = self.database.get_current_image()
+        os.startfile(_crnt_img.image_path)
 
     def on_source(self, event):
         # Open settings dialog with specified source
