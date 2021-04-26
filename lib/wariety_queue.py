@@ -173,7 +173,11 @@ class WarietyQueue(object):
         _tmp = {}
         _total_number_of_Images = int(self.database.get_total_number_of_images())
         _wp_change_interval = int(self.config['wallpaper_change_interval'])
-        factor = _wp_change_interval * 60 * 24 / _total_number_of_Images
+        factor = 0
+        try:
+            factor = _wp_change_interval * 60 * 24 / _total_number_of_Images
+        except:
+            logger.debug('calculate_queue_image_rankings() - no images found')
         for image in self.queue_images:
             _point = 0
             _days_since_last_seen = int(self.database.get_days_since_last_seen_by_id(image.id))
