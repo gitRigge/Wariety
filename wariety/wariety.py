@@ -23,6 +23,7 @@ import logging
 import os
 import sys
 import time
+import webbrowser
 
 import win32com.client
 import wx
@@ -162,13 +163,13 @@ class WarietyMain(wx.adv.TaskBarIcon):
         if _title == '':
             _title = _('No Image')
         else:
-            _rating = self.myUpdater.current_wallpaper.image_rating
+            _rating = _crnt_img.image_rating
             if _rating > 0:
                 _title = _title + " (" + get_rating_stars_as_string(_rating) + ")"
         create_menu_item(menu, _title, self.on_name)
 
         # Build source
-        _source = self.myUpdater.current_wallpaper.source_name
+        _source = _crnt_img.source_name
         if _source == '':
             _source = _('No Source')
         create_menu_item(menu, _source, self.on_source)
@@ -189,7 +190,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
             create_submenu_item(menu, submenu, _('Keep Current'), self.on_keep, False)
         submenu.AppendSeparator()
         create_submenu_item(menu, submenu, _('Show Source'), self.on_show_source)
-        create_submenu_item(menu, submenu, _('Google Image Search'), self.on_image_search)
+        create_submenu_item(menu, submenu, _('Bing Image Search'), self.on_image_search)
         submenu.AppendSeparator()
         subsubmenu = wx.Menu()
         create_submenu_item(menu, subsubmenu, get_rating_stars_as_string(5), self.on_five_star)
@@ -252,11 +253,13 @@ class WarietyMain(wx.adv.TaskBarIcon):
                 self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(0, self.myConfig.to_dict())
 
     def on_show_source(self, event):
-        logging.debug('on_previous(event)')
-        pub.sendMessage("show previous image")
+        logging.debug('on_show_source(event)')
+        _crnt_img = self.database.get_current_image()
+        webbrowser.open(_crnt_img.image_url, new=2)
 
     def on_image_search(self, event):
-        pass
+        logging.debug('on_image_search(event)')
+        webbrowser.open('https://www.bing.com/visualsearch', new=2)
 
     def on_no_star(self, event):
         logging.debug('on_no_star(event)')
@@ -295,25 +298,40 @@ class WarietyMain(wx.adv.TaskBarIcon):
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=5)
 
     def on_name(self, event):
+        logging.debug('on_name(event)')
         # Open image in default image view application
         _crnt_img = self.database.get_current_image()
         os.startfile(_crnt_img.image_path)
 
     def on_source(self, event):
+        logging.debug('on_source(event)')
         # Open settings dialog with specified source
+        # TODO !
         pass
 
     def on_favorite(self, event):
+        logging.debug('on_favorite(event)')
+        # TODO !
         pass
 
     def on_delete(self, event):
-        pass
+        logging.debug('on_delete(event)')
+        _crnt_img = self.database.get_current_image()
+        self.database.remove_image_by_id(_crnt_img.id)
+        try:
+            lib.wariety_database.remove_image_file(_crnt_img.image_path)
+        except:
+            e = sys.exc_info()[0]
+            logging.debug('on_delete(event) - {}'.format(e))
+        self.myUpdater.set_seconds_until_fire(0)
 
     def on_settings(self, event):
+        logging.debug('on_settings(event)')
         top = SettingsDlg(wx.GetApp().TopWindow, id=-1, title=_('{} {}').format(APP_NAME, _('Settings')))
         top.Show()
 
     def on_about(self, event):
+        logging.debug('on_about(event)')
         top = AboutDlg(wx.GetApp().TopWindow, id=-1, title=_('About {}').format(APP_NAME), name=APP_NAME)
         top.Show()
 
