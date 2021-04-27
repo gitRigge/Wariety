@@ -205,20 +205,26 @@ class WarietyDownloaderThread(threading.Thread):
         logger.debug('start_new_wallpaper_download()')
         my_downloader = self.get_random_downloader()
         if my_downloader:
+
             my_downloader_type = my_downloader.get_downloader_type()
             my_downloader_capability = my_downloader.get_capability()
-            my_image = self.database.get_latest_image(source_type=my_downloader_type)
+            my_images = self.database.get_latest_image(source_type=my_downloader_type)
+            my_image = my_images[0]
             if my_downloader_capability == 'many':
+
                 # Get new full image urls until one is not yet in DB
                 while self.database.exists_image_by_url_or_path(my_image.image_url) or my_image.image_url == '':
                     my_get_counter = my_image.found_at_counter + 1
                     my_image = my_downloader.get_next_image(my_get_counter)
+
                 # Check image name
                 if my_image.image_name == '':
                     my_image.image_name = get_generated_image_name(my_image.image_url)
+
                 # Download image
                 my_image.image_path = self.download_image(my_image.image_url, my_image.image_name)
                 my_image.image_md5_hash = wariety_database.get_md5_hash_of_file(my_image.image_path)
+
                 # Turn of PIL DecompressionBombWarning
                 warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
                 if wariety_database.is_image_landscape(my_image.image_path) is True:
@@ -227,22 +233,30 @@ class WarietyDownloaderThread(threading.Thread):
                     my_image.image_orientation = my_image.wallpaper_orientations['portrait']
                 self.database.add_image_to_database(my_image)
                 resize_image(my_image.image_path)
+
             elif my_downloader_capability == 'single':
                 my_get_counter = my_image.found_at_counter + 1
                 my_image = my_downloader.get_next_image(my_get_counter)
+
                 if not self.database.exists_image_by_url_or_path(my_image.image_url):
+
                     # Check image name
                     if my_image.image_name == '':
                         my_image.image_name = get_generated_image_name(my_image.image_url)
+
                     # Download image
                     my_image.image_path = self.download_image(my_image.image_url, my_image.image_name)
                     my_image.image_md5_hash = wariety_database.get_md5_hash_of_file(my_image.image_path)
+
                     # Turn of PIL DecompressionBombWarning
                     warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
                     if wariety_database.is_image_landscape(my_image.image_path) is True:
+
                         my_image.image_orientation = my_image.wallpaper_orientations['landscape']
+
                     else:
                         my_image.image_orientation = my_image.wallpaper_orientations['portrait']
+
                     self.database.add_image_to_database(my_image)
                     resize_image(my_image.image_path)
         else:
