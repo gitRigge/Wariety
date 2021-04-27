@@ -710,6 +710,7 @@ class WarietyDatabase(object):
 
         # Wallpaper
         my_image = wariety_wallpaper.WarietyWallpaper()
+
         # Establish connection
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
@@ -1014,7 +1015,7 @@ class WarietyDatabase(object):
                     my_image = wariety_wallpaper.WarietyWallpaper()
 
                     if result is not None:
-                        my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                        my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
                     else:
                         my_image.found_at_counter = -1
                     logger.debug('get_latest_image() - Append image ID ({})'.format(my_image.id))
@@ -1130,7 +1131,7 @@ class WarietyDatabase(object):
                     # Wallpaper
                     my_image = wariety_wallpaper.WarietyWallpaper()
                     if result is not None:
-                        my_image = wariety_wallpaper.to_wallpaper(result[0], wariety_wallpaper.WarietyWallpaper())
+                        my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
                     else:
                         my_image.found_at_counter = -1
                     logger.debug('get_oldest_image() - Append image ID ({})'.format(my_image.id))

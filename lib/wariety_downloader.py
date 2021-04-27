@@ -34,6 +34,7 @@ import wariety_database
 
 logger = logging.getLogger(__name__)
 
+
 def get_download_folder_size(start_path='.'):
     """
     Tries to read the folder size of the folder given by 'start_path'.
@@ -202,6 +203,8 @@ class WarietyDownloaderThread(threading.Thread):
         self.keep_running = False
 
     def start_new_wallpaper_download(self):
+        """Instantiates a new random downloader
+        """
         logger.debug('start_new_wallpaper_download()')
         my_downloader = self.get_random_downloader()
         if my_downloader:
@@ -227,14 +230,35 @@ class WarietyDownloaderThread(threading.Thread):
 
                 # Turn of PIL DecompressionBombWarning
                 warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
+
+                # Determine orientation of the new image
                 if wariety_database.is_image_landscape(my_image.image_path) is True:
+                    # Just download images with orientation 'landscape'
                     my_image.image_orientation = my_image.wallpaper_orientations['landscape']
                 else:
                     my_image.image_orientation = my_image.wallpaper_orientations['portrait']
-                self.database.add_image_to_database(my_image)
-                resize_image(my_image.image_path)
+
+                # Check if new image already exists
+                if self.database.exists_image_by_md5_hash(my_image.image_md5_hash) == 0 and\
+                        my_image.image_orientation == my_image.wallpaper_orientations['landscape']:
+
+                    # Add new image to database
+                    self.database.add_image_to_database(my_image)
+                    resize_image(my_image.image_path)
+
+                else:
+
+                    # Add and then remove new image to database
+                    self.database.add_image_to_database(my_image)
+                    self.database.remove_image_by_id(self.database.exists_image_by_md5_hash(my_image.image_md5_hash))
+                    try:
+                        wariety_database.remove_image_file(my_image.image_path)
+                    except:
+                        e = sys.exc_info()[0]
+                        logger.debug('start_new_wallpaper_download() - {}'.format(e))
 
             elif my_downloader_capability == 'single':
+
                 my_get_counter = my_image.found_at_counter + 1
                 my_image = my_downloader.get_next_image(my_get_counter)
 
@@ -250,15 +274,33 @@ class WarietyDownloaderThread(threading.Thread):
 
                     # Turn of PIL DecompressionBombWarning
                     warnings.simplefilter('ignore', PIL.Image.DecompressionBombWarning)
+
+                    # Determine orientation of the new image
                     if wariety_database.is_image_landscape(my_image.image_path) is True:
-
+                        # Just download images with orientation 'landscape'
                         my_image.image_orientation = my_image.wallpaper_orientations['landscape']
-
                     else:
                         my_image.image_orientation = my_image.wallpaper_orientations['portrait']
 
-                    self.database.add_image_to_database(my_image)
-                    resize_image(my_image.image_path)
+                    # Check if new image already exists
+                    if self.database.exists_image_by_md5_hash(my_image.image_md5_hash) == 0 and\
+                            my_image.image_orientation == my_image.wallpaper_orientations['landscape']:
+
+                        # Add new image to database
+                        self.database.add_image_to_database(my_image)
+                        resize_image(my_image.image_path)
+
+                    else:
+
+                        # Add and then remove new image to database
+                        self.database.add_image_to_database(my_image)
+                        self.database.remove_image_by_id(self.database.exists_image_by_md5_hash(my_image.image_md5_hash))
+                        try:
+                            wariety_database.remove_image_file(my_image.image_path)
+                        except:
+                            e = sys.exc_info()[0]
+                            logger.debug('start_new_wallpaper_download() - {}'.format(e))
+
         else:
             logger.debug('start_new_wallpaper_download() - No downloader is activated!')
 
