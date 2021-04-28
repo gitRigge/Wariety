@@ -305,9 +305,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
     def on_source(self, event):
         logging.debug('on_source(event)')
-        # Open settings dialog with specified source
-        # TODO !
-        pass
+        _crnt_img = self.database.get_current_image()
+        webbrowser.open(_crnt_img.source_url, new=2)
 
     def on_favorite(self, event):
         logging.debug('on_favorite(event)')
