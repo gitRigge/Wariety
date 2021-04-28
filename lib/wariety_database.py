@@ -1205,6 +1205,9 @@ class WarietyDatabase(object):
         # Return values array
         my_images = []
 
+        # My status
+        _status = wariety_queue.WarietyQueue.queue_statuses['DONE']
+
         # Establish connection
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
@@ -1224,7 +1227,7 @@ class WarietyDatabase(object):
                             INNER JOIN queue ON wallpapers.id = queue.image_id \
                             WHERE wallpapers.status = ? AND wallpapers.total_seen_number = ? AND queue.queue_status = ? \
                             ORDER BY queue.queue_seen_date ASC LIMIT ?'
-                    c.execute(sql, (status, seen, 'DONE', number_of_images, ))
+                    c.execute(sql, (status, seen, _status, number_of_images, ))
             else:
                 if seen == 0:
                     sql = 'SELECT wallpapers.* \
@@ -1238,7 +1241,7 @@ class WarietyDatabase(object):
                             INNER JOIN queue ON wallpapers.id = queue.image_id \
                             WHERE source_type = ? AND wallpapers.status = ? AND wallpapers.total_seen_number = ? AND queue.queue_status = ? \
                             ORDER BY queue.queue_seen_date ASC LIMIT ?'
-                c.execute(sql, (source_type, status, seen, 'DONE', number_of_images, ))
+                c.execute(sql, (source_type, status, seen, _status, number_of_images, ))
 
             results = c.fetchall()
             if len(results) > 0:
@@ -1278,6 +1281,9 @@ class WarietyDatabase(object):
         # Return values array
         my_images = []
 
+        # My status
+        _status = wariety_queue.WarietyQueue.queue_statuses['DONE']
+
         # Establish connection
         conn = sqlite3.connect(self.db_file)
         c = conn.cursor()
@@ -1290,14 +1296,14 @@ class WarietyDatabase(object):
                         INNER JOIN queue ON wallpapers.id = queue.image_id \
                         WHERE wallpapers.status = ? AND wallpapers.image_rating = ? AND queue.queue_status = ? \
                         ORDER BY queue.queue_seen_date ASC LIMIT ?'
-                c.execute(sql, (status, rating, 'DONE', number_of_images, ))
+                c.execute(sql, (status, rating, _status, number_of_images, ))
             else:
                 sql = 'SELECT wallpapers.* \
                         FROM wallpapers \
                         INNER JOIN queue ON wallpapers.id = queue.image_id \
                         WHERE source_type = ? AND wallpapers.status = ? AND wallpapers.image_rating = ? AND queue.queue_status = ? \
                         ORDER BY queue.queue_seen_date ASC LIMIT ?'
-                c.execute(sql, (source_type, status, rating, 'DONE', number_of_images, ))
+                c.execute(sql, (source_type, status, rating, _status, number_of_images, ))
 
             results = c.fetchall()
             if len(results) > 0:
@@ -1309,6 +1315,67 @@ class WarietyDatabase(object):
                     else:
                         my_image.found_at_counter = -1
                     logger.debug('get_rated_image() - Append image ID ({})'.format(my_image.id))
+                    my_images.append(my_image)
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return my_images
+
+    def get_favorited_image(self, number_of_images=1, source_type='*', status='DOWNLOADED'):
+        """
+        Returns the oldest images in the database which are favorites. If given,
+        returns the oldest images in the database of the source type given by 'source_type' which
+        are favorites. Returns only downloaded images unless other status given as 'status'.
+        Returns -1 if no favorite images are available.
+        :param number_of_images:
+        :param source_type:
+        :param status:
+        :return my_images:
+        """
+        logger.debug('get_favorited_image({}, {}, {})'.format(number_of_images, source_type, status))
+
+        # Return values array
+        my_images = []
+
+        # My status
+        _status = wariety_queue.WarietyQueue.queue_statuses['DONE']
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        try:
+            # Select a row
+            if source_type == '*':
+                sql = 'SELECT wallpapers.* \
+                        FROM wallpapers \
+                        INNER JOIN queue ON wallpapers.id = queue.image_id \
+                        WHERE wallpapers.status = ? AND wallpapers.image_favorite = 1 AND queue.queue_status = ? \
+                        ORDER BY queue.queue_seen_date ASC LIMIT ?'
+                c.execute(sql, (status, _status, number_of_images,))
+            else:
+                sql = 'SELECT wallpapers.* \
+                        FROM wallpapers \
+                        INNER JOIN queue ON wallpapers.id = queue.image_id \
+                        WHERE source_type = ? AND wallpapers.status = ? AND wallpapers.image_favorite = 1 AND queue.queue_status = ? \
+                        ORDER BY queue.queue_seen_date ASC LIMIT ?'
+                c.execute(sql, (source_type, status, _status, number_of_images,))
+
+            results = c.fetchall()
+            if len(results) > 0:
+                for result in results:
+                    # Wallpaper
+                    my_image = wariety_wallpaper.WarietyWallpaper()
+                    if result is not None:
+                        my_image = wariety_wallpaper.to_wallpaper(result, wariety_wallpaper.WarietyWallpaper())
+                    else:
+                        my_image.found_at_counter = -1
+                    logger.debug('get_favorited_image() - Append image ID ({})'.format(my_image.id))
                     my_images.append(my_image)
 
         except sqlite3.Error as error:
@@ -1651,6 +1718,80 @@ class WarietyDatabase(object):
                 # Close connection
                 conn.close()
 
+    def set_favorite_of_image_by_id(self, wallpaper_id, is_favorite=True):
+        """
+        Set image specified by 'wallpaper_id' as favorite, if 'is_favorite' is True.
+        Otherwise, removes it from favorites.
+        :param wallpaper_id:
+        :param is_favorite:
+        :return:
+        """
+
+        logger.debug('set_favorite_of_image_by_id({}, {})'.format(wallpaper_id, is_favorite))
+
+        # Default values
+        is_favorite_int = 1
+        if not is_favorite:
+            is_favorite_int = 0
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Build SQL string
+        sql = 'UPDATE wallpapers SET image_favorite = ? WHERE wallpapers.id = ?'
+
+        try:
+            c.execute(sql, (is_favorite_int, wallpaper_id,))
+
+            # Save (commit) the changes
+            conn.commit()
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+
+    def is_image_favorite_by_id(self, wallpaper_id):
+        """
+        Returns True if the image specified by 'wallpaper_id' is favorite.
+        Otherwise, returns False.
+        :param wallpaper_id:
+        :return ret_val:
+        """
+
+        logger.debug('is_image_favorite_by_id({})'.format(wallpaper_id))
+
+        # Return value
+        ret_val = False
+
+        # Establish connection
+        conn = sqlite3.connect(self.db_file)
+        c = conn.cursor()
+
+        # Build SQL string
+        sql = 'SELECT image_favorite FROM wallpapers WHERE wallpapers.id = ?'
+
+        try:
+            c.execute(sql, (wallpaper_id,))
+            result = c.fetchone()
+
+            if result is not None:
+                if result == 1:
+                    ret_val = True
+
+        except sqlite3.Error as error:
+            logger.debug("Error while working with SQLite", error)
+
+        finally:
+            if conn:
+                # Close connection
+                conn.close()
+            return ret_val
+
     def init_queue(self, wallpaper_id):
         logger.debug('init_queue({})'.format(wallpaper_id))
 
@@ -1668,7 +1809,7 @@ class WarietyDatabase(object):
                     )'
 
         try:
-            c.execute(sql, (my_rating, wallpaper_id,))
+            c.execute(sql, (wallpaper_id,))
 
             # Save (commit) the changes
             conn.commit()

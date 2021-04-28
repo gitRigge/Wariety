@@ -174,7 +174,11 @@ class WarietyMain(wx.adv.TaskBarIcon):
             _source = _('No Source')
         create_menu_item(menu, _source, self.on_source)
 
-        create_menu_item(menu, _('Add to Favorites'), self.on_favorite)
+        if _crnt_img.image_favorite:
+            create_menu_item(menu, _('Remove from Favorites'), self.on_favorite)
+        else:
+            create_menu_item(menu, _('Add to Favorites'), self.on_favorite)
+
         create_menu_item(menu, _('Delete Image'), self.on_delete)
         menu.AppendSeparator()
         submenu = wx.Menu()
@@ -310,8 +314,11 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
     def on_favorite(self, event):
         logging.debug('on_favorite(event)')
-        # TODO !
-        pass
+        _crnt_img = self.database.get_current_image()
+        if _crnt_img.image_favorite:
+            self.database.set_favorite_of_image_by_id(_crnt_img.id, False)
+        else:
+            self.database.set_favorite_of_image_by_id(_crnt_img.id, True)
 
     def on_delete(self, event):
         logging.debug('on_delete(event)')

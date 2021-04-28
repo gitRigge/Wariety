@@ -62,6 +62,7 @@ class WarietyQueue(object):
     weight_total_seen = 1
     weight_last_seen = 2
     weight_random = 10
+    weight_favorite = 5
 
     queue_statuses = {
         'QUEUED': 'QUEUED',
@@ -160,6 +161,7 @@ class WarietyQueue(object):
         _total_seen = 3  # 1 means, image has been seen 2 times
         self.queue_images = self.queue_images + self.database.get_seen_image(self.weight_total_seen, _total_seen)
         self.queue_images = self.queue_images + self.database.get_random_image(self.weight_random)
+        self.queue_images = self.queue_images + self.database.get_favorited_image(self.weight_favorite)
 
     def calculate_queue_image_rankings(self):
         """

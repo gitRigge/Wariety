@@ -67,6 +67,8 @@ def to_wallpaper(list_of_values, wallpaper):
     wallpaper.status = list_of_values[i]
     i += 1
     wallpaper.total_seen_number = list_of_values[i]
+    i += 1
+    wallpaper.image_favorite = list_of_values[i]
     return wallpaper
 
 
@@ -106,6 +108,7 @@ class WarietyWallpaper(object):
         self.download_date = ''
         self.status = ''
         self.total_seen_number = 0
+        self.image_favorite = 0
 
     def __del__(self):
         logger.debug('__del__()')
@@ -135,6 +138,7 @@ class WarietyWallpaper(object):
             'image_orientation': ['text', self.image_orientation],
             'download_date': ['text', self.download_date],
             'status': ['text', self.status],
-            'total_seen_number': ['integer', self.total_seen_number]
+            'total_seen_number': ['integer', self.total_seen_number],
+            'image_favorite': ['integer', self.image_favorite],
         }
         return my_image
