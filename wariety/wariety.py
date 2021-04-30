@@ -135,8 +135,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
         # Check startup
         if self.myConfig.change_wallpaper_at_startup:
-            # TODO add function to immediately change the wallpaper after start of Wariety
-            pass
+            self.myUpdater.set_seconds_until_fire(0)
 
     def CreatePopupMenu(self):
         menu = wx.Menu()
