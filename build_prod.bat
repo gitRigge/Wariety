@@ -16,7 +16,6 @@ pyinstaller ^
         --workpath .\build ^
         --version-file %cd%\VERSION ^
         --paths %cd%\wariety\ ^
-        --paths %cd%\wariety_autostarter\ ^
         --paths %cd%\lib\ ^
         --paths %cd%\lib\downloaders\ ^
         --paths %cd%\data\ ^

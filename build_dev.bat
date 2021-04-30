@@ -3,8 +3,6 @@ ECHO Build DEV Executable
 set PATH=c:\Python36\;c:\Python36\Lib\site-packages\;c:\Python36\Scripts\;%PATH%
 set PYTHONPATH=c:\Python36\Lib\
 set PYTHONHOME=c:\Python36\
-git stash
-git pull origin master
 
 python make_version_file.py
 REM Error code 1 == Dev status
@@ -18,7 +16,6 @@ pyinstaller ^
     --workpath .\build ^
     --version-file %cd%\VERSION ^
     --paths %cd%\wariety\ ^
-    --paths %cd%\wariety_autostarter\ ^
     --paths %cd%\lib\ ^
     --paths %cd%\lib\downloaders\ ^
     --paths %cd%\data\ ^
@@ -44,5 +41,4 @@ rmdir /S /Q build\wariety
 )
 @echo off
 del VERSION
-git stash pop
 pause

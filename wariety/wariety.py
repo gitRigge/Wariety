@@ -35,13 +35,12 @@ import lib.wariety_database
 import lib.wariety_downloader
 import lib.wariety_manual_fetcher
 import lib.wariety_updater
-import wariety_autostarter.setup_wariety_updater
 
 __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (c) 2021 {} <wariety@gmx.net>".format(__author__)
 __version__ = "0.0.5"
 __desc__ = "[Description]"
-__status__ = "RC2"  # Development
+__status__ = "Development"
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]
@@ -134,22 +133,10 @@ class WarietyMain(wx.adv.TaskBarIcon):
             hidden = False
             self.enable_start_at_startup(my_target, shortcut_name, hidden)
 
-        # Check auto updater settings
-        my_updater_tool_name = '{}.bat'.format(TOOL_NAME)
-        my_updater_tool_path = os.path.abspath(os.path.join(CONFIGPATH, my_updater_tool_name))
-        if not os.path.isfile(my_updater_tool_path):
-            my_download_path = self.myConfig.download_wallpaper_folder
-            my_fetch_path = self.myConfig.manual_download_folder
-            wariety_autostarter.setup_wariety_updater.write_batch_file(my_updater_tool_path, my_download_path,
-                                                                       my_fetch_path)
-        else:
-            logging.debug('no updater tool present!')
-
+        # Check startup
         if self.myConfig.change_wallpaper_at_startup:
-            target = my_updater_tool_path
-            shortcut_name = '{}.lnk'.format(TOOL_NAME)
-            hidden = True
-            self.enable_start_at_startup(target, shortcut_name, hidden)
+            # TODO add function to immediately change the wallpaper after start of Wariety
+            pass
 
     def CreatePopupMenu(self):
         menu = wx.Menu()
