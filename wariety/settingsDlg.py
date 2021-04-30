@@ -24,6 +24,8 @@
 import gettext
 import locale
 import logging
+import os
+import re
 import sys
 
 import wx
@@ -79,6 +81,13 @@ class SettingsDlg(wx.Frame):
         self.panel_3 = wx.Panel(self.notebook_1_pane_1, wx.ID_ANY)
         self.notebook_1_Source = wx.Panel(self.notebook_1, wx.ID_ANY)
         self.sources_list_ctrl_1 = SourcesListCtrl(self.notebook_1_Source, wx.ID_ANY, style=wx.LC_REPORT | wx.LC_AUTOARRANGE)
+        self.notebook_1_Proxy = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.checkbox_2 = wx.CheckBox(self.notebook_1_Proxy, wx.ID_ANY, _("Use a proxy to download images"))
+        self.text_ctrl_2 = wx.TextCtrl(self.notebook_1_Proxy, wx.ID_ANY, "")
+        self.text_ctrl_5 = wx.TextCtrl(self.notebook_1_Proxy, wx.ID_ANY, "")
+        self.text_ctrl_4 = wx.TextCtrl(self.notebook_1_Proxy, wx.ID_ANY, "")
+        self.text_ctrl_3 = wx.TextCtrl(self.notebook_1_Proxy, wx.ID_ANY, "", style=wx.TE_PASSWORD)
+        self.panel_4 = wx.Panel(self.notebook_1_Proxy, wx.ID_ANY)
         self.notebook_1_pane_3 = wx.Panel(self.notebook_1, wx.ID_ANY)
         self.notebook_1_pane_4 = wx.Panel(self.notebook_1, wx.ID_ANY)
         self.checkbox_1 = wx.CheckBox(self.notebook_1_pane_4, wx.ID_ANY, _("Fetch wallpapers from manual download folder"))
@@ -102,11 +111,16 @@ class SettingsDlg(wx.Frame):
         self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_9, self.checkbox_9)
         self.Bind(wx.EVT_COMBOBOX, self.OnClicked, self.combo_box_5)
         self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_10, self.checkbox_10)
+        self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_2, self.checkbox_2)
         self.Bind(wx.EVT_COMBOBOX, self.OnClicked, self.combo_box_6)
         self.Bind(wx.EVT_CHECKBOX, self.OnClicked, self.checkbox_12)
         self.Bind(wx.EVT_CHECKBOX, self.OnClicked, self.checkbox_11)
         self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_1, self.checkbox_1)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClose, self.button_1)
+        self.Bind(wx.EVT_TEXT, self.OnTextTextCtrl_2, self.text_ctrl_2)
+        self.Bind(wx.EVT_TEXT, self.OnTextTextCtrl_5, self.text_ctrl_5)
+        self.Bind(wx.EVT_TEXT, self.OnTextTextCtrl_4, self.text_ctrl_4)
+        self.Bind(wx.EVT_TEXT, self.OnTextTextCtrl_3, self.text_ctrl_3)
         # end wxGlade
         self.sources_list_ctrl_1.EnableCheckBoxes(True)
         self.sources_list_items_1 = {}
@@ -147,6 +161,25 @@ class SettingsDlg(wx.Frame):
         self.myConfig.animate_system_tray_icon = self.checkbox_12.GetValue()
         self.myConfig.show_balloon_message = self.checkbox_11.GetValue()
 
+        # Proxy
+        self.myConfig.proxy_enable = self.checkbox_2.GetValue()
+        _host = self.text_ctrl_2.GetValue()
+        if _host != '':
+            self.myConfig.proxy_address = _host
+            try:
+                self.myConfig.proxy_port = int(self.text_ctrl_5.GetValue())
+            except:
+                logger.debug('save_settings() - No integer')
+                self.myConfig.proxy_port = 0
+            self.myConfig.proxy_username = self.text_ctrl_4.GetValue()
+            self.myConfig.proxy_pw_encrypted = self.text_ctrl_3.GetValue()
+        else:
+            self.myConfig.proxy_enable = False
+            self.myConfig.proxy_address = ''
+            self.myConfig.proxy_port = 0
+            self.myConfig.proxy_username = ''
+            self.myConfig.proxy_pw_encrypted = ''
+
         # Sources
         counter = 0
         for dl in self.myConfig.builtin_downloaders:
@@ -154,6 +187,7 @@ class SettingsDlg(wx.Frame):
             try:
                 self.myConfig.builtin_downloaders[dl] = self.sources_list_ctrl_1.IsItemChecked(item.GetId())
             except:
+                logger.debug('save_settings() - No item of internal downloaders list')
                 self.myConfig.external_downloaders[dl] = False
             counter += 1
 
@@ -163,6 +197,7 @@ class SettingsDlg(wx.Frame):
             try:
                 self.myConfig.external_downloaders[dl] = self.sources_list_ctrl_1.IsItemChecked(item.GetId())
             except:
+                logger.debug('save_settings() - No item of external downloaders list')
                 self.myConfig.external_downloaders[dl] = False
             counter += 1
 
@@ -187,10 +222,21 @@ class SettingsDlg(wx.Frame):
         self.combo_box_6.SetSelection(self.combo_box_6.FindString(str(self.myConfig.max_wallpaper_folder_size)))
         self.checkbox_1.SetValue(self.myConfig.manual_download)
         if self.myConfig.manual_download == False:
-            self.disble_Checkbox_1()
+            self.disable_Checkbox_1()
         self.dirpickerctrl_2.SetPath(self.myConfig.manual_download_folder)
         self.checkbox_12.SetValue(self.myConfig.animate_system_tray_icon)
         self.checkbox_11.SetValue(self.myConfig.show_balloon_message)
+
+        # Proxy
+        if self.myConfig.proxy_enable == False:
+            self.disable_proxy_settings()
+        else:
+            self.enable_proxy_settings()
+            self.checkbox_2.SetValue(self.myConfig.proxy_enable)
+            self.text_ctrl_2.ChangeValue(self.myConfig.proxy_address)
+            self.text_ctrl_5.ChangeValue(str(self.myConfig.proxy_port))
+            self.text_ctrl_4.ChangeValue(self.myConfig.proxy_username)
+            self.text_ctrl_3.ChangeValue(self.myConfig.proxy_pw_encrypted)
 
         # Basic Columns Definition and Width
         self.sources_list_ctrl_1.InsertColumn(0, _("Activated"), wx.LIST_FORMAT_CENTRE)
@@ -242,6 +288,10 @@ class SettingsDlg(wx.Frame):
         self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
         self.dirpickerctrl_1.SetMinSize((-1, 23))
         self.notebook_1_pane_1.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
+        self.text_ctrl_2.SetMinSize((400, -1))
+        self.text_ctrl_5.SetMinSize((400, -1))
+        self.text_ctrl_4.SetMinSize((400, -1))
+        self.text_ctrl_3.SetMinSize((400, -1))
         self.notebook_1_pane_3.Enable(False)
         self.dirpickerctrl_2.SetMinSize((-1, 23))
         self.text_ctrl_1.SetMinSize((760, 100))
@@ -266,6 +316,7 @@ class SettingsDlg(wx.Frame):
         sizer_11 = wx.BoxSizer(wx.VERTICAL)
         sizer_12 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_10 = wx.BoxSizer(wx.VERTICAL)
+        sizer_14 = wx.FlexGridSizer(7, 2, 0, 0)
         self.sizer_9 = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_8 = wx.BoxSizer(wx.HORIZONTAL)
@@ -307,6 +358,26 @@ class SettingsDlg(wx.Frame):
         self.sizer_9.Add(label_1, 0, wx.ALL, 10)
         self.sizer_9.Add(self.sources_list_ctrl_1, 1, wx.EXPAND, 0)
         self.notebook_1_Source.SetSizer(self.sizer_9)
+        label_12 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Proxy Settings"))
+        label_12.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
+        sizer_14.Add(label_12, 0, wx.ALL, 10)
+        sizer_14.Add((0, 0), 0, 0, 0)
+        sizer_14.Add(self.checkbox_2, 0, wx.ALL, 10)
+        sizer_14.Add((0, 0), 0, 0, 0)
+        label_13 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the host or address of the proxy"))
+        sizer_14.Add(label_13, 0, wx.ALL, 10)
+        sizer_14.Add(self.text_ctrl_2, 0, wx.ALL, 7)
+        label_14 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the port of the proxy"))
+        sizer_14.Add(label_14, 0, wx.ALL, 10)
+        sizer_14.Add(self.text_ctrl_5, 0, wx.ALL, 7)
+        label_15 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the username for the proxy"))
+        sizer_14.Add(label_15, 0, wx.ALL, 10)
+        sizer_14.Add(self.text_ctrl_4, 0, wx.ALL, 7)
+        label_16 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the password for the proxy"))
+        sizer_14.Add(label_16, 0, wx.ALL, 10)
+        sizer_14.Add(self.text_ctrl_3, 0, wx.ALL, 7)
+        sizer_14.Add(self.panel_4, 1, wx.EXPAND, 0)
+        self.notebook_1_Proxy.SetSizer(sizer_14)
         label_2 = wx.StaticText(self.notebook_1_pane_3, wx.ID_ANY, _("VRTY.ORG is currently not publically available"))
         sizer_10.Add(label_2, 0, wx.ALIGN_CENTER | wx.ALL, 10)
         self.notebook_1_pane_3.SetSizer(sizer_10)
@@ -338,6 +409,7 @@ class SettingsDlg(wx.Frame):
         self.notebook_1_Info.SetSizer(sizer_13)
         self.notebook_1.AddPage(self.notebook_1_pane_1, _("General"))
         self.notebook_1.AddPage(self.notebook_1_Source, _("Source"))
+        self.notebook_1.AddPage(self.notebook_1_Proxy, _("Proxy"))
         self.notebook_1.AddPage(self.notebook_1_pane_3, _("Synchronize / Social"))
         self.notebook_1.AddPage(self.notebook_1_pane_4, _("Manual Download"))
         self.notebook_1.AddPage(self.notebook_1_Info, _("Info"))
@@ -347,6 +419,39 @@ class SettingsDlg(wx.Frame):
         self.Layout()
         self.Centre()
         # end wxGlade
+
+    def OnTextTextCtrl_2(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnTextTextCtrl_2()')
+        _val = self.text_ctrl_2.GetValue()
+        if ':' in _val or ' ' in _val:
+            logger.debug('OnTextTextCtrl_2() - No ":" in hostname')
+            self.text_ctrl_2.Clear()
+            self.text_ctrl_2.SetHint(_('Valid host may not include ":"'))
+        else:
+            self.save_settings()
+
+    def OnTextTextCtrl_5(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnTextTextCtrl_5()')
+        _val = self.text_ctrl_5.GetValue()
+        if len(_val) > 0:
+            try:
+                _int = int(_val)
+                if 0 <= _int <= 65535:
+                    self.save_settings()
+            except:
+                logger.debug('OnTextTextCtrl_5() - No integer')
+                self.text_ctrl_5.Clear()
+                self.text_ctrl_5.SetHint(_('Valid port range is 0 - 65535'))
+        else:
+            self.text_ctrl_5.SetHint(_('Valid port range is 0 - 65535'))
+
+    def OnTextTextCtrl_4(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnTextTextCtrl_4()')
+        self.save_settings()
+
+    def OnTextTextCtrl_3(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnTextTextCtrl_3()')
+        self.save_settings()
 
     def OnButtonClose(self, event):  # wxGlade: SettingsDlg.<event_handler>
         logger.debug('OnButtonClose()')
@@ -379,6 +484,19 @@ class SettingsDlg(wx.Frame):
         self.save_settings()
         event.Skip()
 
+    def OnClickedCheckbox_2(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnClickedCheckbox_10()')
+        if event.GetInt():
+            system_settings = self.get_proxy_system_settings()
+            self.enable_proxy_settings(system_settings['address'],
+                                       system_settings['port'],
+                                       system_settings['username'],
+                                       system_settings['password'])
+        else:
+            self.disable_proxy_settings()
+        self.save_settings()
+        event.Skip()
+
     def OnClickedCheckbox_10(self, event):  # wxGlade: SettingsDlg.<event_handler>
         logger.debug('OnClickedCheckbox_10()')
         if event.GetInt():
@@ -393,7 +511,7 @@ class SettingsDlg(wx.Frame):
         if event.GetInt():
             self.enable_Checkbox_1()
         else:
-            self.disble_Checkbox_1()
+            self.disable_Checkbox_1()
         self.save_settings()
         event.Skip()
 
@@ -427,11 +545,60 @@ class SettingsDlg(wx.Frame):
         logger.debug('enable_Checkbox_1()')
         self.dirpickerctrl_2.Enable()
 
-    def disble_Checkbox_1(self):
+    def disable_Checkbox_1(self):
         logger.debug('disble_Checkbox_1()')
         self.dirpickerctrl_2.Disable()
 
-# end of class SettingsDlg
+    # end of class SettingsDlg
+
+    def get_proxy_system_settings(self):
+        _proxy_settings = {'address': '', 'port': '', 'username': '', 'password': ''}
+        proxy_pattern = re.compile('([^:]*):?([^:@/]*)@?([^:/]*):?([^:/]*)$')
+        logger.debug('get_proxy_system_settings()')
+        try:
+            _proxy = os.environ['HTTP_PROXY']
+            result = proxy_pattern.match(_proxy)
+            if result:
+                if result.group(3) == '':
+                    # host + port
+                    _proxy_settings['address'] = str(result.group(1))
+                    _proxy_settings['port'] = str(result.group(2))
+                else:
+                    # user + pw + host + port
+                    _proxy_settings['username'] = str(result.group(1))
+                    _proxy_settings['password'] = str(result.group(2))
+                    _proxy_settings['address'] = str(result.group(3))
+                    _proxy_settings['port'] = str(result.group(4))
+        except:
+            logger.debug('get_proxy_system_settings() - No system settings')
+        return _proxy_settings
+
+    def disable_proxy_settings(self):
+        logger.debug('disable_Proxy_Settings()')
+        self.text_ctrl_2.Disable()
+        self.text_ctrl_2.ChangeValue('')
+        self.text_ctrl_5.Disable()
+        self.text_ctrl_5.ChangeValue('')
+        self.text_ctrl_4.Disable()
+        self.text_ctrl_4.ChangeValue('')
+        self.text_ctrl_3.Disable()
+        self.text_ctrl_3.ChangeValue('')
+
+    def enable_proxy_settings(self, address='', port='', username='', password=''):
+        logger.debug('enable_proxy_settings()')
+        _system_settings = {'address': address, 'port': port, 'username': username, 'password': password}
+        self.text_ctrl_2.Enable()
+        self.text_ctrl_2.ChangeValue(_system_settings['address'])
+        self.text_ctrl_2.SetHint(_('proxy.mydomain OR 0.0.0.0'))
+        self.text_ctrl_5.Enable()
+        self.text_ctrl_5.ChangeValue(_system_settings['port'])
+        self.text_ctrl_5.SetHint('8080')
+        self.text_ctrl_4.Enable()
+        self.text_ctrl_4.ChangeValue(_system_settings['username'])
+        self.text_ctrl_4.SetHint(_('Leave empty if not required...'))
+        self.text_ctrl_3.Enable()
+        self.text_ctrl_3.ChangeValue(_system_settings['password'])
+        self.text_ctrl_3.SetHint(_('Leave empty if not required...'))
 
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):

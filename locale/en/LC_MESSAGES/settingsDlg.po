@@ -12,38 +12,229 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see https://www.gnu.org/licenses/.
-
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
-"POT-Creation-Date: 2019-11-08 15:43+0100\n"
-"PO-Revision-Date: 2019-11-15 18:39+0100\n"
+"Project-Id-Version: Wariety\n"
+"POT-Creation-Date: 2021-04-30 18:24+0200\n"
+"PO-Revision-Date: 2021-04-30 18:32+0200\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 2.2.4\n"
-"Last-Translator: \n"
+"X-Generator: Poedit 2.3.1\n"
+"Last-Translator: Roland Rickborn\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Language: en\n"
 
-#: settingsDlg.py:35
+#: wariety\settingsDlg.py:68
+msgid "Start Wariety automatically with Windows startup\n"
+msgstr ""
+
+#: wariety\settingsDlg.py:69
+msgid "Change wallpaper every"
+msgstr ""
+
+#: wariety\settingsDlg.py:70 wariety\settingsDlg.py:73
+#: wariety\settingsDlg.py:76
+msgid "128"
+msgstr ""
+
+#: wariety\settingsDlg.py:70 wariety\settingsDlg.py:73
+#: wariety\settingsDlg.py:76
+msgid "16"
+msgstr ""
+
+#: wariety\settingsDlg.py:70 wariety\settingsDlg.py:73
+#: wariety\settingsDlg.py:76
+msgid "2"
+msgstr ""
+
+#: wariety\settingsDlg.py:70 wariety\settingsDlg.py:73
+#: wariety\settingsDlg.py:76
+msgid "256"
+msgstr ""
+
+#: wariety\settingsDlg.py:70 wariety\settingsDlg.py:73
+#: wariety\settingsDlg.py:76
+msgid "32"
+msgstr ""
+
+#: wariety\settingsDlg.py:70 wariety\settingsDlg.py:73
+#: wariety\settingsDlg.py:76
+msgid "4"
+msgstr ""
+
+#: wariety\settingsDlg.py:70 wariety\settingsDlg.py:73
+#: wariety\settingsDlg.py:76
+msgid "64"
+msgstr ""
+
+#: wariety\settingsDlg.py:70 wariety\settingsDlg.py:73
+#: wariety\settingsDlg.py:76
+msgid "8"
+msgstr ""
+
+#: wariety\settingsDlg.py:71
+msgid "Change wallpaper on Windows startup"
+msgstr ""
+
+#: wariety\settingsDlg.py:72
+msgid "Download a new wallpaper image every"
+msgstr ""
+
+#: wariety\settingsDlg.py:75
+msgid "Limit download folder size to"
+msgstr ""
+
+#: wariety\settingsDlg.py:76
+msgid "512"
+msgstr ""
+
+#: wariety\settingsDlg.py:77
+msgid "Animate system tray icon on every wallpaper change"
+msgstr ""
+
+#: wariety\settingsDlg.py:78
+msgid "Show balloon message on every wallpaper change"
+msgstr ""
+
+#: wariety\settingsDlg.py:83
+msgid "Use a proxy to download images"
+msgstr ""
+
+#: wariety\settingsDlg.py:91
+msgid "Fetch wallpapers from manual download folder"
+msgstr ""
+
+#: wariety\settingsDlg.py:96
+msgid "https://github.com/gitRigge/wariety"
+msgstr ""
+
+#: wariety\settingsDlg.py:97
+msgid "https://github.com/gitRigge/wariety/issues"
+msgstr ""
+
+#: wariety\settingsDlg.py:98
+msgid "https://github.com/gitRigge/wariety/pulls"
+msgstr ""
+
+#: wariety\settingsDlg.py:100
 msgid "Close"
-msgstr "Close"
+msgstr ""
 
-#: settingsDlg.py:45
+#: wariety\settingsDlg.py:204
+msgid "Activated"
+msgstr ""
+
+#: wariety\settingsDlg.py:205
+msgid "Type"
+msgstr ""
+
+#: wariety\settingsDlg.py:206 wariety\settingsDlg.py:373
+msgid "Source"
+msgstr ""
+
+#: wariety\settingsDlg.py:247
 msgid "Wariety Settings"
-msgstr "Wariety Settings"
+msgstr ""
 
-#: settingsDlg.py:46
-msgid "Hit button to close window"
-msgstr "Hit button to close window"
+#: wariety\settingsDlg.py:261
+msgid "Hit button to save and close"
+msgstr ""
 
-#: settingsDlg.py:53
-msgid "notebook_1_pane_1"
-msgstr "notebook_1_pane_1"
+#: wariety\settingsDlg.py:290 wariety\settingsDlg.py:372
+msgid "General"
+msgstr ""
 
-#: settingsDlg.py:54 settingsDlg.py:55
-msgid "new tab"
-msgstr "new tab"
+#: wariety\settingsDlg.py:298
+msgid "Minutes"
+msgstr ""
+
+#: wariety\settingsDlg.py:305
+msgid "Minutes into the folder"
+msgstr ""
+
+#: wariety\settingsDlg.py:311
+msgid "MB (older files are deleted if necessary)"
+msgstr ""
+
+#: wariety\settingsDlg.py:318
+msgid "Image Sources"
+msgstr ""
+
+#: wariety\settingsDlg.py:323
+msgid "Proxy Settings"
+msgstr ""
+
+#: wariety\settingsDlg.py:329
+msgid "Enter the host or address of the proxy"
+msgstr ""
+
+#: wariety\settingsDlg.py:332
+msgid "Enter the port of the proxy"
+msgstr ""
+
+#: wariety\settingsDlg.py:335
+msgid "Enter the username for the proxy"
+msgstr ""
+
+#: wariety\settingsDlg.py:338
+msgid "Enter the password for the proxy"
+msgstr ""
+
+#: wariety\settingsDlg.py:343
+msgid "VRTY.ORG is currently not publically available"
+msgstr ""
+
+#: wariety\settingsDlg.py:346
+msgid "Fetch folder"
+msgstr ""
+
+#: wariety\settingsDlg.py:354
+msgid "Recent changes"
+msgstr ""
+
+#: wariety\settingsDlg.py:358
+msgid "Visit project page"
+msgstr ""
+
+#: wariety\settingsDlg.py:362
+msgid "Bug report / issue tracker"
+msgstr ""
+
+#: wariety\settingsDlg.py:366
+msgid "Change requests"
+msgstr ""
+
+#: wariety\settingsDlg.py:374
+msgid "Proxy"
+msgstr ""
+
+#: wariety\settingsDlg.py:375
+msgid "Synchronize / Social"
+msgstr ""
+
+#: wariety\settingsDlg.py:376
+msgid "Manual Download"
+msgstr ""
+
+#: wariety\settingsDlg.py:377
+msgid "Info"
+msgstr ""
+
+#: wariety\settingsDlg.py:429
+msgid "Valid host may not include \":\""
+msgstr ""
+
+#: wariety\settingsDlg.py:444 wariety\settingsDlg.py:446
+msgid "Valid port range is 0 - 65535"
+msgstr ""
+
+#: wariety\settingsDlg.py:592
+msgid "proxy.mydomain OR 0.0.0.0"
+msgstr ""
+
+#: wariety\settingsDlg.py:598 wariety\settingsDlg.py:601
+msgid "Leave empty if not required..."
+msgstr ""

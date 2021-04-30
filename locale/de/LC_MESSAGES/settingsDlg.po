@@ -12,12 +12,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see https://www.gnu.org/licenses/.
-
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2020-05-27 22:20+0200\n"
-"PO-Revision-Date: 2020-05-28 18:44+0200\n"
+"POT-Creation-Date: 2021-04-30 18:24+0200\n"
+"PO-Revision-Date: 2021-04-30 18:31+0200\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -100,6 +99,10 @@ msgstr "Taskleistensymbol bei jeder Änderung des Hintergrundbildes animieren"
 msgid "Show balloon message on every wallpaper change"
 msgstr "Sprechblase bei jeder Änderung des Hintergrundbildes anzeigen"
 
+#: wariety\settingsDlg.py:83
+msgid "Use a proxy to download images"
+msgstr "Proxy für den Download verwenden"
+
 #: wariety\settingsDlg.py:63
 msgid "Fetch wallpapers from manual download folder"
 msgstr "Hintergrundbilder aus dem manuellen Download-Ordner laden"
@@ -160,6 +163,26 @@ msgstr "MB (ältere Dateien werden bei Bedarf gelöscht)"
 msgid "Image Sources"
 msgstr "Bildquelle"
 
+#: wariety\settingsDlg.py:323
+msgid "Proxy Settings"
+msgstr "Proxy Einstellungen"
+
+#: wariety\settingsDlg.py:329
+msgid "Enter the host or address of the proxy"
+msgstr "Geben Sie den Proxy Host oder Adresse ein"
+
+#: wariety\settingsDlg.py:332
+msgid "Enter the port of the proxy"
+msgstr "Geben Sie den Proxy Port ein"
+
+#: wariety\settingsDlg.py:335
+msgid "Enter the username for the proxy"
+msgstr "Geben Sie den Proxy Benutzernamen ein"
+
+#: wariety\settingsDlg.py:338
+msgid "Enter the password for the proxy"
+msgstr "Geben Sie den Proxy Passwort ein"
+
 #: wariety\settingsDlg.py:261
 msgid "VRTY.ORG is currently not publically available"
 msgstr "VRTY.ORG ist derzeit nicht öffentlich verfügbar"
@@ -184,6 +207,10 @@ msgstr "Fehlerbericht / Issue-Tracker"
 msgid "Change requests"
 msgstr "Änderungswünsche"
 
+#: wariety\settingsDlg.py:412
+msgid "Proxy"
+msgstr "Proxy"
+
 #: wariety\settingsDlg.py:292
 msgid "Synchronize / Social"
 msgstr "Synchronisieren / Social"
@@ -195,3 +222,19 @@ msgstr "Manueller Download"
 #: wariety\settingsDlg.py:294
 msgid "Info"
 msgstr "Information"
+
+#: wariety\settingsDlg.py:429
+msgid "Valid host may not include \":\""
+msgstr "Gültiger Host darf kein \":\" enthalten"
+
+#: wariety\settingsDlg.py:444 wariety\settingsDlg.py:446
+msgid "Valid port range is 0 - 65535"
+msgstr "Gültiger Portbereich ist 0 - 65535"
+
+#: wariety\settingsDlg.py:592
+msgid "proxy.mydomain OR 0.0.0.0"
+msgstr "proxy.mydomain ODER 0.0.0.0"
+
+#: wariety\settingsDlg.py:598 wariety\settingsDlg.py:601
+msgid "Leave empty if not required..."
+msgstr "Leer lassen, wenn nicht benötigt..."

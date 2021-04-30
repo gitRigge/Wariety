@@ -36,19 +36,6 @@ BASE_URL = ''
 DOWNLOADER_TYPE = ''
 DOWNLOADER_DESCRIPTION = ''
 CAPABILITIES = {'single': 'single', 'many': 'many'}
-PROXIES = {'http': '', 'https': ''}
-
-
-def set_proxy_with_environment_variable():
-    """
-    Sets HTTP and HTTPS proxies according to environment variables, if available.
-    :return:
-    """
-    logging.debug('set_proxy_with_environment_variable()')
-
-    PROXIES['http'] = os.getenv('HTTP_PROXY', False)
-    PROXIES['https'] = os.getenv('HTTPS_PROXY', False)
-
 
 class DefaultDownloader(abc.ABC):
 
@@ -63,21 +50,11 @@ class DefaultDownloader(abc.ABC):
         _app_name = wariety.APP_NAME
         self.target_folder = os.path.join(os.environ['LOCALAPPDATA'], _app_name)
         self.state = {}
-        self.use_proxy = False
         self.capability = CAPABILITIES['single']
         self.start_url = START_URL
         self.base_url = BASE_URL
         self.downloader_type = DOWNLOADER_TYPE
         self.downloader_desc = DOWNLOADER_DESCRIPTION
-        set_proxy_with_environment_variable()
-        if PROXIES['http']:
-            self.with_http_proxy = True
-        else:
-            self.with_http_proxy = False
-        if PROXIES['https']:
-            self.with_https_proxy = True
-        else:
-            self.with_https_proxy = False
         self.next_image = wariety_wallpaper.WarietyWallpaper()
 
     def _load_state(self, dl_typ):

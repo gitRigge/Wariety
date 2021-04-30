@@ -20,6 +20,7 @@ __pycache__/
 
 *.mo
 *.pot
+*.pyo
 
 .env
 .venv
@@ -28,3 +29,5 @@ venv/
 ENV/
 /bin/*.exe
 /Release Notes.txt
+
+lib/wariety_key.py

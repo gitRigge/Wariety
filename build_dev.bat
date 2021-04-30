@@ -3,6 +3,7 @@ ECHO Build DEV Executable
 set PATH=c:\Python36\;c:\Python36\Lib\site-packages\;c:\Python36\Scripts\;%PATH%
 set PYTHONPATH=c:\Python36\Lib\
 set PYTHONHOME=c:\Python36\
+git stash
 git pull origin master
 
 python make_version_file.py
@@ -25,6 +26,7 @@ pyinstaller ^
     --hidden-import wariety ^
     --hidden-import imghdr ^
     --hidden-import bs4 ^
+    --hidden-import datetime ^
     --add-data %cd%\LICENSE;.\ ^
     --add-data "%cd%\Release Notes.txt";.\ ^
     --add-data %cd%\locale\de\LC_MESSAGES\*.mo;locale\de\LC_MESSAGES\ ^
@@ -42,4 +44,5 @@ rmdir /S /Q build\wariety
 )
 @echo off
 del VERSION
+git stash pop
 pause

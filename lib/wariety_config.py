@@ -25,7 +25,10 @@ import os
 import sys
 import winreg
 
+from cryptography.fernet import Fernet
 from pubsub import pub
+
+import wariety_key
 
 logger = logging.getLogger(__name__)
 
@@ -37,12 +40,14 @@ class EnvInterpolation(configparser.BasicInterpolation):
         return winreg.ExpandEnvironmentStrings(value.replace("'", ""))
 
 
+
 class WarietyConfig(object):
     """docstring for WarietyConfig"""
     
     def __init__(self, config_file):
         logger.debug('Starting config')
         logger.debug('__init__({})'.format(config_file))
+        self.key = wariety_key.WarietyKey().key
 
         # General
         self.start_at_startup = False
@@ -60,6 +65,14 @@ class WarietyConfig(object):
         self.show_balloon_message = False
         self.plugin_folder = r'%LOCALAPPDATA%\Wariety\Plugins'
 
+        # Proxy
+        self.proxy_enable = False
+        self.proxy_address = ''
+        self.proxy_port = 8080
+        self.proxy_username = ''
+        self.proxy_pw_encrypted = ''
+        self.proxies = {}
+
         # Built-in Sources
         self.builtin_downloaders = {}
         self.available_builtin_downloaders = {}
@@ -74,6 +87,9 @@ class WarietyConfig(object):
         # Get configuration
         self.read_config_file()
         self.read_config()
+
+        # Fill proxies dict
+        self.setup_proxies()
 
         # Init Plugins Folder
         self.init_folders()
@@ -97,6 +113,24 @@ class WarietyConfig(object):
     def __del__(self):
         logger.debug('__del__()')
         logger.debug('Stopping config')
+
+    def setup_proxies(self):
+        logger.debug('setup_proxies()')
+        if self.proxy_enable:
+            if self.proxy_username != '':
+                self.proxies['http'] = '{}:{}@{}:{}'.format(self.proxy_username,
+                                                            self.proxy_pw_encrypted,
+                                                            self.proxy_address,
+                                                            self.proxy_port)
+                self.proxies['https'] = '{}:{}@{}:{}'.format(self.proxy_username,
+                                                            self.proxy_pw_encrypted,
+                                                            self.proxy_address,
+                                                            self.proxy_port)
+            else:
+                self.proxies['http'] = '{}:{}'.format(self.proxy_address, self.proxy_port)
+                self.proxies['https'] = '{}:{}'.format(self.proxy_address, self.proxy_port)
+            os.environ['HTTP_PROXY'] = self.proxies['http']
+            os.environ['HTTPS_PROXY'] = self.proxies['https']
 
     def init_folders(self):
         """
@@ -124,7 +158,7 @@ class WarietyConfig(object):
 
     def read_config_file(self):
         """
-        Tries to read config from file. If confif file does not exist, creates config file,
+        Tries to read config from file. If config file does not exist, creates config file,
         adds sectors 'General', 'Sources' and 'External Sources' and fills with default values.
         :return:
         """
@@ -134,6 +168,7 @@ class WarietyConfig(object):
         else:
             logger.debug('read_config_file() - No config file found.')
             self.config.add_section('General')
+            self.config.add_section('Proxy')
             self.config.add_section('Sources')
             self.config.add_section('External Sources')
             self.config.read(self.config_file)
@@ -186,6 +221,14 @@ class WarietyConfig(object):
         self.plugin_folder = self.config['General'].get('plugin_folder',
                                                         fallback=os.path.expandvars(r'%LOCALAPPDATA%\Wariety\Plugins'))
 
+        # Proxy
+        self.proxy_enable = self.config['Proxy'].getboolean('enable', fallback=self.proxy_enable)
+        self.proxy_address = self.config['Proxy'].get('address', fallback=self.proxy_address)
+        self.proxy_port = self.config['Proxy'].getint('port', fallback=self.proxy_port)
+        self.proxy_username = self.config['Proxy'].get('username', fallback=self.proxy_username)
+        _pw = self.config['Proxy'].get('password', fallback='')
+        self.proxy_pw_encrypted = self.decrypt_pw(_pw)
+
         # Sources
         for bltin_src in self.config['Sources']:
             self.builtin_downloaders[bltin_src] = self.config['Sources'].getboolean(bltin_src)
@@ -215,6 +258,14 @@ class WarietyConfig(object):
         self.config.set('General', 'animate_system_tray_icon', str(self.animate_system_tray_icon))
         self.config.set('General', 'show_balloon_message', str(self.show_balloon_message))
         self.config.set('General', 'plugin_folder', str(os.path.expandvars(self.plugin_folder)))
+
+        # Proxy
+        self.config.set('Proxy', 'enable', str(self.proxy_enable))
+        self.config.set('Proxy', 'address', str(self.proxy_address))
+        self.config.set('Proxy', 'port', str(self.proxy_port))
+        self.config.set('Proxy', 'username', str(self.proxy_username))
+        _pw = self.encrypt_pw(self.proxy_pw_encrypted)
+        self.config.set('Proxy', 'password', _pw)
 
         # Built-in Downloaders
         for bltin_src in self.builtin_downloaders:
@@ -253,6 +304,11 @@ class WarietyConfig(object):
             'animate_system_tray_icon': self.animate_system_tray_icon,
             'show_balloon_message': self.show_balloon_message,
             'plugin_folder': self.plugin_folder,
+            'enable': self.proxy_enable,
+            'address': self.proxy_address,
+            'port': self.proxy_port,
+            'username': self.proxy_username,
+            'password': self.proxy_pw_encrypted,
         }
         for bltin_src in self.builtin_downloaders:
             my_config[bltin_src] = self.builtin_downloaders[bltin_src]
@@ -336,3 +392,34 @@ class WarietyConfig(object):
         for dl in _need_to_delete:
             del configured_downloaders[dl]
             self.config.remove_option(section, dl)
+
+    def decrypt_pw(self, pw):
+        """
+        Returns the decrypted password given by 'pw' using the
+        static key 'k'. Returns empty string in case of error.
+        :param pw:
+        :return retVal:
+        """
+        retVal = ''
+
+        logger.debug('decrypt_pw(***)')
+        f = Fernet(self.key)
+        try:
+            retVal = f.decrypt(bytes(pw, 'utf-8'))
+        except:
+            retVal = b''
+        return retVal.decode('UTF-8')
+
+    def encrypt_pw(self, pw):
+        """
+        Returns the encrypted password given by 'pw' using the
+        static key 'k'.
+        :param pw:
+        :return retVal:
+        """
+        retVal = ''
+
+        logger.debug('encrypt_pw(***)')
+        f = Fernet(self.key)
+        retVal = f.encrypt(bytes(pw, 'utf-8'))
+        return retVal.decode('UTF-8')
