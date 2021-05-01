@@ -48,6 +48,7 @@ class WarietyConfig(object):
         logger.debug('Starting config')
         logger.debug('__init__({})'.format(config_file))
         self.key = wariety_key.WarietyKey().key
+        self.configparser_sections = ['General', 'Proxy', 'Sources', 'External Sources']
 
         # General
         self.start_at_startup = False
@@ -159,19 +160,21 @@ class WarietyConfig(object):
 
     def read_config_file(self):
         """
-        Tries to read config from file. If config file does not exist, creates config file,
-        adds sectors 'General', 'Sources' and 'External Sources' and fills with default values.
+        Tries to read config from file. Ensures all required sections exist in config file.
+        If config file does not exist, creates config file with all required sections.
         :return:
         """
         logger.debug('read_config_file()')
         if os.path.isfile(self.config_file):
             self.config.read(self.config_file)
+            existing_sections = self.config.sections()
+            for section in self.configparser_sections:
+                if section not in existing_sections:
+                    self.config.add_section(section)
         else:
             logger.debug('read_config_file() - No config file found.')
-            self.config.add_section('General')
-            self.config.add_section('Proxy')
-            self.config.add_section('Sources')
-            self.config.add_section('External Sources')
+            for section in self.configparser_sections:
+                self.config.add_section(section)
             self.config.read(self.config_file)
             self.set_config()
             self.write_config_file()
