@@ -12,26 +12,39 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see https://www.gnu.org/licenses/.
-
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-11-05 15:27+0100\n"
-"PO-Revision-Date: 2019-11-05 15:28+0100\n"
+"POT-Creation-Date: 2021-05-01 16:05+0200\n"
+"PO-Revision-Date: 2021-05-01 16:05+0200\n"
+"Last-Translator: Roland Rickborn\n"
 "Language-Team: \n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 2.2.4\n"
-"Last-Translator: \n"
+"X-Generator: Poedit 2.3.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: en\n"
 
-#: wariety\aboutDlg.py:19
-msgid "Do you really want to close this application?"
-msgstr "Do you really want to close this application?"
+#: wariety\aboutDlg.py:63
+msgid "Close"
+msgstr "Close"
 
-#: wariety\aboutDlg.py:20
-msgid "Confirm Exit"
-msgstr "Confirm Exit"
+#: wariety\aboutDlg.py:84
+msgid "Version"
+msgstr "Version"
+
+#: wariety\aboutDlg.py:94
+msgid "About Wariety"
+msgstr "About Wariety"
+
+#: wariety\aboutDlg.py:103
+msgid "Hit button to close window"
+msgstr "Hit button to close window"
+
+#~ msgid "Do you really want to close this application?"
+#~ msgstr "Do you really want to close this application?"
+
+#~ msgid "Confirm Exit"
+#~ msgstr "Confirm Exit"

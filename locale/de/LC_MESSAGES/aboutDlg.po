@@ -12,34 +12,33 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see https://www.gnu.org/licenses/.
-
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2020-05-27 22:32+0200\n"
-"PO-Revision-Date: 2020-05-27 22:41+0200\n"
+"POT-Creation-Date: 2021-05-01 16:05+0200\n"
+"PO-Revision-Date: 2021-05-01 16:06+0200\n"
+"Last-Translator: Roland Rickborn\n"
 "Language-Team: \n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 "X-Generator: Poedit 2.3.1\n"
-"Last-Translator: Roland Rickborn\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: de\n"
 
-#: wariety\aboutDlg.py:43
+#: wariety\aboutDlg.py:63
 msgid "Close"
 msgstr "Schließen"
 
-#: wariety\aboutDlg.py:65
-msgid "Version {}"
-msgstr "Version {}"
+#: wariety\aboutDlg.py:84
+msgid "Version"
+msgstr "Version"
 
-#: wariety\aboutDlg.py:74
+#: wariety\aboutDlg.py:94
 msgid "About Wariety"
 msgstr "Über Wariety"
 
-#: wariety\aboutDlg.py:83
+#: wariety\aboutDlg.py:103
 msgid "Hit button to close window"
 msgstr "Klicken um zu Schließen"

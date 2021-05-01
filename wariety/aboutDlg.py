@@ -81,7 +81,7 @@ class AboutDlg(wx.Frame):
         copyright = args['copyright']
         license = args['license']
         self.label_1.SetLabel(name)
-        self.label_2.SetLabel(_("Version {}").format(version))
+        self.label_2.SetLabel(_("Version")+' {}'.format(version))
         self.text_ctrl_1.SetValue(desc)
         self.hyperlink_1.SetLabel(url)
         self.label_3.SetLabel(copyright)

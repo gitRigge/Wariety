@@ -16,135 +16,140 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2021-04-12 21:12+0200\n"
-"PO-Revision-Date: 2021-04-28 19:32+0200\n"
+"POT-Creation-Date: 2021-05-01 16:05+0200\n"
+"PO-Revision-Date: 2021-05-01 16:10+0200\n"
+"Last-Translator: Roland Rickborn\n"
 "Language-Team: \n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 "X-Generator: Poedit 2.3.1\n"
-"Last-Translator: Roland Rickborn\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: de\n"
 
-#: wariety\wariety.py:73 wariety\wariety.py:82
+#: wariety\wariety.py:148 wariety\wariety.py:177
 msgid "Next"
 msgstr "Nächstes"
 
-#: wariety\wariety.py:74 wariety\wariety.py:83
+#: wariety\wariety.py:149 wariety\wariety.py:178
 msgid "Previous"
 msgstr "Vorheriges"
 
-#: wariety\wariety.py:151
+#: wariety\wariety.py:156
 msgid "No Image"
 msgstr "Kein Bild"
 
-#: wariety\wariety.py:155
+#: wariety\wariety.py:166
 msgid "No Source"
 msgstr "Keine Quelle"
 
-#: wariety\wariety.py:178
+#: wariety\wariety.py:170
 msgid "Remove from Favorites"
 msgstr "Von Favoriten entfernen"
 
-#: wariety\wariety.py:78
+#: wariety\wariety.py:172
 msgid "Add to Favorites"
 msgstr "Zu Favoriten hinzufügen"
 
-#: wariety\wariety.py:79
+#: wariety\wariety.py:174
 msgid "Delete Image"
 msgstr "Bild löschen"
 
-#: wariety\wariety.py:85
+#: wariety\wariety.py:182 wariety\wariety.py:186
 msgid "Keep Current"
 msgstr "Aktuelles behalten"
 
-#: wariety\wariety.py:168
+#: wariety\wariety.py:184
 msgid "Continue"
 msgstr "Fortsetzen"
 
-#: wariety\wariety.py:87
+#: wariety\wariety.py:188
 msgid "Show Source"
 msgstr "Zeige Quelle"
 
-#: wariety\wariety.py:88
+#: wariety\wariety.py:189
 msgid "Bing Image Search"
 msgstr "Bing Bildersuche"
 
-#: wariety\wariety.py:96
+#: wariety\wariety.py:197
 msgid "No Vote"
 msgstr "Keine Bewertung"
 
-#: wariety\wariety.py:97
+#: wariety\wariety.py:198
 msgid "Vote"
 msgstr "Bewerten"
 
-#: wariety\wariety.py:98
+#: wariety\wariety.py:199
 msgid "Image"
 msgstr "Bild"
 
-#: wariety\wariety.py:100 wariety\wariety.py:171
+#: wariety\wariety.py:201 wariety\wariety.py:346
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: wariety\wariety.py:101
+#: wariety\wariety.py:202 wariety\wariety.py:352
 msgid "About"
 msgstr "Über"
 
-#: wariety\wariety.py:102
+#: wariety\wariety.py:203
 msgid "Quit"
 msgstr "Beenden"
 
-#: wariety\wariety.py:114
+#: wariety\wariety.py:216
 msgid "Double Click"
 msgstr "Doppelklick"
 
-#: wariety\wariety.py:118
+#: wariety\wariety.py:221
 msgid "Single Click"
 msgstr "Einfacher Klick"
 
-#: wariety\wariety.py:171
-msgid "{} {}"
-msgstr "{} {}"
+#: wariety\wariety.py:370
+msgid "Update Now!"
+msgstr "Jetzt aktualisieren!"
 
-#: wariety\wariety.py:174
-msgid "About {}"
-msgstr "Über {}"
+#: wariety\wariety.py:371
+msgid "There is an update of the app available"
+msgstr "Es ist ein Update der App verfügbar"
 
-#: wariety\wariety.py:276
+#: wariety\wariety.py:377
 msgid "By"
 msgstr "Von"
 
-#: wariety\wariety.py:277
+#: wariety\wariety.py:378
 msgid "by"
 msgstr "von"
 
-#: wariety\wariety.py:278
+#: wariety\wariety.py:379
 msgid "Location"
 msgstr "Ort"
 
-#: wariety\wariety.py:279
+#: wariety\wariety.py:380
 msgid "location"
 msgstr "Ort"
 
-#: wariety\wariety.py:280
+#: wariety\wariety.py:381
 msgid "Source"
 msgstr "Quelle"
 
-#: wariety\wariety.py:281
+#: wariety\wariety.py:382
 msgid "source"
 msgstr "Quelle"
 
-#: wariety\wariety.py:284
+#: wariety\wariety.py:383
 msgid "Rating"
 msgstr "Bewertung"
 
-#: wariety\wariety.py:264
+#: wariety\wariety.py:604 wariety\wariety.py:663
 msgid ""
 "Wariety is a wallpaper manager for Windows systems. It is a clone of the "
 "famous Linux application Variety and covers its main functionality."
 msgstr ""
-"Wariety ist ein Hintergrundbild-Manager für Windows-Systeme. Er ist ein "
-"Klon der berühmten Linux-Anwendung Variety und deckt deren "
-"Hauptfunktionalität ab."
+"Wariety ist ein Hintergrundbild-Manager für Windows-Systeme. Er ist ein Klon "
+"der berühmten Linux-Anwendung Variety und deckt deren Hauptfunktionalität ab."
+
+#~ msgid "{} {}"
+#~ msgstr "{} {}"
+
+#~ msgid "About {}"
+#~ msgstr "Über {}"

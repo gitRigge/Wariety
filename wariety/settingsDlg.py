@@ -30,11 +30,11 @@ import sys
 
 import wx
 import wx.adv
+from pubsub import pub
 
 # end wxGlade
 # begin wxGlade: extracode
 # end wxGlade
-
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +42,12 @@ current_locale = locale.getdefaultlocale()[0].split("_")[0]
 if getattr(sys, 'frozen', False):
     import wariety.wariety as wariety
     import lib.wariety_config
+    import lib.wariety_app_updater
     lang = gettext.translation('settingsDlg', localedir=sys._MEIPASS+'/locale', languages=[current_locale])
 else:
     import wariety
     import lib.wariety_config
+    import lib.wariety_app_updater
     lang = gettext.translation('settingsDlg', localedir='locale', languages=[current_locale])
 lang.install()
 _ = lang.gettext
@@ -66,61 +68,84 @@ class SettingsDlg(wx.Frame):
         wx.Frame.__init__(self, *args, **kwds)
         self.SetSize((800, 500))
         self.notebook_1 = wx.Notebook(self, wx.ID_ANY)
-        self.notebook_1_pane_1 = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.checkbox_6 = wx.CheckBox(self.notebook_1_pane_1, wx.ID_ANY, _("Start Wariety automatically with Windows startup\n"))
-        self.checkbox_7 = wx.CheckBox(self.notebook_1_pane_1, wx.ID_ANY, _("Change wallpaper every"))
-        self.combo_box_4 = wx.ComboBox(self.notebook_1_pane_1, wx.ID_ANY, choices=[_("2"), _("4"), _("8"), _("16"), _("32"), _("64"), _("128"), _("256")], style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.checkbox_8 = wx.CheckBox(self.notebook_1_pane_1, wx.ID_ANY, _("Change wallpaper on Windows startup"))
-        self.checkbox_9 = wx.CheckBox(self.notebook_1_pane_1, wx.ID_ANY, _("Download a new wallpaper image every"))
-        self.combo_box_5 = wx.ComboBox(self.notebook_1_pane_1, wx.ID_ANY, choices=[_("2"), _("4"), _("8"), _("16"), _("32"), _("64"), _("128"), _("256")], style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.dirpickerctrl_1 = wx.DirPickerCtrl(self.notebook_1_pane_1, wx.ID_ANY, style=wx.DIRP_DIR_MUST_EXIST | wx.DIRP_USE_TEXTCTRL | wx.DIRP_SMALL)
-        self.checkbox_10 = wx.CheckBox(self.notebook_1_pane_1, wx.ID_ANY, _("Limit download folder size to"))
-        self.combo_box_6 = wx.ComboBox(self.notebook_1_pane_1, wx.ID_ANY, choices=[_("2"), _("4"), _("8"), _("16"), _("32"), _("64"), _("128"), _("256"), _("512")], style=wx.CB_DROPDOWN | wx.CB_READONLY)
-        self.checkbox_12 = wx.CheckBox(self.notebook_1_pane_1, wx.ID_ANY, _("Animate system tray icon on every wallpaper change"))
-        self.checkbox_11 = wx.CheckBox(self.notebook_1_pane_1, wx.ID_ANY, _("Show balloon message on every wallpaper change"))
-        self.panel_3 = wx.Panel(self.notebook_1_pane_1, wx.ID_ANY)
+        self.notebook_1_General = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.label_5 = wx.StaticText(self.notebook_1_General, wx.ID_ANY, _("General Settings"))
+        self.checkbox_6 = wx.CheckBox(self.notebook_1_General, wx.ID_ANY, _("Start Wariety automatically with Windows startup\n"))
+        self.checkbox_7 = wx.CheckBox(self.notebook_1_General, wx.ID_ANY, _("Change wallpaper every"))
+        self.combo_box_4 = wx.ComboBox(self.notebook_1_General, wx.ID_ANY, choices=[_("2"), _("4"), _("8"), _("16"), _("32"), _("64"), _("128"), _("256")], style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.label_6 = wx.StaticText(self.notebook_1_General, wx.ID_ANY, _("Minutes"))
+        self.checkbox_8 = wx.CheckBox(self.notebook_1_General, wx.ID_ANY, _("Change wallpaper on Windows startup"))
+        self.checkbox_9 = wx.CheckBox(self.notebook_1_General, wx.ID_ANY, _("Download a new wallpaper image every"))
+        self.combo_box_5 = wx.ComboBox(self.notebook_1_General, wx.ID_ANY, choices=[_("2"), _("4"), _("8"), _("16"), _("32"), _("64"), _("128"), _("256")], style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.label_7 = wx.StaticText(self.notebook_1_General, wx.ID_ANY, _("Minutes into the folder"))
+        self.dirpickerctrl_1 = wx.DirPickerCtrl(self.notebook_1_General, wx.ID_ANY, style=wx.DIRP_DIR_MUST_EXIST | wx.DIRP_USE_TEXTCTRL | wx.DIRP_SMALL)
+        self.checkbox_10 = wx.CheckBox(self.notebook_1_General, wx.ID_ANY, _("Limit download folder size to"))
+        self.combo_box_6 = wx.ComboBox(self.notebook_1_General, wx.ID_ANY, choices=[_("2"), _("4"), _("8"), _("16"), _("32"), _("64"), _("128"), _("256"), _("512")], style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.label_8 = wx.StaticText(self.notebook_1_General, wx.ID_ANY, _("MB (older files are deleted if necessary)"))
+        self.checkbox_12 = wx.CheckBox(self.notebook_1_General, wx.ID_ANY, _("Animate system tray icon on every wallpaper change"))
+        self.checkbox_11 = wx.CheckBox(self.notebook_1_General, wx.ID_ANY, _("Show balloon message on every wallpaper change"))
+        self.checkbox_3 = wx.CheckBox(self.notebook_1_General, wx.ID_ANY, _("Check for updates on startup"))
+        self.panel_3 = wx.Panel(self.notebook_1_General, wx.ID_ANY)
         self.notebook_1_Source = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.label_1 = wx.StaticText(self.notebook_1_Source, wx.ID_ANY, _("Image Sources"))
         self.sources_list_ctrl_1 = SourcesListCtrl(self.notebook_1_Source, wx.ID_ANY, style=wx.LC_REPORT | wx.LC_AUTOARRANGE)
         self.notebook_1_Proxy = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.label_12 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Proxy Settings"))
         self.checkbox_2 = wx.CheckBox(self.notebook_1_Proxy, wx.ID_ANY, _("Use a proxy to download images"))
+        self.label_13 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the host or address of the proxy"))
         self.text_ctrl_2 = wx.TextCtrl(self.notebook_1_Proxy, wx.ID_ANY, "")
+        self.label_14 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the port of the proxy"))
         self.text_ctrl_5 = wx.TextCtrl(self.notebook_1_Proxy, wx.ID_ANY, "")
+        self.label_15 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the username for the proxy"))
         self.text_ctrl_4 = wx.TextCtrl(self.notebook_1_Proxy, wx.ID_ANY, "")
+        self.label_16 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the password for the proxy"))
         self.text_ctrl_3 = wx.TextCtrl(self.notebook_1_Proxy, wx.ID_ANY, "", style=wx.TE_PASSWORD)
         self.panel_4 = wx.Panel(self.notebook_1_Proxy, wx.ID_ANY)
-        self.notebook_1_pane_3 = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.notebook_1_pane_4 = wx.Panel(self.notebook_1, wx.ID_ANY)
-        self.checkbox_1 = wx.CheckBox(self.notebook_1_pane_4, wx.ID_ANY, _("Fetch wallpapers from manual download folder"))
-        self.dirpickerctrl_2 = wx.DirPickerCtrl(self.notebook_1_pane_4, wx.ID_ANY, style=wx.DIRP_DIR_MUST_EXIST | wx.DIRP_USE_TEXTCTRL | wx.DIRP_SMALL)
-        self.panel_1 = wx.Panel(self.notebook_1_pane_4, wx.ID_ANY)
+        self.notebook_1_Sync = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.label_2 = wx.StaticText(self.notebook_1_Sync, wx.ID_ANY, _("VRTY.ORG is currently not publically available"))
+        self.notebook_1_Fetch = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.label_3 = wx.StaticText(self.notebook_1_Fetch, wx.ID_ANY, _("Manual Download Settings"))
+        self.checkbox_1 = wx.CheckBox(self.notebook_1_Fetch, wx.ID_ANY, _("Fetch wallpapers from manual download folder"))
+        self.dirpickerctrl_2 = wx.DirPickerCtrl(self.notebook_1_Fetch, wx.ID_ANY, style=wx.DIRP_DIR_MUST_EXIST | wx.DIRP_USE_TEXTCTRL | wx.DIRP_SMALL)
+        self.panel_1 = wx.Panel(self.notebook_1_Fetch, wx.ID_ANY)
         self.notebook_1_Info = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.label_4 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("Recent changes"))
         self.text_ctrl_1 = wx.TextCtrl(self.notebook_1_Info, wx.ID_ANY, "", style=wx.BORDER_NONE | wx.TE_BESTWRAP | wx.TE_MULTILINE | wx.TE_READONLY)
+        self.label_17 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("Check for new version"))
+        self.button_2 = wx.Button(self.notebook_1_Info, wx.ID_ANY, _("Check now..."))
+        self.label_18 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("Latest version is:"))
+        self.label_19 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("0.0.0"))
+        self.label_9 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("Visit project page"))
         self.hyperlink_1 = wx.adv.HyperlinkCtrl(self.notebook_1_Info, wx.ID_ANY, _("https://github.com/gitRigge/wariety"), _("https://github.com/gitRigge/wariety"))
+        self.label_10 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("Bug report / issue tracker"))
         self.hyperlink_2 = wx.adv.HyperlinkCtrl(self.notebook_1_Info, wx.ID_ANY, _("https://github.com/gitRigge/wariety/issues"), _("https://github.com/gitRigge/wariety/issues"))
+        self.label_11 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("Change requests"))
         self.hyperlink_3 = wx.adv.HyperlinkCtrl(self.notebook_1_Info, wx.ID_ANY, _("https://github.com/gitRigge/wariety/pulls"), _("https://github.com/gitRigge/wariety/pulls"))
-        self.panel_2 = wx.Panel(self.notebook_1_Info, wx.ID_ANY)
         self.button_1 = wx.Button(self, wx.ID_ANY, _("Close"))
 
         self.__set_properties()
         self.__do_layout()
 
-        self.Bind(wx.EVT_CHECKBOX, self.OnClicked, self.checkbox_6)
+        self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_6, self.checkbox_6)
         self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_7, self.checkbox_7)
         self.Bind(wx.EVT_COMBOBOX, self.OnClicked, self.combo_box_4)
-        self.Bind(wx.EVT_CHECKBOX, self.OnClicked, self.checkbox_8)
+        self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_8, self.checkbox_8)
         self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_9, self.checkbox_9)
         self.Bind(wx.EVT_COMBOBOX, self.OnClicked, self.combo_box_5)
         self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_10, self.checkbox_10)
-        self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_2, self.checkbox_2)
         self.Bind(wx.EVT_COMBOBOX, self.OnClicked, self.combo_box_6)
-        self.Bind(wx.EVT_CHECKBOX, self.OnClicked, self.checkbox_12)
-        self.Bind(wx.EVT_CHECKBOX, self.OnClicked, self.checkbox_11)
-        self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_1, self.checkbox_1)
-        self.Bind(wx.EVT_BUTTON, self.OnButtonClose, self.button_1)
+        self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_12, self.checkbox_12)
+        self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_11, self.checkbox_11)
+        self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_3, self.checkbox_3)
+        self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_2, self.checkbox_2)
         self.Bind(wx.EVT_TEXT, self.OnTextTextCtrl_2, self.text_ctrl_2)
         self.Bind(wx.EVT_TEXT, self.OnTextTextCtrl_5, self.text_ctrl_5)
         self.Bind(wx.EVT_TEXT, self.OnTextTextCtrl_4, self.text_ctrl_4)
         self.Bind(wx.EVT_TEXT, self.OnTextTextCtrl_3, self.text_ctrl_3)
+        self.Bind(wx.EVT_CHECKBOX, self.OnClickedCheckbox_1, self.checkbox_1)
+        self.Bind(wx.EVT_TEXT, self.OnTextTextCtrl_1, self.text_ctrl_1)
+        self.Bind(wx.EVT_BUTTON, self.OnButton_2, self.button_2)
+        self.Bind(wx.EVT_BUTTON, self.OnButton_1, self.button_1)
         # end wxGlade
         self.sources_list_ctrl_1.EnableCheckBoxes(True)
         self.sources_list_items_1 = {}
@@ -129,12 +154,15 @@ class SettingsDlg(wx.Frame):
         self.myConfig = lib.wariety_config.WarietyConfig(self.config_file)
         self.set_settings()
         # Bind events _after_ adding items
-        self.Bind(wx.EVT_CLOSE, self.OnButtonClose)
+        self.Bind(wx.EVT_CLOSE, self.OnButton_1)
         self.Bind(wx.EVT_LIST_ITEM_CHECKED, self.OnClickedListCheckbox, self.sources_list_ctrl_1)
         self.Bind(wx.EVT_LIST_ITEM_UNCHECKED, self.OnClickedListCheckbox, self.sources_list_ctrl_1)
         self.Bind(wx.EVT_LIST_COL_CLICK, self.OnClickedListCheckbox, self.sources_list_ctrl_1)
         # Important: call the Centre method that centers automatically the window for you
         self.Centre()
+
+        # Messaging
+        pub.subscribe(self.show_version_str, "show version str")
 
     def set_properties_received_by_main(self, title):
         logger.debug('set_properties_received_by_main()')
@@ -160,6 +188,7 @@ class SettingsDlg(wx.Frame):
         self.myConfig.manual_download_folder = self.dirpickerctrl_2.GetPath()
         self.myConfig.animate_system_tray_icon = self.checkbox_12.GetValue()
         self.myConfig.show_balloon_message = self.checkbox_11.GetValue()
+        self.myConfig.update_check = self.checkbox_3.GetValue()
 
         # Proxy
         self.myConfig.proxy_enable = self.checkbox_2.GetValue()
@@ -226,6 +255,7 @@ class SettingsDlg(wx.Frame):
         self.dirpickerctrl_2.SetPath(self.myConfig.manual_download_folder)
         self.checkbox_12.SetValue(self.myConfig.animate_system_tray_icon)
         self.checkbox_11.SetValue(self.myConfig.show_balloon_message)
+        self.checkbox_3.SetValue(self.myConfig.update_check)
 
         # Proxy
         if self.myConfig.proxy_enable == False:
@@ -283,18 +313,26 @@ class SettingsDlg(wx.Frame):
         logger.debug('__set_properties()')
         # begin wxGlade: SettingsDlg.__set_properties
         self.SetTitle(_("Wariety Settings"))
-        _icon = wx.NullIcon
-        self.SetIcon(_icon)
         self.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
+        self.label_5.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
         self.dirpickerctrl_1.SetMinSize((-1, 23))
-        self.notebook_1_pane_1.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
+        self.notebook_1_General.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
+        self.label_1.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
+        self.label_12.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
         self.text_ctrl_2.SetMinSize((400, -1))
         self.text_ctrl_5.SetMinSize((400, -1))
         self.text_ctrl_4.SetMinSize((400, -1))
         self.text_ctrl_3.SetMinSize((400, -1))
-        self.notebook_1_pane_3.Enable(False)
+        self.notebook_1_Sync.Enable(False)
+        self.label_3.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
         self.dirpickerctrl_2.SetMinSize((-1, 23))
+        self.label_4.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
         self.text_ctrl_1.SetMinSize((760, 100))
+        self.label_17.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
+        self.label_19.Enable(False)
+        self.label_9.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
+        self.label_10.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
+        self.label_11.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
         self.notebook_1.SetBackgroundColour(wx.SystemSettings.GetColour(wx.SYS_COLOUR_3DFACE))
         self.button_1.SetToolTip(_("Hit button to save and close"))
         self.button_1.SetFocus()
@@ -313,6 +351,8 @@ class SettingsDlg(wx.Frame):
         # begin wxGlade: SettingsDlg.__do_layout
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
         sizer_13 = wx.BoxSizer(wx.VERTICAL)
+        grid_sizer_1 = wx.FlexGridSizer(4, 2, 0, 0)
+        sizer_19 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_11 = wx.BoxSizer(wx.VERTICAL)
         sizer_12 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_10 = wx.BoxSizer(wx.VERTICAL)
@@ -325,93 +365,75 @@ class SettingsDlg(wx.Frame):
         sizer_5 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
-        label_5 = wx.StaticText(self.notebook_1_pane_1, wx.ID_ANY, _("General"))
-        label_5.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
-        sizer_3.Add(label_5, 0, wx.ALL, 10)
+        sizer_3.Add(self.label_5, 0, wx.ALL, 10)
         sizer_2.Add(sizer_3, 1, wx.EXPAND, 0)
         sizer_4.Add(self.checkbox_6, 0, wx.ALL, 10)
         sizer_2.Add(sizer_4, 1, wx.EXPAND, 0)
         sizer_5.Add(self.checkbox_7, 0, wx.ALL, 10)
         sizer_5.Add(self.combo_box_4, 0, wx.ALL, 6)
-        label_6 = wx.StaticText(self.notebook_1_pane_1, wx.ID_ANY, _("Minutes"))
-        sizer_5.Add(label_6, 0, wx.ALL, 10)
+        sizer_5.Add(self.label_6, 0, wx.ALL, 10)
         sizer_2.Add(sizer_5, 1, wx.EXPAND, 0)
         sizer_6.Add(self.checkbox_8, 0, wx.ALL, 10)
         sizer_2.Add(sizer_6, 1, wx.EXPAND, 0)
         sizer_7.Add(self.checkbox_9, 0, wx.ALL, 10)
         sizer_7.Add(self.combo_box_5, 0, wx.ALL, 6)
-        label_7 = wx.StaticText(self.notebook_1_pane_1, wx.ID_ANY, _("Minutes into the folder"))
-        sizer_7.Add(label_7, 0, wx.ALL, 10)
+        sizer_7.Add(self.label_7, 0, wx.ALL, 10)
         sizer_7.Add(self.dirpickerctrl_1, 1, wx.ALL | wx.EXPAND, 0)
         sizer_2.Add(sizer_7, 1, wx.EXPAND, 0)
         sizer_8.Add(self.checkbox_10, 0, wx.ALL, 10)
         sizer_8.Add(self.combo_box_6, 0, wx.ALL, 6)
-        label_8 = wx.StaticText(self.notebook_1_pane_1, wx.ID_ANY, _("MB (older files are deleted if necessary)"))
-        sizer_8.Add(label_8, 0, wx.ALL, 10)
+        sizer_8.Add(self.label_8, 0, wx.ALL, 10)
         sizer_2.Add(sizer_8, 1, wx.EXPAND, 0)
         sizer_2.Add(self.checkbox_12, 0, wx.ALL, 10)
         sizer_2.Add(self.checkbox_11, 0, wx.ALL, 10)
+        sizer_2.Add(self.checkbox_3, 0, wx.ALL, 10)
         sizer_2.Add(self.panel_3, 1, wx.EXPAND, 0)
-        self.notebook_1_pane_1.SetSizer(sizer_2)
-        label_1 = wx.StaticText(self.notebook_1_Source, wx.ID_ANY, _("Image Sources"))
-        label_1.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
-        self.sizer_9.Add(label_1, 0, wx.ALL, 10)
+        self.notebook_1_General.SetSizer(sizer_2)
+        self.sizer_9.Add(self.label_1, 0, wx.ALL, 10)
         self.sizer_9.Add(self.sources_list_ctrl_1, 1, wx.EXPAND, 0)
         self.notebook_1_Source.SetSizer(self.sizer_9)
-        label_12 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Proxy Settings"))
-        label_12.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
-        sizer_14.Add(label_12, 0, wx.ALL, 10)
+        sizer_14.Add(self.label_12, 0, wx.ALL, 10)
         sizer_14.Add((0, 0), 0, 0, 0)
         sizer_14.Add(self.checkbox_2, 0, wx.ALL, 10)
         sizer_14.Add((0, 0), 0, 0, 0)
-        label_13 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the host or address of the proxy"))
-        sizer_14.Add(label_13, 0, wx.ALL, 10)
+        sizer_14.Add(self.label_13, 0, wx.ALL, 10)
         sizer_14.Add(self.text_ctrl_2, 0, wx.ALL, 7)
-        label_14 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the port of the proxy"))
-        sizer_14.Add(label_14, 0, wx.ALL, 10)
+        sizer_14.Add(self.label_14, 0, wx.ALL, 10)
         sizer_14.Add(self.text_ctrl_5, 0, wx.ALL, 7)
-        label_15 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the username for the proxy"))
-        sizer_14.Add(label_15, 0, wx.ALL, 10)
+        sizer_14.Add(self.label_15, 0, wx.ALL, 10)
         sizer_14.Add(self.text_ctrl_4, 0, wx.ALL, 7)
-        label_16 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the password for the proxy"))
-        sizer_14.Add(label_16, 0, wx.ALL, 10)
+        sizer_14.Add(self.label_16, 0, wx.ALL, 10)
         sizer_14.Add(self.text_ctrl_3, 0, wx.ALL, 7)
         sizer_14.Add(self.panel_4, 1, wx.EXPAND, 0)
         self.notebook_1_Proxy.SetSizer(sizer_14)
-        label_2 = wx.StaticText(self.notebook_1_pane_3, wx.ID_ANY, _("VRTY.ORG is currently not publically available"))
-        sizer_10.Add(label_2, 0, wx.ALIGN_CENTER | wx.ALL, 10)
-        self.notebook_1_pane_3.SetSizer(sizer_10)
-        label_3 = wx.StaticText(self.notebook_1_pane_4, wx.ID_ANY, _("Fetch folder"))
-        label_3.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
-        sizer_11.Add(label_3, 0, wx.ALL, 10)
+        sizer_10.Add(self.label_2, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+        self.notebook_1_Sync.SetSizer(sizer_10)
+        sizer_11.Add(self.label_3, 0, wx.ALL, 10)
         sizer_12.Add(self.checkbox_1, 0, wx.ALL, 10)
         sizer_12.Add(self.dirpickerctrl_2, 1, wx.ALL | wx.EXPAND, 0)
         sizer_11.Add(sizer_12, 1, wx.EXPAND, 0)
         sizer_11.Add(self.panel_1, 9, wx.EXPAND, 0)
-        self.notebook_1_pane_4.SetSizer(sizer_11)
-        label_4 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("Recent changes"))
-        label_4.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
-        sizer_13.Add(label_4, 0, wx.ALL, 10)
+        self.notebook_1_Fetch.SetSizer(sizer_11)
+        sizer_13.Add(self.label_4, 0, wx.ALL, 10)
         sizer_13.Add(self.text_ctrl_1, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 10)
-        label_9 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("Visit project page"))
-        label_9.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
-        sizer_13.Add(label_9, 0, wx.ALL, 10)
-        sizer_13.Add(self.hyperlink_1, 0, wx.ALL, 10)
-        label_10 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("Bug report / issue tracker"))
-        label_10.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
-        sizer_13.Add(label_10, 0, wx.ALL, 10)
-        sizer_13.Add(self.hyperlink_2, 0, wx.ALL, 10)
-        label_11 = wx.StaticText(self.notebook_1_Info, wx.ID_ANY, _("Change requests"))
-        label_11.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
-        sizer_13.Add(label_11, 0, wx.ALL, 10)
-        sizer_13.Add(self.hyperlink_3, 0, wx.ALL, 10)
-        sizer_13.Add(self.panel_2, 1, wx.EXPAND, 0)
+        grid_sizer_1.Add(self.label_17, 0, wx.ALL, 10)
+        sizer_19.Add(self.button_2, 0, wx.ALL, 7)
+        sizer_19.Add(self.label_18, 0, wx.ALL, 10)
+        sizer_19.Add(self.label_19, 0, wx.ALL, 10)
+        grid_sizer_1.Add(sizer_19, 1, wx.EXPAND, 0)
+        grid_sizer_1.Add(self.label_9, 0, wx.ALL, 10)
+        grid_sizer_1.Add(self.hyperlink_1, 0, wx.ALL, 10)
+        grid_sizer_1.Add(self.label_10, 0, wx.ALL, 10)
+        grid_sizer_1.Add(self.hyperlink_2, 0, wx.ALL, 10)
+        grid_sizer_1.Add(self.label_11, 0, wx.ALL, 10)
+        grid_sizer_1.Add(self.hyperlink_3, 0, wx.ALL, 10)
+        sizer_13.Add(grid_sizer_1, 1, wx.EXPAND, 0)
         self.notebook_1_Info.SetSizer(sizer_13)
-        self.notebook_1.AddPage(self.notebook_1_pane_1, _("General"))
+        self.notebook_1.AddPage(self.notebook_1_General, _("General"))
         self.notebook_1.AddPage(self.notebook_1_Source, _("Source"))
         self.notebook_1.AddPage(self.notebook_1_Proxy, _("Proxy"))
-        self.notebook_1.AddPage(self.notebook_1_pane_3, _("Synchronize / Social"))
-        self.notebook_1.AddPage(self.notebook_1_pane_4, _("Manual Download"))
+        self.notebook_1.AddPage(self.notebook_1_Sync, _("Synchronize / Social"))
+        self.notebook_1.AddPage(self.notebook_1_Fetch, _("Manual Download"))
         self.notebook_1.AddPage(self.notebook_1_Info, _("Info"))
         sizer_1.Add(self.notebook_1, 1, wx.ALL | wx.EXPAND, 10)
         sizer_1.Add(self.button_1, 0, wx.ALIGN_RIGHT | wx.ALL, 9)
@@ -452,11 +474,6 @@ class SettingsDlg(wx.Frame):
     def OnTextTextCtrl_3(self, event):  # wxGlade: SettingsDlg.<event_handler>
         logger.debug('OnTextTextCtrl_3()')
         self.save_settings()
-
-    def OnButtonClose(self, event):  # wxGlade: SettingsDlg.<event_handler>
-        logger.debug('OnButtonClose()')
-        self.myConfig.on_close()
-        self.Destroy()
 
     def OnClicked(self, event):  # wxGlade: SettingsDlg.<event_handler>
         logger.debug('OnClicked()')
@@ -546,8 +563,49 @@ class SettingsDlg(wx.Frame):
         self.dirpickerctrl_2.Enable()
 
     def disable_Checkbox_1(self):
-        logger.debug('disble_Checkbox_1()')
+        logger.debug('disable_Checkbox_1()')
         self.dirpickerctrl_2.Disable()
+
+    def OnClickedCheckbox_6(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnClickedCheckbox_6()')
+        self.save_settings()
+        event.Skip()
+
+    def OnClickedCheckbox_8(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnClickedCheckbox_8()')
+        self.save_settings()
+        event.Skip()
+
+    def OnClickedCheckbox_12(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnClickedCheckbox_12()')
+        self.save_settings()
+        event.Skip()
+
+    def OnClickedCheckbox_11(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnClickedCheckbox_11()')
+        self.save_settings()
+        event.Skip()
+
+    def OnTextTextCtrl_1(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnTextTextCtrl_1()')
+        event.Skip()
+
+    def OnClickedCheckbox_3(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnClickedCheckbox_3()')
+        self.save_settings()
+        event.Skip()
+
+    def OnButton_2(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnButton_2()')
+        show_balloon = False
+        show_version_str = True
+        self.myAppUpdater = lib.wariety_app_updater.WarietyAppUpdaterThread(show_balloon, show_version_str)
+        event.Skip()
+
+    def OnButton_1(self, event):  # wxGlade: SettingsDlg.<event_handler>
+        logger.debug('OnButton_1()')
+        self.myConfig.on_close()
+        self.Destroy()
 
     # end of class SettingsDlg
 
@@ -600,6 +658,13 @@ class SettingsDlg(wx.Frame):
         self.text_ctrl_3.ChangeValue(_system_settings['password'])
         self.text_ctrl_3.SetHint(_('Leave empty if not required...'))
 
+    def show_version_str(self, event, msg, update_available):
+        if update_available:
+            self.label_19.SetLabel("{}  ({})".format(msg, _('please get the update')))
+        else:
+            self.label_19.SetLabel("{}  ({})".format(msg, _('no update available')))
+        self.label_19.Enable()
+
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         logger.debug('__init__()')
@@ -615,11 +680,6 @@ class MyFrame(wx.Frame):
         logger.debug('__do_layout()')
         # Content of this block not found. Did you rename this class?
         pass
-
-    def OnButtonClose(self, event):  # wxGlade: MyFrame.<event_handler>
-        logger.debug('OnButtonClose()')
-        print("Event handler 'OnButtonClose' not implemented!")
-        event.Skip()
 
 # end of class MyFrame
 

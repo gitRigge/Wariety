@@ -86,14 +86,14 @@ def is_update_available(local_version_str, remote_version_str):
     local_version = 0
     try:
         local_version = int(local_version_str.replace('.', ''))
-        print('is_update_available() - local version = {}'.format(local_version))
+        logger.debug('is_update_available() - local version = {}'.format(local_version))
     except:
         local_version = 0
 
     remote_version = 0
     try:
         remote_version = int(remote_version_str.replace('.', ''))
-        print('is_update_available() - remote version = {}'.format(remote_version))
+        logger.debug('is_update_available() - remote version = {}'.format(remote_version))
     except:
         remote_version = 0
 
@@ -114,16 +114,25 @@ def push_app_update(self):
     pub.sendMessage("show app update", event='')
 
 
+def push_version_str(self, msg, update_available):
+    """
+    Sends 'show version str' message
+    :return:
+    """
+    logger.debug('push_version_str()')
+    pub.sendMessage("show version str", event='', msg=msg, update_available=update_available)
+
+
 class WarietyAppUpdaterThread(threading.Thread):
     """docstring for WarietyAppUpdaterThread"""
 
-    def __init__(self, check_schedule=0, config=None):
+    def __init__(self, show_balloon=False, show_version_str=False):
         """Init Worker Thread Class."""
         logger.debug('Starting app updater thread')
         logger.debug('__init__()')
-        self.config = config
         self.my_version = ''
-        self.check_schedule = check_schedule
+        self.show_balloon = show_balloon
+        self.show_version_str = show_version_str
 
         threading.Thread.__init__(self)
 
@@ -136,18 +145,18 @@ class WarietyAppUpdaterThread(threading.Thread):
 
         self.start()
 
-    def __del__(self):
-        logger.debug('__del__()')
-        logger.debug('Stopping app updater thread')
-
     def run(self):
         """Run Worker Thread."""
         logger.debug('run()')
 
         remote_version = get_remote_version()
-        if is_update_available(self.my_version, remote_version):
-            print('Please update!')
-            push_app_update(self)
-
-    def stop(self):
-        logger.debug('stop()')
+        is_updateable = is_update_available(self.my_version, remote_version)
+        if is_updateable:
+            if self.show_balloon:
+                push_app_update(self)
+            if self.show_version_str:
+                push_version_str(self, remote_version, is_updateable)
+        else:
+            remote_version = self.my_version
+            if self.show_version_str:
+                push_version_str(self, remote_version, is_updateable)

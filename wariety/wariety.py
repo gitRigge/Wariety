@@ -25,12 +25,12 @@ import sys
 import time
 import webbrowser
 
-import lib.wariety_app_updater
 import win32com.client
 import wx
 import wx.adv
 from pubsub import pub
 
+import lib.wariety_app_updater
 import lib.wariety_config
 import lib.wariety_database
 import lib.wariety_downloader
@@ -39,9 +39,9 @@ import lib.wariety_updater
 
 __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (c) 2021 {} <wariety@gmx.net>".format(__author__)
-__version__ = "0.0.5"
+__version__ = "0.1.0"
 __desc__ = "[Description]"
-__status__ = "Development"
+__status__ = "Development"  # Development
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]
@@ -127,7 +127,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
         # Instantiate the app updater
         if self.myConfig.update_check:
-            self.myDownloader = lib.wariety_app_updater.WarietyAppUpdaterThread(0, self.myConfig)
+            self.on_check_update_now()
 
         # Run Observer in any case
         self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(self.myConfig.to_dict())
@@ -209,14 +209,17 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
     def on_left_down(self, event):
         self.start_timer()
+        event.Skip()
 
     def on_left_double(self, event):
         self.stop_timer()
         print(_('Double Click'))
+        event.Skip()
 
     def on_left_single(self, event):
         self.stop_timer()
         print(_('Single Click'))
+        event.Skip()
 
     def start_timer(self):
         self.timer1 = wx.Timer(self)
@@ -229,11 +232,13 @@ class WarietyMain(wx.adv.TaskBarIcon):
     def on_next(self, event):
         logging.debug('on_next(event)')
         self.myUpdater.set_seconds_until_fire(0)
+        event.Skip()
 
     def on_previous(self, event):
         logging.debug('on_previous(event)')
         self.myUpdater.go_backward()
         self.myUpdater.set_seconds_until_fire(0)
+        event.Skip()
 
     def on_keep(self, event):
         logging.debug('on_keep(event)')
@@ -247,62 +252,73 @@ class WarietyMain(wx.adv.TaskBarIcon):
                     self.myConfig.wallpaper_change_interval, self.myConfig.to_dict())
             else:
                 self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(0, self.myConfig.to_dict())
+        event.Skip()
 
     def on_show_source(self, event):
         logging.debug('on_show_source(event)')
         _crnt_img = self.database.get_current_image()
         webbrowser.open(_crnt_img.image_url, new=2)
+        event.Skip()
 
     def on_image_search(self, event):
         logging.debug('on_image_search(event)')
         webbrowser.open('https://www.bing.com/visualsearch', new=2)
+        event.Skip()
 
     def on_no_star(self, event):
         logging.debug('on_no_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=0)
+        event.Skip()
 
     def on_one_star(self, event):
         logging.debug('on_one_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=1)
+        event.Skip()
 
     def on_two_star(self, event):
         logging.debug('on_two_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=2)
+        event.Skip()
 
     def on_three_star(self, event):
         logging.debug('on_three_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=3)
+        event.Skip()
 
     def on_four_star(self, event):
         logging.debug('on_four_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=4)
+        event.Skip()
 
     def on_five_star(self, event):
         logging.debug('on_five_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=5)
+        event.Skip()
 
     def on_name(self, event):
         logging.debug('on_name(event)')
         # Open image in default image view application
         _crnt_img = self.database.get_current_image()
         os.startfile(_crnt_img.image_path)
+        event.Skip()
 
     def on_source(self, event):
         logging.debug('on_source(event)')
         _crnt_img = self.database.get_current_image()
         webbrowser.open(_crnt_img.source_url, new=2)
+        event.Skip()
 
     def on_favorite(self, event):
         logging.debug('on_favorite(event)')
@@ -311,6 +327,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
             self.database.set_favorite_of_image_by_id(_crnt_img.id, False)
         else:
             self.database.set_favorite_of_image_by_id(_crnt_img.id, True)
+        event.Skip()
 
     def on_delete(self, event):
         logging.debug('on_delete(event)')
@@ -322,16 +339,19 @@ class WarietyMain(wx.adv.TaskBarIcon):
             e = sys.exc_info()[0]
             logging.debug('on_delete(event) - {}'.format(e))
         self.myUpdater.set_seconds_until_fire(0)
+        event.Skip()
 
     def on_settings(self, event):
         logging.debug('on_settings(event)')
-        top = SettingsDlg(wx.GetApp().TopWindow, id=-1, title=_('{} {}').format(APP_NAME, _('Settings')))
+        top = SettingsDlg(wx.GetApp().TopWindow, id=-1, title='{} {}'.format(APP_NAME, _('Settings')))
         top.Show()
+        event.Skip()
 
     def on_about(self, event):
         logging.debug('on_about(event)')
-        top = AboutDlg(wx.GetApp().TopWindow, id=-1, title=_('About {}').format(APP_NAME), name=APP_NAME)
+        top = AboutDlg(wx.GetApp().TopWindow, id=-1, title=_('About')+' {}'.format(APP_NAME), name=APP_NAME)
         top.Show()
+        event.Skip()
 
     def animate_icon(self, event):
         logging.debug('animate_icon(event)')
@@ -375,6 +395,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         self.myUpdater.stop()
         time.sleep(1.5)
         wx.CallAfter(self.Destroy)
+        event.Skip()
 
     def update_downloader(self, msg):
         logging.debug('update_downloader(msg)')
@@ -521,6 +542,11 @@ class WarietyMain(wx.adv.TaskBarIcon):
         startup_path = self.get_path_to_startup_folder()
         path = os.path.join(startup_path, shortcut_name)
         os.remove(path)
+
+    def on_check_update_now(self):
+        show_balloon = True
+        show_version_str = False
+        self.myAppUpdater = lib.wariety_app_updater.WarietyAppUpdaterThread(show_balloon, show_version_str)
 
 
 def create_menu_item(menu, label, func, enabled=True):

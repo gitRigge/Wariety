@@ -16,122 +16,146 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Wariety\n"
-"POT-Creation-Date: 2021-04-12 21:12+0200\n"
-"PO-Revision-Date: 2021-04-28 19:32+0200\n"
+"POT-Creation-Date: 2021-05-01 16:05+0200\n"
+"PO-Revision-Date: 2021-05-01 16:06+0200\n"
+"Last-Translator: Roland Rickborn\n"
 "Language-Team: \n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
 "X-Generator: Poedit 2.3.1\n"
-"Last-Translator: Roland Rickborn\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: en\n"
 
-#: wariety\wariety.py:36 wariety\wariety.py:45
+#: wariety\wariety.py:148 wariety\wariety.py:177
 msgid "Next"
 msgstr "Next"
 
-#: wariety\wariety.py:37 wariety\wariety.py:46
+#: wariety\wariety.py:149 wariety\wariety.py:178
 msgid "Previous"
 msgstr "Previous"
 
-#: wariety\wariety.py:151
+#: wariety\wariety.py:156
 msgid "No Image"
 msgstr "No Image"
 
-#: wariety\wariety.py:155
+#: wariety\wariety.py:166
 msgid "No Source"
 msgstr "No Source"
 
-#: wariety\wariety.py:178
+#: wariety\wariety.py:170
 msgid "Remove from Favorites"
 msgstr "Remove from Favorites"
 
-#: wariety\wariety.py:41
+#: wariety\wariety.py:172
 msgid "Add to Favorites"
 msgstr "Add to Favorites"
 
-#: wariety\wariety.py:42
+#: wariety\wariety.py:174
 msgid "Delete Image"
 msgstr "Delete Image"
 
-#: wariety\wariety.py:48
+#: wariety\wariety.py:182 wariety\wariety.py:186
 msgid "Keep Current"
 msgstr "Keep Current"
 
-#: wariety\wariety.py:168
+#: wariety\wariety.py:184
 msgid "Continue"
 msgstr "Continue"
 
-#: wariety\wariety.py:50
+#: wariety\wariety.py:188
 msgid "Show Source"
 msgstr "Show Source"
 
-#: wariety\wariety.py:51
+#: wariety\wariety.py:189
 msgid "Bing Image Search"
 msgstr "Bing Image Search"
 
-#: wariety\wariety.py:59
+#: wariety\wariety.py:197
 msgid "No Vote"
 msgstr "No Vote"
 
-#: wariety\wariety.py:60
-msgid "Vote ..."
-msgstr "Vote ..."
+#: wariety\wariety.py:198
+msgid "Vote"
+msgstr "Vote"
 
-#: wariety\wariety.py:61
+#: wariety\wariety.py:199
 msgid "Image"
 msgstr "Image"
 
-#: wariety\wariety.py:63
-msgid "Settings ..."
-msgstr "Settings ..."
+#: wariety\wariety.py:201 wariety\wariety.py:346
+msgid "Settings"
+msgstr "Settings"
 
-#: wariety\wariety.py:64
+#: wariety\wariety.py:202 wariety\wariety.py:352
 msgid "About"
 msgstr "About"
 
-#: wariety\wariety.py:65
+#: wariety\wariety.py:203
 msgid "Quit"
 msgstr "Quit"
 
-#: wariety\wariety.py:77
+#: wariety\wariety.py:216
 msgid "Double Click"
 msgstr "Double Click"
 
-#: wariety\wariety.py:81
+#: wariety\wariety.py:221
 msgid "Single Click"
 msgstr "Single Click"
 
-#: wariety\wariety.py:153
-msgid "Bye, then"
-msgstr "Bye, bye"
+#: wariety\wariety.py:370
+msgid "Update Now!"
+msgstr "Update Now!"
 
-#: wariety\wariety.py:276
+#: wariety\wariety.py:371
+msgid "There is an update of the app available"
+msgstr "There is an update of the app available"
+
+#: wariety\wariety.py:377
 msgid "By"
 msgstr "By"
 
-#: wariety\wariety.py:277
+#: wariety\wariety.py:378
 msgid "by"
 msgstr "by"
 
-#: wariety\wariety.py:278
+#: wariety\wariety.py:379
 msgid "Location"
 msgstr "Location"
 
-#: wariety\wariety.py:279
+#: wariety\wariety.py:380
 msgid "location"
 msgstr "location"
 
-#: wariety\wariety.py:280
+#: wariety\wariety.py:381
 msgid "Source"
 msgstr "Source"
 
-#: wariety\wariety.py:281
+#: wariety\wariety.py:382
 msgid "source"
 msgstr "source"
 
-#: wariety\wariety.py:284
+#: wariety\wariety.py:383
 msgid "Rating"
 msgstr "Rating"
+
+#: wariety\wariety.py:604 wariety\wariety.py:663
+msgid ""
+"Wariety is a wallpaper manager for Windows systems. It is a clone of the "
+"famous Linux application Variety and covers its main functionality."
+msgstr ""
+"Wariety is a wallpaper manager for Windows systems. It is a clone of the "
+"famous Linux application Variety and covers its main functionality."
+
+#~ msgid "{} {}"
+#~ msgstr "{} {}"
+
+#~ msgid "About {}"
+#~ msgstr "About {}"
+
+#~ msgid "Vote ..."
+#~ msgstr "Vote ..."
+
+#~ msgid "Bye, then"
+#~ msgstr "Bye, bye"
