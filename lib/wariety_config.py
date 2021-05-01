@@ -64,6 +64,7 @@ class WarietyConfig(object):
         self.animate_system_tray_icon = False
         self.show_balloon_message = False
         self.plugin_folder = r'%LOCALAPPDATA%\Wariety\Plugins'
+        self.update_check = True
 
         # Proxy
         self.proxy_enable = False
@@ -220,6 +221,8 @@ class WarietyConfig(object):
                                                                       fallback=self.show_balloon_message)
         self.plugin_folder = self.config['General'].get('plugin_folder',
                                                         fallback=os.path.expandvars(r'%LOCALAPPDATA%\Wariety\Plugins'))
+        self.update_check = self.config['General'].getboolean('update_check',
+                                                              fallback=self.update_check)
 
         # Proxy
         self.proxy_enable = self.config['Proxy'].getboolean('enable', fallback=self.proxy_enable)
@@ -258,6 +261,7 @@ class WarietyConfig(object):
         self.config.set('General', 'animate_system_tray_icon', str(self.animate_system_tray_icon))
         self.config.set('General', 'show_balloon_message', str(self.show_balloon_message))
         self.config.set('General', 'plugin_folder', str(os.path.expandvars(self.plugin_folder)))
+        self.config.set('General', 'update_check', str(self.update_check))
 
         # Proxy
         self.config.set('Proxy', 'enable', str(self.proxy_enable))
@@ -304,6 +308,7 @@ class WarietyConfig(object):
             'animate_system_tray_icon': self.animate_system_tray_icon,
             'show_balloon_message': self.show_balloon_message,
             'plugin_folder': self.plugin_folder,
+            'update_check': self.update_check,
             'enable': self.proxy_enable,
             'address': self.proxy_address,
             'port': self.proxy_port,

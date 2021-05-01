@@ -25,6 +25,7 @@ import sys
 import time
 import webbrowser
 
+import lib.wariety_app_updater
 import win32com.client
 import wx
 import wx.adv
@@ -108,6 +109,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         pub.subscribe(self.update_change_wallpaper_at_startup, "config updated")
         pub.subscribe(self.animate_icon, "show icon animation")
         pub.subscribe(self.show_balloon_msg, "show balloon msg")
+        pub.subscribe(self.show_app_update, "show app update")
 
         # Instantiate the wallpaper updater
         if self.myConfig.wallpaper_change:
@@ -122,6 +124,10 @@ class WarietyMain(wx.adv.TaskBarIcon):
                 self.myConfig.download_wallpaper_interval, self.myConfig)
         else:
             self.myDownloader = lib.wariety_downloader.WarietyDownloaderThread(0, self.myConfig)
+
+        # Instantiate the app updater
+        if self.myConfig.update_check:
+            self.myDownloader = lib.wariety_app_updater.WarietyAppUpdaterThread(0, self.myConfig)
 
         # Run Observer in any case
         self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(self.myConfig.to_dict())
@@ -337,6 +343,12 @@ class WarietyMain(wx.adv.TaskBarIcon):
             icon = wx.Icon(i)
             self.SetIcon(icon, APP_NAME)
             time.sleep(0.1)
+
+    def show_app_update(self, event):
+        logging.debug('show_app_update(event)')
+        title = _("Update Now!")
+        msg = _("There is an update of the app available")
+        self.ShowBalloon(title, msg, msec=500, flags=0)
 
     def show_balloon_msg(self, event, title, msg):
         logging.debug('show_balloon_msg(event, title, msg)')
