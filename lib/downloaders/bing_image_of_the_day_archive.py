@@ -26,6 +26,7 @@ import urllib.parse
 import requests
 
 logger = logging.getLogger(__name__)
+
 if getattr(sys, 'frozen', False):
     import wariety_wallpaper
     from lib.downloaders.default_downloader import DefaultDownloader
@@ -44,38 +45,58 @@ CAPABILITIES = {'single': 'single', 'many': 'many'}
 class BingArchiveDownloader(DefaultDownloader):
 
     def __init__(self, config=None):
+        logging.debug('__init__(config)')
         self.config = config
-        self._load_state(DOWNLOADER_TYPE)
+        self.load_state(DOWNLOADER_TYPE)
         super().__init__(config)
 
     def __del__(self):
+        logging.debug('__del__()')
         self.save_state(DOWNLOADER_TYPE)
 
     def get_downloader_type(self):
+        logging.debug('get_downloader_type()')
         return DOWNLOADER_TYPE
 
     def get_downloader_description(self):
+        logging.debug('get_downloader_description()')
         return DOWNLOADER_DESCRIPTION
 
     def get_capability(self):
-        return CAPABILITIES['many']
+        logging.debug('get_capability()')
+        return CAPABILITIES['single']
 
     def get_base_url(self):
+        logging.debug('get_base_url()')
         return BASE_URL
 
     def get_calculated_idx(self):
+        """
+        Calculates the URL parameters based on the previously
+        used parameters.
+        :return ret_val:
+        """
+
+        logging.debug('get_calculated_idx()')
+
+        ret_val = 0
+
         try:
             lastidx = self.state['idx']
             laststartdate = self.state['startdate']
         except:
+            logging.debug('get_calculated_idx() - no state available')
             lastidx = 0
             laststartdate = datetime.datetime.now().strftime('%Y%m%d')
+
         locale.setlocale(locale.LC_TIME, "de_DE")
         now = datetime.datetime.now().strftime('%Y%m%d')
         now_dtime = datetime.datetime.strptime(now, '%Y%m%d')
         laststartdate_dtime = datetime.datetime.strptime(laststartdate, '%Y%m%d')
         diff = now_dtime - laststartdate_dtime
-        return diff.days + lastidx + 1
+        ret_val = diff.days + lastidx + 1
+        logging.debug('get_calculated_idx() - {}'.format(ret_val))
+        return ret_val
 
     def get_next_image(self, last_image_counter=0):
         """
@@ -85,35 +106,54 @@ class BingArchiveDownloader(DefaultDownloader):
         :param last_image_counter:
         :return next_image:
         """
-        next_image = wariety_wallpaper.WarietyWallpaper()
-        my_idx = self.get_calculated_idx()
-        my_start_url = START_URL.replace('0', str(my_idx))
-        response = requests.get(my_start_url)
-        image_data = json.loads(response.text)
 
-        image_url = image_data["images"][0]["url"]
-        image_url = image_url.split("&")[0]
-        image_title = image_data["images"][0]["title"]
-        image_copyright = image_data["images"][0]["copyright"]
-        if image_title:
-            image_title = image_title + '.'
-        if image_copyright:
-            image_copyright = image_copyright + '.'
+        logging.debug('get_next_image({})'.format(last_image_counter))
+
+        # Generate empty image
+        next_image = wariety_wallpaper.WarietyWallpaper()
+
+        # Receive image data
+        my_idx = self.get_calculated_idx()
         try:
-            next_image.image_name = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url)).split('/')[-1].split('=')[-1]
-        except:
-            next_image.image_name = ''
-        next_image.source_url = urllib.parse.unquote(BASE_URL)
-        next_image.source_type = DOWNLOADER_TYPE
-        next_image.image_author = ''
-        next_image.source_name = 'Bing Bild des Tages Archiv'
-        next_image.image_url = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url))
-        next_image.location = ''
-        next_image.keywords = '{0} {1}'.format(image_title,image_copyright).strip()
-        next_image.source_location = ''
-        next_image.found_at_counter = last_image_counter + 1
-        self.state['last_image_counter'] = next_image.found_at_counter
-        startdate = datetime.datetime.now().strftime('%Y%m%d')
-        self.state['startdate'] = startdate
-        self.state['idx'] = my_idx
+            my_start_url = START_URL.replace('0', str(my_idx))
+            response = requests.get(my_start_url)
+            image_data = json.loads(response.text)
+
+            # Collect image data
+            image_url = image_data["images"][0]["url"]
+            image_url = image_url.split("&")[0]
+            image_title = image_data["images"][0]["title"]
+            image_copyright = image_data["images"][0]["copyright"]
+            if image_title:
+                image_title = image_title + '.'
+            if image_copyright:
+                image_copyright = image_copyright + '.'
+            _next_image_url = urllib.parse.urljoin(BASE_URL, image_url)
+            _next_image_url = _next_image_url.split('/')[-1].split('=')[-1]
+            try:
+                next_image.image_name = urllib.parse.unquote(_next_image_url)
+            except:
+                logging.debug('get_next_image() - invalid URL {}'.format(_next_image_url))
+                next_image.image_name = ''
+
+            # Fill image data
+            next_image.source_url = urllib.parse.unquote(BASE_URL)
+            next_image.source_type = DOWNLOADER_TYPE
+            next_image.image_author = ''
+            next_image.source_name = DOWNLOADER_DESCRIPTION
+            next_image.image_url = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url))
+            next_image.location = ''
+            next_image.keywords = '{0} {1}'.format(image_title, image_copyright).strip()
+            next_image.source_location = ''
+            next_image.found_at_counter = last_image_counter
+
+            # Store state
+            self.state['last_image_counter'] = next_image.found_at_counter
+            startdate = datetime.datetime.now().strftime('%Y%m%d')
+            self.state['startdate'] = startdate
+            self.state['idx'] = my_idx
+
+        except requests.ConnectionError:
+            logging.debug('get_next_image() - ConnectionError')
+
         return next_image
