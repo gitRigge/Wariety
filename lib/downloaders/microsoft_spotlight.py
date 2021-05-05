@@ -42,7 +42,7 @@ class SpotlightDownloader(DefaultDownloader):
 
     def __init__(self, config=None):
         self.config = config
-        self._load_state(DOWNLOADER_TYPE)
+        self.load_state(DOWNLOADER_TYPE)
         super().__init__(config)
 
     def __del__(self):
@@ -61,9 +61,13 @@ class SpotlightDownloader(DefaultDownloader):
         return BASE_URL
 
     def get_next_image(self, last_image_counter=0):
-        """Loops through all locally stored Windows Spotlight assets
+        """
+        Loops through all locally stored Windows Spotlight assets
         and copies and returns the latest asset which has the same orientation as the screen
         """
+
+        logging.debug('get_next_image({})'.format(last_image_counter))
+
         next_image = wariety_wallpaper.WarietyWallpaper()
         counter = -1
         localappdata = os.environ['LOCALAPPDATA']
@@ -83,5 +87,5 @@ class SpotlightDownloader(DefaultDownloader):
                     next_image.source_type = DOWNLOADER_TYPE
                     next_image.source_name = 'Microsoft Spotlight'
                     next_image.image_url = asset
-                    next_image.found_at_counter = last_image_counter + 1
-                    return next_image
+                    next_image.found_at_counter = last_image_counter
+        return next_image
