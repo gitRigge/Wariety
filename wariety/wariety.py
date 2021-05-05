@@ -39,9 +39,9 @@ import lib.wariety_updater
 
 __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (c) 2021 {} <wariety@gmx.net>".format(__author__)
-__version__ = "0.1.0"
+__version__ = "0.1.2"
 __desc__ = "[Description]"
-__status__ = "RC3"  # Development
+__status__ = "RC4"  # Development
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]
