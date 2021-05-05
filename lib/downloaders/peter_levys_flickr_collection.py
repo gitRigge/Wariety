@@ -160,13 +160,14 @@ class PeterLeviDownloader(DefaultDownloader):
                 self.state = self.retrieve_images_data(int(page) + 1)
             image_id = self.state['photos']['photo'][last_image_counter]['id']
             image_secret = self.state['photos']['photo'][last_image_counter]['secret']
+            image_title = self.state['photos']['photo'][last_image_counter]['title']
             image_info_data = self.retrieve_image_info_data(image_id, image_secret)
             if image_info_data['stat'] == 'ok':
                 image_sizes = self.retrieve_image_sizes_data(image_id)
                 if image_sizes['stat'] == 'ok':
                     image_url = ''
                     for size in image_sizes['sizes']['size']:
-                        if size['width'] > 1900 and size['width'] < 2000:  # TODO get current system's screen sizes
+                        if size['width'] > 1900:  # TODO get current system's screen sizes
                             image_url = size['source']
                             break
 
@@ -177,7 +178,7 @@ class PeterLeviDownloader(DefaultDownloader):
                     next_image.source_name = DOWNLOADER_DESCRIPTION
                     next_image.image_url = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url))
                     next_image.location = ''
-                    next_image.keywords = ''
+                    next_image.keywords = image_title
                     next_image.source_location = ''
                     next_image.found_at_counter = last_image_counter
 
