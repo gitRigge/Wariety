@@ -43,23 +43,29 @@ CAPABILITIES = {'single': 'single', 'many': 'many'}
 class BingDownloader(DefaultDownloader):
 
     def __init__(self, config=None):
+        logging.debug('__init__(config) - {}'.format(DOWNLOADER_TYPE))
         self.config = config
-        self._load_state(DOWNLOADER_TYPE)
+        self.load_state(DOWNLOADER_TYPE)
         super().__init__(config)
 
     def __del__(self):
+        logging.debug('__del__() - {}'.format(DOWNLOADER_TYPE))
         self.save_state(DOWNLOADER_TYPE)
 
     def get_downloader_type(self):
+        logging.debug('get_downloader_type()')
         return DOWNLOADER_TYPE
 
     def get_downloader_description(self):
+        logging.debug('get_downloader_description()')
         return DOWNLOADER_DESCRIPTION
 
     def get_capability(self):
+        logging.debug('get_capability()')
         return CAPABILITIES['single']
 
     def get_base_url(self):
+        logging.debug('get_base_url()')
         return BASE_URL
 
     def get_next_image(self, last_image_counter=0):
@@ -70,33 +76,52 @@ class BingDownloader(DefaultDownloader):
         :param last_image_counter:
         :return next_image:
         """
-        next_image = wariety_wallpaper.WarietyWallpaper()
-        response = requests.get(START_URL)
-        image_data = json.loads(response.text)
 
-        image_url = image_data["images"][0]["url"]
-        image_url = image_url.split("&")[0]
-        image_title = image_data["images"][0]["title"]
-        image_copyright = image_data["images"][0]["copyright"]
-        if image_title:
-            image_title = image_title + '.'
-        if image_copyright:
-            image_copyright = image_copyright + '.'
+        logging.debug('get_next_image({})'.format(last_image_counter))
+
+        # Generate empty image
+        next_image = wariety_wallpaper.WarietyWallpaper()
+
+        # Receive image data
         try:
-            next_image.image_name = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url)).split('/')[-1].split('=')[-1]
-        except:
-            next_image.image_name = ''
-        next_image.source_url = urllib.parse.unquote(BASE_URL)
-        next_image.source_type = DOWNLOADER_TYPE
-        next_image.image_author = ''
-        next_image.source_name = 'Bing Bild des Tages'
-        next_image.image_url = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url))
-        next_image.location = ''
-        next_image.keywords = '{0} {1}'.format(image_title,image_copyright).strip()
-        next_image.source_location = ''
-        next_image.found_at_counter = last_image_counter + 1
-        self.state['last_image_counter'] = next_image.found_at_counter
-        startdate = datetime.datetime.now().strftime('%Y%m%d')
-        self.state['startdate'] = startdate
-        self.state['idx'] = 0
+            response = requests.get(START_URL)
+            image_data = json.loads(response.text)
+
+            # Collect image data
+            image_url = image_data["images"][0]["url"]
+            image_url = image_url.split("&")[0]
+            image_title = image_data["images"][0]["title"]
+            image_copyright = image_data["images"][0]["copyright"]
+            if image_title:
+                image_title = image_title + '.'
+            if image_copyright:
+                image_copyright = image_copyright + '.'
+            _next_image_url = urllib.parse.urljoin(BASE_URL, image_url)
+            _next_image_url = _next_image_url.split('/')[-1].split('=')[-1]
+            try:
+                next_image.image_name = urllib.parse.unquote(_next_image_url)
+            except:
+                logging.debug('get_next_image() - invalid URL {}'.format(_next_image_url))
+                next_image.image_name = ''
+
+            # Fill image data
+            next_image.source_url = urllib.parse.unquote(BASE_URL)
+            next_image.source_type = DOWNLOADER_TYPE
+            next_image.image_author = ''
+            next_image.source_name = DOWNLOADER_DESCRIPTION
+            next_image.image_url = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url))
+            next_image.location = ''
+            next_image.keywords = '{0} {1}'.format(image_title, image_copyright).strip()
+            next_image.source_location = ''
+            next_image.found_at_counter = last_image_counter
+
+            # Store state
+            self.state['last_image_counter'] = next_image.found_at_counter
+            startdate = datetime.datetime.now().strftime('%Y%m%d')
+            self.state['startdate'] = startdate
+            self.state['idx'] = 0
+
+        except requests.ConnectionError:
+            logging.debug('get_next_image() - ConnectionError')
+
         return next_image
