@@ -16,9 +16,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see https://www.gnu.org/licenses/.
 
+import datetime
+import json
 import logging
-import re
 import sys
+import urllib.parse
 
 import requests
 
@@ -31,63 +33,158 @@ else:
     from lib.downloaders.default_downloader import DefaultDownloader
 
 
-START_URL = 'http://...'
+START_URL = 'https://www.flickr.com/photos/peter-levi/'
 BASE_URL = 'https://www.flickr.com/photos/peter-levi/'
 DOWNLOADER_TYPE = 'peterlevi'
 DOWNLOADER_DESCRIPTION = 'Peter Levi\'s Flickr Collection'
 CAPABILITIES = {'single': 'single', 'many': 'many'}
 
+API_KEY = u'2861cd9d551ee36dc08123f5c7c04ff6'
+USER_ID = '93647178@N00'
+
 
 class PeterLeviDownloader(DefaultDownloader):
 
     def __init__(self, config=None):
+        logging.debug('__init__(config) - {}'.format(DOWNLOADER_TYPE))
         self.config = config
-        self._load_state(DOWNLOADER_TYPE)
+        self.load_state(DOWNLOADER_TYPE)
         super().__init__(config)
 
     def __del__(self):
+        logging.debug('__del__() - {}'.format(DOWNLOADER_TYPE))
         self.save_state(DOWNLOADER_TYPE)
 
     def get_downloader_type(self):
+        logging.debug('get_downloader_type()')
         return DOWNLOADER_TYPE
 
     def get_downloader_description(self):
+        logging.debug('get_downloader_description()')
         return DOWNLOADER_DESCRIPTION
 
     def get_capability(self):
+        logging.debug('get_capability()')
         return CAPABILITIES['single']
 
     def get_base_url(self):
+        logging.debug('get_base_url()')
         return BASE_URL
+
+    def retrieve_images_data(self, page=1):
+        """
+        Calls the Flickr API 'flickr.photos.search', retrieves and returns
+        as JSON up to 500 datasets of images. 'page' specifies the page of
+        results to return. If this argument is omitted, it defaults to 1.
+        Returns fail in case of errors.
+        :return ret_val:
+        """
+
+        logging.debug('retrieve_image_data_once({})'.format(page))
+
+        # Return value
+        ret_val = {'stat': 'fail'}
+
+        url = 'https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key={}&user_id={}&per_page=500&page={}&content_type=1&format=json&nojsoncallback=1'.format(API_KEY, USER_ID, page)
+        try:
+            response = requests.get(url)
+            ret_val = json.loads(response.text)
+        except requests.ConnectionError:
+            logging.debug('retrieve_image_data_once() - ConnectionError')
+
+        return ret_val
+
+    def retrieve_image_info_data(self, image_id, image_secret):
+        """
+        Calls the Flickr API 'flickr.photos.getInfo', retrieves and returns
+        as JSON the info details of the image specified by 'image_id'.
+        Returns fail in case of errors.
+        """
+
+        logging.debug('retrieve_image_detail_data({}, {})'.format(image_id, image_secret))
+
+        # Return value
+        ret_val = {'stat': 'fail'}
+
+        url = 'https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key={}&photo_id={}&secret={}&format=json&nojsoncallback=1'.format(API_KEY, image_id, image_secret)
+        try:
+            response = requests.get(url)
+            ret_val = json.loads(response.text)
+        except requests.ConnectionError:
+            logging.debug('retrieve_image_detail_data() - ConnectionError')
+
+        return ret_val
+
+    def retrieve_image_sizes_data(self, image_id):
+        """
+        Calls the Flickr API 'flickr.photos.getSizes', retrieves and returns
+        as JSON the sizes of the image specified by 'image_id'.
+        Returns fail in case of errors.
+        :return:
+        """
+        logging.debug('retrieve_image_sizes_data_and_get_url({})'.format(image_id))
+
+        # Return value
+        ret_val = {'stat': 'fail'}
+
+        url = 'https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key={}&photo_id={}&format=json&nojsoncallback=1'.format(API_KEY, image_id)
+        try:
+            response = requests.get(url)
+            ret_val = json.loads(response.text)
+        except requests.ConnectionError:
+            logging.debug('retrieve_image_sizes_data_and_get_url() - ConnectionError')
+
+        return ret_val
 
     def get_next_image(self, last_image_counter=0):
         """Retrieves the URL of the latest image of Peter Levi's Flickr Collection,
         downloads the image, stores it in a temporary folder and returns the path
         to it
         """
-        next_image = wariety_wallpaper.WarietyWallpaper()
-        # get image url
-        response = requests.get("https://www.flickr.com/photos/peter-levi/")
-        match = re.search('([0-9]{10})_.*\.jpg\)', response.text)
-        image_id = match.group(1)
-        image_url = "https://www.flickr.com/photos/peter-levi/"+image_id+"/sizes/h/"
-        response = requests.get(image_url)
-        pattern = 'http.*'+image_id+'.*_h\.jpg'
-        match = re.search(pattern, response.text)
-        full_image_url = match.group(0)
-        return next_image
 
-        # # image's name
-        # image_name = next_image.getGeneratedImageName(full_image_url)
-        #
-        # # Check and maintain DB
-        # if not existsImageInDatabase(full_image_url):
-        #     addImageToDatabase(full_image_url, image_name, "flickr")
-        #     # download and save image
-        #     full_image_path = downloadImage(full_image_url, image_name)
-        #     updateImageInDatabase(full_image_url, full_image_path)
-        # else:
-        #     full_image_path = getImagePathFromDatabase(full_image_url)
-        #
-        # # Return full path to image
-        # return full_image_path
+        logging.debug('get_next_image({})'.format(last_image_counter))
+
+        # Generate empty image
+        next_image = wariety_wallpaper.WarietyWallpaper()
+        page = 0
+
+        if len(self.state) == 0:
+            self.state = self.retrieve_images_data()
+            self.state['page'] = 1
+        else:
+            page = self.state['page']
+
+        # get image url
+        if self.state['stat'] == 'ok':
+            if last_image_counter >= len(self.state['photos']['photo']):
+                self.state = self.retrieve_images_data(int(page) + 1)
+            image_id = self.state['photos']['photo'][last_image_counter]['id']
+            image_secret = self.state['photos']['photo'][last_image_counter]['secret']
+            image_info_data = self.retrieve_image_info_data(image_id, image_secret)
+            if image_info_data['stat'] == 'ok':
+                image_sizes = self.retrieve_image_sizes_data(image_id)
+                if image_sizes['stat'] == 'ok':
+                    image_url = ''
+                    for size in image_sizes['sizes']['size']:
+                        if size['width'] > 1900 and size['width'] < 2000:  # TODO get current system's screen sizes
+                            image_url = size['source']
+                            break
+
+                    # Fill image data
+                    next_image.source_url = urllib.parse.unquote(BASE_URL)
+                    next_image.source_type = DOWNLOADER_TYPE
+                    next_image.image_author = 'Peter Levi'
+                    next_image.source_name = DOWNLOADER_DESCRIPTION
+                    next_image.image_url = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url))
+                    next_image.location = ''
+                    next_image.keywords = ''
+                    next_image.source_location = ''
+                    next_image.found_at_counter = last_image_counter
+
+                    # Store state
+                    self.state['last_image_counter'] = next_image.found_at_counter
+                    startdate = datetime.datetime.now().strftime('%Y%m%d')
+                    self.state['startdate'] = startdate
+                    self.state['page'] = page
+
+        return next_image
