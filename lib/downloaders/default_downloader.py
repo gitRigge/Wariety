@@ -47,9 +47,7 @@ class DefaultDownloader(abc.ABC):
         super().__init__()
         logging.debug('__init__({})'.format(config))
         self.config = config
-        _app_name = wariety.APP_NAME
-        self.target_folder = os.path.join(os.environ['LOCALAPPDATA'], _app_name)
-        self.state = {}
+        self.target_folder = os.path.join(os.environ['LOCALAPPDATA'], wariety.APP_NAME)
         self.capability = CAPABILITIES['single']
         self.start_url = START_URL
         self.base_url = BASE_URL
@@ -57,27 +55,39 @@ class DefaultDownloader(abc.ABC):
         self.downloader_desc = DOWNLOADER_DESCRIPTION
         self.next_image = wariety_wallpaper.WarietyWallpaper()
 
-    def _load_state(self, dl_typ):
+    def load_state(self, dl_typ):
         """
         Loads the state as json inside the downloader's target folder.
         :return:
         """
-        logging.debug('_load_state()')
-        try:
-            with open(os.path.join(self.target_folder, dl_typ+'.json')) as f:
+
+        logging.debug('load_state()')
+
+        _state_filename = dl_typ+'.json'
+        _state_file_folder = os.path.join(os.environ['LOCALAPPDATA'], wariety.APP_NAME)
+        _state_file = os.path.join(_state_file_folder, _state_filename)
+        if os.path.isfile(_state_file):
+            with open(_state_file) as f:
                 self.state = json.load(f)
-        except Exception:
+        else:
             self.state = {}
 
     def save_state(self, dl_typ):
         """
-        Persists the state as json inside the downloader's target folder.
+        Persists the state as json inside the downloader's target folder. Prevents
+        empty states.
         """
-        logging.debug('_load_state()')
-        if self.target_folder is None:
-            raise Exception("update_download_folder was not called before save_state")
-        with open(os.path.join(self.target_folder, dl_typ+'.json'), 'w') as f:
-            json.dump(self.state, f)
+
+        logging.debug('save_state()')
+
+        _state_filename = dl_typ + '.json'
+        _state_file_folder = os.path.join(os.environ['LOCALAPPDATA'], wariety.APP_NAME)
+        _state_file = os.path.join(_state_file_folder, _state_filename)
+        if len(self.state) != 0:
+            with open(_state_file, 'w') as f:
+                json.dump(self.state, f)
+        else:
+            logging.debug('save_state() - update_download_folder was not called before save_state')
 
     def get_start_url(self):
         return self.start_url
