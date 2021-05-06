@@ -44,5 +44,6 @@ rmdir /S /Q build\wariety
 )
 @echo off
 del VERSION
+del Release Notes.txt
 git stash pop
 pause
