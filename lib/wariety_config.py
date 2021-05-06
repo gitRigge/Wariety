@@ -66,6 +66,7 @@ class WarietyConfig(object):
         self.show_balloon_message = False
         self.plugin_folder = r'%LOCALAPPDATA%\Wariety\Plugins'
         self.update_check = True
+        self.log_to_file = False
 
         # Proxy
         self.proxy_enable = False
@@ -226,6 +227,8 @@ class WarietyConfig(object):
                                                         fallback=os.path.expandvars(r'%LOCALAPPDATA%\Wariety\Plugins'))
         self.update_check = self.config['General'].getboolean('update_check',
                                                               fallback=self.update_check)
+        self.log_to_file = self.config['General'].getboolean('log_to_file',
+                                                              fallback=self.log_to_file)
 
         # Proxy
         self.proxy_enable = self.config['Proxy'].getboolean('enable', fallback=self.proxy_enable)
@@ -265,6 +268,7 @@ class WarietyConfig(object):
         self.config.set('General', 'show_balloon_message', str(self.show_balloon_message))
         self.config.set('General', 'plugin_folder', str(os.path.expandvars(self.plugin_folder)))
         self.config.set('General', 'update_check', str(self.update_check))
+        self.config.set('General', 'log_to_file', str(self.log_to_file))
 
         # Proxy
         self.config.set('Proxy', 'enable', str(self.proxy_enable))
@@ -312,6 +316,7 @@ class WarietyConfig(object):
             'show_balloon_message': self.show_balloon_message,
             'plugin_folder': self.plugin_folder,
             'update_check': self.update_check,
+            'log_to_file': self.log_to_file,
             'enable': self.proxy_enable,
             'address': self.proxy_address,
             'port': self.proxy_port,

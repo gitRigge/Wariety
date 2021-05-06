@@ -37,6 +37,8 @@ import lib.wariety_downloader
 import lib.wariety_manual_fetcher
 import lib.wariety_updater
 
+logger = logging.getLogger(__name__)
+
 __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (c) 2021 {} <wariety@gmx.net>".format(__author__)
 __version__ = "0.1.2"
@@ -95,6 +97,11 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
         # Configuration
         self.myConfig = lib.wariety_config.WarietyConfig(CONFIGFILE)  # TODO Rename myConfig to my_config
+
+        # Logging
+        if self.myConfig.log_to_file and __status__ != 'Development':
+            logging.getLogger().setLevel(logging.DEBUG)
+
 
         # DB initializing
         self.database = lib.wariety_database.WarietyDatabase(self.myConfig.to_dict())
@@ -230,18 +237,18 @@ class WarietyMain(wx.adv.TaskBarIcon):
         del self.timer1
 
     def on_next(self, event):
-        logging.debug('on_next(event)')
+        logger.debug('on_next(event)')
         self.myUpdater.set_seconds_until_fire(0)
         event.Skip()
 
     def on_previous(self, event):
-        logging.debug('on_previous(event)')
+        logger.debug('on_previous(event)')
         self.myUpdater.go_backward()
         self.myUpdater.set_seconds_until_fire(0)
         event.Skip()
 
     def on_keep(self, event):
-        logging.debug('on_keep(event)')
+        logger.debug('on_keep(event)')
         if self.myUpdater.keep_running:
             self.myUpdater.set_keep_running(False)
             self.myUpdater.stop()
@@ -255,73 +262,73 @@ class WarietyMain(wx.adv.TaskBarIcon):
         event.Skip()
 
     def on_show_source(self, event):
-        logging.debug('on_show_source(event)')
+        logger.debug('on_show_source(event)')
         _crnt_img = self.database.get_current_image()
         webbrowser.open(_crnt_img.image_url, new=2)
         event.Skip()
 
     def on_image_search(self, event):
-        logging.debug('on_image_search(event)')
+        logger.debug('on_image_search(event)')
         webbrowser.open('https://www.bing.com/visualsearch', new=2)
         event.Skip()
 
     def on_no_star(self, event):
-        logging.debug('on_no_star(event)')
+        logger.debug('on_no_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=0)
         event.Skip()
 
     def on_one_star(self, event):
-        logging.debug('on_one_star(event)')
+        logger.debug('on_one_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=1)
         event.Skip()
 
     def on_two_star(self, event):
-        logging.debug('on_two_star(event)')
+        logger.debug('on_two_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=2)
         event.Skip()
 
     def on_three_star(self, event):
-        logging.debug('on_three_star(event)')
+        logger.debug('on_three_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=3)
         event.Skip()
 
     def on_four_star(self, event):
-        logging.debug('on_four_star(event)')
+        logger.debug('on_four_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=4)
         event.Skip()
 
     def on_five_star(self, event):
-        logging.debug('on_five_star(event)')
+        logger.debug('on_five_star(event)')
         _crnt_img = self.database.get_current_image()
         if not _crnt_img.found_at_counter == -1:
             self.database.set_ranking_of_image_by_id(_crnt_img.id, my_rating=5)
         event.Skip()
 
     def on_name(self, event):
-        logging.debug('on_name(event)')
+        logger.debug('on_name(event)')
         # Open image in default image view application
         _crnt_img = self.database.get_current_image()
         os.startfile(_crnt_img.image_path)
         event.Skip()
 
     def on_source(self, event):
-        logging.debug('on_source(event)')
+        logger.debug('on_source(event)')
         _crnt_img = self.database.get_current_image()
         webbrowser.open(_crnt_img.source_url, new=2)
         event.Skip()
 
     def on_favorite(self, event):
-        logging.debug('on_favorite(event)')
+        logger.debug('on_favorite(event)')
         _crnt_img = self.database.get_current_image()
         if _crnt_img.image_favorite:
             self.database.set_favorite_of_image_by_id(_crnt_img.id, False)
@@ -330,31 +337,31 @@ class WarietyMain(wx.adv.TaskBarIcon):
         event.Skip()
 
     def on_delete(self, event):
-        logging.debug('on_delete(event)')
+        logger.debug('on_delete(event)')
         _crnt_img = self.database.get_current_image()
         self.database.remove_image_by_id(_crnt_img.id)
         try:
             lib.wariety_database.remove_image_file(_crnt_img.image_path)
         except:
             e = sys.exc_info()[0]
-            logging.debug('on_delete(event) - {}'.format(e))
+            logger.debug('on_delete(event) - {}'.format(e))
         self.myUpdater.set_seconds_until_fire(0)
         event.Skip()
 
     def on_settings(self, event):
-        logging.debug('on_settings(event)')
+        logger.debug('on_settings(event)')
         top = SettingsDlg(wx.GetApp().TopWindow, id=-1, title='{} {}'.format(APP_NAME, _('Settings')))
         top.Show()
         event.Skip()
 
     def on_about(self, event):
-        logging.debug('on_about(event)')
+        logger.debug('on_about(event)')
         top = AboutDlg(wx.GetApp().TopWindow, id=-1, title=_('About')+' {}'.format(APP_NAME), name=APP_NAME)
         top.Show()
         event.Skip()
 
     def animate_icon(self, event):
-        logging.debug('animate_icon(event)')
+        logger.debug('animate_icon(event)')
         myIcons = icons.copy()
         myIcons_copy = myIcons.copy()
         myIcons_copy.reverse()
@@ -365,13 +372,13 @@ class WarietyMain(wx.adv.TaskBarIcon):
             time.sleep(0.1)
 
     def show_app_update(self, event):
-        logging.debug('show_app_update(event)')
+        logger.debug('show_app_update(event)')
         title = _("Update Now!")
         msg = _("There is an update of the app available")
         self.ShowBalloon(title, msg, msec=500, flags=0)
 
     def show_balloon_msg(self, event, title, msg):
-        logging.debug('show_balloon_msg(event, title, msg)')
+        logger.debug('show_balloon_msg(event, title, msg)')
         _By = _("By")
         _by = _("by")
         _Location = _("Location")
@@ -398,7 +405,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         event.Skip()
 
     def update_downloader(self, msg):
-        logging.debug('update_downloader(msg)')
+        logger.debug('update_downloader(msg)')
         self.myDownloader.stop()
         self.myConfig = lib.wariety_config.WarietyConfig(CONFIGFILE)
         if msg['download_wallpaper']:
@@ -408,7 +415,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
             self.myDownloader = lib.wariety_downloader.WarietyDownloaderThread(0, self.myConfig)
 
     def update_updater(self, msg):
-        logging.debug('update_updater(msg)')
+        logger.debug('update_updater(msg)')
         self.myUpdater.stop()
         if msg['wallpaper_change']:
             self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(msg['wallpaper_change_interval'],
@@ -417,12 +424,12 @@ class WarietyMain(wx.adv.TaskBarIcon):
             self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(0, msg)  # TODO myConfig statt msg
 
     def update_manual_fetcher(self, msg):
-        logging.debug('update_manual_fetcher(msg)')
+        logger.debug('update_manual_fetcher(msg)')
         self.myManualFetcher.on_thread_stop()
         self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(msg)  # TODO myConfig statt msg
 
     def update_start_at_startup(self, msg):
-        logging.debug('update_start_at_startup(msg)')
+        logger.debug('update_start_at_startup(msg)')
         my_target = self.get_path_to_exe()
         shortcut_name = '{}.lnk'.format(APP_NAME)
         hidden = False
@@ -432,7 +439,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
             self.disable_start_at_startup(shortcut_name)
 
     def update_change_wallpaper_at_startup(self, msg):
-        logging.debug('update_change_wallpaper_at_startup(msg)')
+        logger.debug('update_change_wallpaper_at_startup(msg)')
         my_updater_tool_name = '{}.bat'.format(TOOL_NAME)
         my_target = os.path.abspath(os.path.join(CONFIGPATH, my_updater_tool_name))
         shortcut_name = '{}.lnk'.format(TOOL_NAME)
@@ -448,15 +455,15 @@ class WarietyMain(wx.adv.TaskBarIcon):
         Otherwise, returns 'False'.
         :return startup_shortcut_exists:
         """
-        logging.debug('exists_start_at_startup({})'.format(shortcut_name))
+        logger.debug('exists_start_at_startup({})'.format(shortcut_name))
         startup_shortcut_exists = False
         my_startup_folder = self.get_path_to_startup_folder()
         my_startup_shortcut_path = os.path.join(my_startup_folder, shortcut_name)
         if os.path.isfile(my_startup_shortcut_path):
-            logging.debug('exists_start_at_startup() - Shortcut already exists')
+            logger.debug('exists_start_at_startup() - Shortcut already exists')
             startup_shortcut_exists = True
         else:
-            logging.debug('exists_start_at_startup() - Shortcut does not exist')
+            logger.debug('exists_start_at_startup() - Shortcut does not exist')
             pass
         return startup_shortcut_exists
 
@@ -465,12 +472,12 @@ class WarietyMain(wx.adv.TaskBarIcon):
         Adds autostart shortcut.
         :return:
         """
-        logging.debug('enable_start_at_startup({}, {}, {})'.format(target, shortcut_name, hidden))
+        logger.debug('enable_start_at_startup({}, {}, {})'.format(target, shortcut_name, hidden))
         if not self.exists_start_at_startup_shortcut(shortcut_name):
-            logging.debug('enable_start_at_startup() - Need to create shortcut')
+            logger.debug('enable_start_at_startup() - Need to create shortcut')
             self.create_startup_shortcut(target, shortcut_name, hidden)
         else:
-            logging.debug('enable_start_at_startup() - Nothing to do')
+            logger.debug('enable_start_at_startup() - Nothing to do')
             pass
 
     def disable_start_at_startup(self, shortcut_name):
@@ -478,12 +485,12 @@ class WarietyMain(wx.adv.TaskBarIcon):
         Removes autostart shortcut.
         :return:
         """
-        logging.debug('disable_start_at_startup({})'.format(shortcut_name))
+        logger.debug('disable_start_at_startup({})'.format(shortcut_name))
         if self.exists_start_at_startup_shortcut(shortcut_name):
-            logging.debug('disable_start_at_startup() - Need to remove shortcut')
+            logger.debug('disable_start_at_startup() - Need to remove shortcut')
             self.remove_startup_shortcut(shortcut_name)
         else:
-            logging.debug('disable_start_at_startup() - Nothing to do')
+            logger.debug('disable_start_at_startup() - Nothing to do')
             pass
 
     def get_path_to_exe(self):
@@ -492,7 +499,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         like this py file.
         :return my_path:
         """
-        logging.debug('get_path_to_exe()')
+        logger.debug('get_path_to_exe()')
         my_path = os.path.abspath(__file__)
         my_path = my_path.replace('.py', '.exe')
         return my_path
@@ -503,7 +510,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         Windows Startup folder.
         :return startup_abspath:
         """
-        logging.debug('get_path_to_startup_folder()')
+        logger.debug('get_path_to_startup_folder()')
         startup_path = os.path.join(os.environ['APPDATA'], r'Microsoft\Windows\Start Menu\Programs\Startup')
         startup_abspath = os.path.abspath(startup_path)
         os.makedirs(startup_abspath, exist_ok=True)
@@ -518,7 +525,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         :param target:
         :return:
         """
-        logging.debug('create_shortcut({}, {}, {})'.format(shortcut_name, target, str(hidden)))
+        logger.debug('create_shortcut({}, {}, {})'.format(shortcut_name, target, str(hidden)))
         startup_path = self.get_path_to_startup_folder()
         path = os.path.join(startup_path, shortcut_name)
         wDir = os.path.dirname(target)
@@ -538,7 +545,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         :param shortcut_name:
         :return:
         """
-        logging.debug('remove_startup_shortcut({})'.format(shortcut_name))
+        logger.debug('remove_startup_shortcut({})'.format(shortcut_name))
         startup_path = self.get_path_to_startup_folder()
         path = os.path.join(startup_path, shortcut_name)
         os.remove(path)
@@ -602,17 +609,15 @@ def get_description():
         "Wariety is a wallpaper manager for Windows systems. It is a clone of the famous Linux application Variety and covers its main functionality.")
 
 
-def init_logging(log_file=None, append=False, console_loglevel=logging.INFO):
+def init_logging(log_file=None, append=False, basic_loglevel=logging.DEBUG, console_loglevel=logging.INFO):
     """Set up logging to file and console."""
     if log_file is not None:
         if append:
             filemode_val = 'a'
         else:
             filemode_val = 'w'
-        logging.basicConfig(level=logging.DEBUG,
+        logging.basicConfig(level=basic_loglevel,
                             format="%(asctime)s %(levelname)s %(threadName)s %(name)s %(message)s",
-                            # format='%(asctime)s - %(message)s',
-                            # datefmt='%m-%d %H:%M',
                             datefmt='%Y-%m-%d %H:%M:%S',
                             filename=log_file,
                             filemode=filemode_val)
@@ -635,18 +640,20 @@ def main(icons):
 
 
 if __name__ == '__main__':
+    myname = os.path.basename(__file__).split('.')[0]
+    mypath = os.path.abspath(os.path.join(os.environ['LOCALAPPDATA'], APP_NAME))
+    os.makedirs(mypath, exist_ok=True)
+    fname = os.path.abspath(os.path.join(mypath, '{}.log'.format(myname)))
     if __status__ == 'Development':
         # Start Debug Logging if our status equals 'Development'
         print("We're in DEVELOPMENT")
-        myname = os.path.basename(__file__).split('.')[0]
-        mypath = os.path.abspath(os.path.join(os.environ['LOCALAPPDATA'], APP_NAME))
-        os.makedirs(mypath, exist_ok=True)
-        fname = os.path.abspath(os.path.join(mypath, '{}.log'.format(myname)))
         if not os.path.isfile(fname):
             open(fname, 'w').close()
-        init_logging(log_file=fname, append=False, console_loglevel=logging.DEBUG)
+        init_logging(log_file=fname, append=False, basic_loglevel=logging.CRITICAL, console_loglevel=logging.DEBUG)
+    else:
+        init_logging(log_file=fname, append=True, basic_loglevel=logging.CRITICAL, console_loglevel=logging.CRITICAL)
 
-    logging.debug('Starting application')
+    logger.debug('Starting application')
     from aboutDlg import AboutDlg
     from settingsDlg import SettingsDlg
 
@@ -661,4 +668,4 @@ if __name__ == '__main__':
         "Wariety is a wallpaper manager for Windows systems. It is a clone of the famous Linux application Variety and covers its main functionality.")
     icons = get_icons()
     main(icons)
-    logging.debug('Stopping application')
+    logger.debug('Stopping application')
