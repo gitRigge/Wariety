@@ -158,6 +158,11 @@ class WarietyMain(wx.adv.TaskBarIcon):
         # Build title
         _crnt_img = self.database.get_current_image()
         _title = _crnt_img.image_name
+        if len(_title) > 20:
+            _title = _title[0:17] + '...'
+        elif len(_title) < 20:
+            while len(_title) == 20:
+                _title = _title + ' '
         if _title == '':
             _title = _('No Image')
         else:
