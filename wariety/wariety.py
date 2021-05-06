@@ -102,7 +102,6 @@ class WarietyMain(wx.adv.TaskBarIcon):
         if self.my_config.log_to_file and __status__ != 'Development':
             logging.getLogger().setLevel(logging.DEBUG)
 
-
         # DB initializing
         self.database = lib.wariety_database.WarietyDatabase(self.my_config.to_dict())
         self.database.database_maintenance()
