@@ -96,15 +96,15 @@ class WarietyMain(wx.adv.TaskBarIcon):
         self.Bind(wx.EVT_TIMER, self.on_left_single)
 
         # Configuration
-        self.myConfig = lib.wariety_config.WarietyConfig(CONFIGFILE)  # TODO Rename myConfig to my_config
+        self.my_config = lib.wariety_config.WarietyConfig(CONFIGFILE)
 
         # Logging
-        if self.myConfig.log_to_file and __status__ != 'Development':
+        if self.my_config.log_to_file and __status__ != 'Development':
             logging.getLogger().setLevel(logging.DEBUG)
 
 
         # DB initializing
-        self.database = lib.wariety_database.WarietyDatabase(self.myConfig.to_dict())
+        self.database = lib.wariety_database.WarietyDatabase(self.my_config.to_dict())
         self.database.database_maintenance()
         self.database.__del__()
 
@@ -119,36 +119,36 @@ class WarietyMain(wx.adv.TaskBarIcon):
         pub.subscribe(self.show_app_update, "show app update")
 
         # Instantiate the wallpaper updater
-        if self.myConfig.wallpaper_change:
-            self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(
-                self.myConfig.wallpaper_change_interval, self.myConfig.to_dict())
+        if self.my_config.wallpaper_change:
+            self.my_updater = lib.wariety_updater.WarietyUpdaterThread(
+                self.my_config.wallpaper_change_interval, self.my_config.to_dict())
         else:
-            self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(0, self.myConfig.to_dict())
+            self.my_updater = lib.wariety_updater.WarietyUpdaterThread(0, self.my_config.to_dict())
 
         # Instantiate the wallpaper downloader
-        if self.myConfig.download_wallpaper:
-            self.myDownloader = lib.wariety_downloader.WarietyDownloaderThread(
-                self.myConfig.download_wallpaper_interval, self.myConfig)
+        if self.my_config.download_wallpaper:
+            self.my_downloader = lib.wariety_downloader.WarietyDownloaderThread(
+                self.my_config.download_wallpaper_interval, self.my_config)
         else:
-            self.myDownloader = lib.wariety_downloader.WarietyDownloaderThread(0, self.myConfig)
+            self.my_downloader = lib.wariety_downloader.WarietyDownloaderThread(0, self.my_config)
 
         # Instantiate the app updater
-        if self.myConfig.update_check:
+        if self.my_config.update_check:
             self.on_check_update_now()
 
         # Run Observer in any case
-        self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(self.myConfig.to_dict())
+        self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(self.my_config.to_dict())
 
         # Check autostart settings
-        if self.myConfig.start_at_startup:
+        if self.my_config.start_at_startup:
             shortcut_name = '{}.lnk'.format(APP_NAME)
             my_target = self.get_path_to_exe()
             hidden = False
             self.enable_start_at_startup(my_target, shortcut_name, hidden)
 
         # Check startup
-        if self.myConfig.change_wallpaper_at_startup:
-            self.myUpdater.set_seconds_until_fire(0)
+        if self.my_config.change_wallpaper_at_startup:
+            self.my_updater.set_seconds_until_fire(0)
 
     def CreatePopupMenu(self):
         menu = wx.Menu()
@@ -184,8 +184,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
         create_submenu_item(menu, submenu, _('Next'), self.on_next)
         create_submenu_item(menu, submenu, _('Previous'), self.on_previous)
         submenu.AppendSeparator()
-        if self.myConfig.wallpaper_change:
-            if self.myUpdater.keep_running:
+        if self.my_config.wallpaper_change:
+            if self.my_updater.keep_running:
                 create_submenu_item(menu, submenu, _('Keep Current'), self.on_keep)
             else:
                 create_submenu_item(menu, submenu, _('Continue'), self.on_keep)
@@ -238,27 +238,27 @@ class WarietyMain(wx.adv.TaskBarIcon):
 
     def on_next(self, event):
         logger.debug('on_next(event)')
-        self.myUpdater.set_seconds_until_fire(0)
+        self.my_updater.set_seconds_until_fire(0)
         event.Skip()
 
     def on_previous(self, event):
         logger.debug('on_previous(event)')
-        self.myUpdater.go_backward()
-        self.myUpdater.set_seconds_until_fire(0)
+        self.my_updater.go_backward()
+        self.my_updater.set_seconds_until_fire(0)
         event.Skip()
 
     def on_keep(self, event):
         logger.debug('on_keep(event)')
-        if self.myUpdater.keep_running:
-            self.myUpdater.set_keep_running(False)
-            self.myUpdater.stop()
+        if self.my_updater.keep_running:
+            self.my_updater.set_keep_running(False)
+            self.my_updater.stop()
         else:
-            self.myUpdater.set_keep_running(True)
-            if self.myConfig.wallpaper_change:
-                self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(
-                    self.myConfig.wallpaper_change_interval, self.myConfig.to_dict())
+            self.my_updater.set_keep_running(True)
+            if self.my_config.wallpaper_change:
+                self.my_updater = lib.wariety_updater.WarietyUpdaterThread(
+                    self.my_config.wallpaper_change_interval, self.my_config.to_dict())
             else:
-                self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(0, self.myConfig.to_dict())
+                self.my_updater = lib.wariety_updater.WarietyUpdaterThread(0, self.my_config.to_dict())
         event.Skip()
 
     def on_show_source(self, event):
@@ -345,7 +345,7 @@ class WarietyMain(wx.adv.TaskBarIcon):
         except:
             e = sys.exc_info()[0]
             logger.debug('on_delete(event) - {}'.format(e))
-        self.myUpdater.set_seconds_until_fire(0)
+        self.my_updater.set_seconds_until_fire(0)
         event.Skip()
 
     def on_settings(self, event):
@@ -398,35 +398,34 @@ class WarietyMain(wx.adv.TaskBarIcon):
         self.ShowBalloon(title, msg, msec=0, flags=0)
 
     def on_exit(self, event):
-        self.myDownloader.stop()
-        self.myUpdater.stop()
+        self.my_downloader.stop()
+        self.my_updater.stop()
         time.sleep(1.5)
         wx.CallAfter(self.Destroy)
         event.Skip()
 
     def update_downloader(self, msg):
         logger.debug('update_downloader(msg)')
-        self.myDownloader.stop()
-        self.myConfig = lib.wariety_config.WarietyConfig(CONFIGFILE)
+        self.my_downloader.stop()
+        self.my_config = lib.wariety_config.WarietyConfig(CONFIGFILE)
         if msg['download_wallpaper']:
-            self.myDownloader = lib.wariety_downloader.WarietyDownloaderThread(msg['download_wallpaper_interval'],
-                                                                               self.myConfig)
+            self.my_downloader = lib.wariety_downloader.WarietyDownloaderThread(msg['download_wallpaper_interval'],
+                                                                                self.my_config)
         else:
-            self.myDownloader = lib.wariety_downloader.WarietyDownloaderThread(0, self.myConfig)
+            self.my_downloader = lib.wariety_downloader.WarietyDownloaderThread(0, self.my_config)
 
     def update_updater(self, msg):
         logger.debug('update_updater(msg)')
-        self.myUpdater.stop()
+        self.my_updater.stop()
         if msg['wallpaper_change']:
-            self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(msg['wallpaper_change_interval'],
-                                                                      msg)  # TODO myConfig statt msg
+            self.my_updater = lib.wariety_updater.WarietyUpdaterThread(self.my_config.wallpaper_change_interval, msg)
         else:
-            self.myUpdater = lib.wariety_updater.WarietyUpdaterThread(0, msg)  # TODO myConfig statt msg
+            self.my_updater = lib.wariety_updater.WarietyUpdaterThread(0, msg)
 
     def update_manual_fetcher(self, msg):
         logger.debug('update_manual_fetcher(msg)')
         self.myManualFetcher.on_thread_stop()
-        self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(msg)  # TODO myConfig statt msg
+        self.myManualFetcher = lib.wariety_manual_fetcher.WarietyManualFetcher(msg)
 
     def update_start_at_startup(self, msg):
         logger.debug('update_start_at_startup(msg)')
