@@ -1,6 +1,0 @@
-0.0.5     Most basic functions are implemented (23449c3)
-0.0.4 4th Initial Commit (d5c8d90)
-3rd Initial Commit (eaae8dd)
-New autostart uploader (based on batch file) (eabcdcf)
-0.0.2     2nd Initial Commit (4ac4396)
-0.0.1     Initial Commit (9672eff)
