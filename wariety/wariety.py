@@ -43,7 +43,7 @@ __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (c) 2021 {} <wariety@gmx.net>".format(__author__)
 __version__ = "0.1.2"
 __desc__ = "[Description]"
-__status__ = "RC4"  # Development
+__status__ = "Development"  # Development
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]
@@ -652,7 +652,7 @@ if __name__ == '__main__':
         print("We're in DEVELOPMENT")
         if not os.path.isfile(fname):
             open(fname, 'w').close()
-        init_logging(log_file=fname, append=False, basic_loglevel=logging.CRITICAL, console_loglevel=logging.DEBUG)
+        init_logging(log_file=fname, append=False, basic_loglevel=logging.DEBUG, console_loglevel=logging.DEBUG)
     else:
         init_logging(log_file=fname, append=True, basic_loglevel=logging.CRITICAL, console_loglevel=logging.CRITICAL)
 
