@@ -23,6 +23,7 @@ import os
 import sys
 
 logger = logging.getLogger(__name__)
+
 if getattr(sys, 'frozen', False):
     import wariety.wariety as wariety
     import wariety_wallpaper
@@ -36,6 +37,7 @@ BASE_URL = ''
 DOWNLOADER_TYPE = ''
 DOWNLOADER_DESCRIPTION = ''
 CAPABILITIES = {'single': 'single', 'many': 'many'}
+
 
 class DefaultDownloader(abc.ABC):
 
@@ -54,6 +56,9 @@ class DefaultDownloader(abc.ABC):
         self.downloader_type = DOWNLOADER_TYPE
         self.downloader_desc = DOWNLOADER_DESCRIPTION
         self.next_image = wariety_wallpaper.WarietyWallpaper()
+        self.proxies = {}
+        if self.config.proxy_enable:
+            self.proxies = self.get_proxy()
 
     def load_state(self, dl_typ):
         """
@@ -91,6 +96,12 @@ class DefaultDownloader(abc.ABC):
 
     def get_start_url(self):
         return self.start_url
+
+    def get_proxy(self):
+        _proxies = {}
+        _proxies['http'] = '{}:{}'.format(self.config.proxy_address, self.config.proxy_port)
+        _proxies['https'] = '{}:{}'.format(self.config.proxy_address, self.config.proxy_port)
+        return _proxies
 
     @abc.abstractmethod
     def get_base_url(self):

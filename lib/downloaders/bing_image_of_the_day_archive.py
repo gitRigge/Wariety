@@ -116,7 +116,7 @@ class BingArchiveDownloader(DefaultDownloader):
         my_idx = self.get_calculated_idx()
         try:
             my_start_url = START_URL.replace('0', str(my_idx))
-            response = requests.get(my_start_url)
+            response = requests.get(my_start_url, proxies=self.proxies)
             image_data = json.loads(response.text)
 
             # Collect image data

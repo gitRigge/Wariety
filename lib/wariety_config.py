@@ -345,10 +345,12 @@ class WarietyConfig(object):
             try:
                 sys.path.insert(1, downloaders_path)  # TODO Check if necessary!
                 my_module = importlib.import_module(my_module_name)
+
                 # Check whether it inherits from 'DefaultDownloader'
                 inherits_from_DefaultDownloader = False
                 for i in range(0, len(inspect.getmembers(my_module, inspect.isclass))):
-                    if inspect.getmembers(my_module, inspect.isclass)[i][0] == 'DefaultDownloader' and len(inspect.getmembers(my_module, inspect.isclass)) >= 2:
+                    if inspect.getmembers(my_module, inspect.isclass)[i][0] == 'DefaultDownloader' and \
+                            len(inspect.getmembers(my_module, inspect.isclass)) >= 2:
                         inherits_from_DefaultDownloader = True
 
                 if inherits_from_DefaultDownloader:
@@ -357,7 +359,7 @@ class WarietyConfig(object):
                     else:
                         my_class_name = inspect.getmembers(my_module, inspect.isclass)[0][0]
                     my_class = getattr(my_module, my_class_name)
-                    my_instance = my_class(self.config)
+                    my_instance = my_class(self)
                     _type = my_instance.get_downloader_type()
                     if _type != '':
                         logger.debug('identify_available_downloaders() - found type "{}"'.format(_type))

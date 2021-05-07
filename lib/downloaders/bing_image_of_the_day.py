@@ -84,7 +84,7 @@ class BingDownloader(DefaultDownloader):
 
         # Receive image data
         try:
-            response = requests.get(START_URL)
+            response = requests.get(START_URL, proxies=self.proxies)
             image_data = json.loads(response.text)
 
             # Collect image data

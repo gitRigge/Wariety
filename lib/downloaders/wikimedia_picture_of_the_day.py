@@ -103,8 +103,14 @@ class WikimediaDownloader(DefaultDownloader):
         # Generate empty image
         next_image = wariety_wallpaper.WarietyWallpaper()
 
+        # Set proxy if required
+        req = urllib.request.Request(START_URL)
+        if self.config.proxy_enable:
+            proxy_host = self.proxies['http']
+            req.set_proxy(proxy_host, 'http')
+
         # Receive image data
-        page = urllib.request.urlopen(START_URL).read()
+        page = urllib.request.urlopen(req).read()
         soup = bs4.BeautifulSoup(page, 'html.parser')
         plainlist = soup.find('div', {'class': 'plainlist'})
         hlist = plainlist.findAll('li', {'class': 'hlist'})

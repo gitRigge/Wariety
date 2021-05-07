@@ -87,7 +87,7 @@ class PeterLeviDownloader(DefaultDownloader):
 
         url = 'https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key={}&user_id={}&per_page=500&page={}&content_type=1&format=json&nojsoncallback=1'.format(API_KEY, USER_ID, page)
         try:
-            response = requests.get(url)
+            response = requests.get(url, proxies=self.proxies)
             ret_val = json.loads(response.text)
         except requests.ConnectionError:
             logging.debug('retrieve_image_data_once() - ConnectionError')
@@ -108,7 +108,7 @@ class PeterLeviDownloader(DefaultDownloader):
 
         url = 'https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key={}&photo_id={}&secret={}&format=json&nojsoncallback=1'.format(API_KEY, image_id, image_secret)
         try:
-            response = requests.get(url)
+            response = requests.get(url, proxies=self.proxies)
             ret_val = json.loads(response.text)
         except requests.ConnectionError:
             logging.debug('retrieve_image_detail_data() - ConnectionError')
@@ -129,7 +129,7 @@ class PeterLeviDownloader(DefaultDownloader):
 
         url = 'https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key={}&photo_id={}&format=json&nojsoncallback=1'.format(API_KEY, image_id)
         try:
-            response = requests.get(url)
+            response = requests.get(url, proxies=self.proxies)
             ret_val = json.loads(response.text)
         except requests.ConnectionError:
             logging.debug('retrieve_image_sizes_data_and_get_url() - ConnectionError')
