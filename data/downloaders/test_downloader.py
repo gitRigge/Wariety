@@ -38,7 +38,7 @@ class TestDownloader(DefaultDownloader):
 
     def __init__(self, config=None):
         self.config = config
-        self._load_state(DOWNLOADER_TYPE)
+        self.load_state(DOWNLOADER_TYPE)
         super().__init__(config)
 
     def __del__(self):
