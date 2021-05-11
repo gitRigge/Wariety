@@ -19,7 +19,11 @@
 import sys
 from subprocess import check_output
 print('FETCH RELEASE NOTES: Read properties')
-release_notes = check_output('git log --all --grep="#releasenotes" --pretty=format:"%s (%h)"', shell=True).decode()
+tmp = check_output('git log --all --grep="#releasenotes" --pretty=format:"%s (%h)"', shell=True).decode().split('\n')
+release_notes = ''
+for line in tmp:
+    if line[0] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+        release_notes = release_notes + '\n' + line
 release_notes = release_notes.replace(' #releasenotes','')
 
 print('FETCH RELEASE NOTES: Write release notes')
