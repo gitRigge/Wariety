@@ -374,7 +374,8 @@ class WarietyDownloaderThread(threading.Thread):
         if check_download_folder_size:
             # Clear folder
             while get_download_folder_size(download_folder_path) >= limit:
-                my_image = self.database.get_oldest_image()
+                my_images = self.database.get_oldest_images()
+                my_image = my_images[0]
                 self.database.remove_image_by_id(my_image.id)
                 try:
                     wariety_database.remove_image_file(my_image.image_path)
