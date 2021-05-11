@@ -26,6 +26,7 @@ for line in tmp_notes:
     if line[0].isdigit():
         lines.append(line)
 release_notes = '\n'.join(lines)
+release_notes = release_notes.replace(' #releasenotes', '')
 
 print('FETCH RELEASE NOTES: Write release notes')
 f = open('Release Notes.txt', 'w')
