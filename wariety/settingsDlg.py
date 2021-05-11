@@ -604,8 +604,8 @@ class SettingsDlg(wx.Frame):
 
     def OnButton_1(self, event):  # wxGlade: SettingsDlg.<event_handler>
         logger.debug('OnButton_1()')
-        self.Destroy()
         self.myConfig.on_close()
+        self.Destroy()
 
     # end of class SettingsDlg
 
