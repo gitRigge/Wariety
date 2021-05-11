@@ -294,10 +294,13 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
 
         keywords = ''
 
-        if (2, 25) in iptc:
-            # we have keywords
-            keywords = iptc[(2, 25)].decode('UTF-8')
-        else:
+        try:
+            if (2, 25) in iptc:
+                # we have keywords
+                keywords = iptc[(2, 25)].decode('UTF-8')
+            else:
+                keywords = ''
+        except:
             keywords = ''
 
         return keywords
