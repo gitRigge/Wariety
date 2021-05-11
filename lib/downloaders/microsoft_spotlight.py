@@ -55,7 +55,7 @@ class SpotlightDownloader(DefaultDownloader):
         return DOWNLOADER_DESCRIPTION
 
     def get_capability(self):
-        return CAPABILITIES['many']
+        return CAPABILITIES['single']
 
     def get_base_url(self):
         return BASE_URL
