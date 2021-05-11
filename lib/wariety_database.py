@@ -1090,7 +1090,7 @@ class WarietyDatabase(object):
                 conn.close()
             return my_images
 
-    def get_oldest_image(self, number_of_images=1, source_type='*', status='DOWNLOADED'):
+    def get_oldest_images(self, number_of_images=1, source_type='*', status='DOWNLOADED'):
         """
         Returns the oldest image(s) in the database. If given, returns the oldest image(s)
         in the database of the source type given by 'source_type'. Returns only downloaded
@@ -1142,7 +1142,6 @@ class WarietyDatabase(object):
                 my_image.found_at_counter = -1
                 logger.debug('get_oldest_image() - Append image ID ({})'.format(my_image.id))
                 my_images.append(my_image)
-
 
         except sqlite3.Error as error:
             logger.debug("Error while working with SQLite", error)
