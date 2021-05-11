@@ -41,4 +41,5 @@ rmdir /S /Q build\wariety
 )
 @echo off
 del VERSION
+del /F "Release Notes.txt"
 pause
