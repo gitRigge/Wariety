@@ -318,13 +318,16 @@ class WarietyManualFetcher(Observer):
         Observer.__init__(self)
         if self.keep_running is True:
             self.event_handler = WarietyManualFetchHandler(self.config)
-            self.initial_folder_scan(self.fetch_dir)
             self.schedule(self.event_handler, path=self.fetch_dir, recursive=False)
             self.start()
 
     def __del__(self):
         logger.debug('Stopping manual fetcher')
         logger.debug('__del__()')
+
+    def run(self):
+        """Run Worker Thread."""
+        self.initial_folder_scan(self.fetch_dir)
 
     def initial_folder_scan(self, fetch_dir):
         """
