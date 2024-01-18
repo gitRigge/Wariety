@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 # Wariety - A wallpaper manager for MS Windows operating system.
-# Copyright (C) 2021  Roland Rickborn <wariety@gmx.net>
+# Copyright (C) 2024  Roland Rickborn <wariety@gmx.net>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ import lib.wariety_updater
 logger = logging.getLogger(__name__)
 
 __author__ = "Roland Rickborn"
-__copyright__ = "Copyright (c) 2021 {} <wariety@gmx.net>".format(__author__)
+__copyright__ = "Copyright (C) 2024 {} <wariety@gmx.net>".format(__author__)
 __version__ = "0.1.4"
 __desc__ = "[Description]"
 __status__ = "RC6"  # Development
@@ -50,7 +50,7 @@ __releasenotes__ = """[version]
 """
 __license__ = """GPL v3 License
 
-Copyright (c) 2021 gitRigge
+Copyright (C) 2024 gitRigge
 
 """
 

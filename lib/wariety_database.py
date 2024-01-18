@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 #  Wariety - A wallpaper manager for MS Windows operating system.
-#  Copyright (C) 2021 Roland Rickborn <wariety@gmx.net>f
+#  Copyright (C) 2024 Roland Rickborn <wariety@gmx.net>f
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by

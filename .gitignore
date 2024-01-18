@@ -31,3 +31,6 @@ ENV/
 /Release Notes.txt
 
 lib/wariety_key.py
+
+*.git.code-workspace
+.idea/
