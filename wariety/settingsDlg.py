@@ -282,7 +282,7 @@ class SettingsDlg(wx.Frame):
             _desc = self.myConfig.available_builtin_downloaders[dl][0]  # TODO can be better solved than [0]
             _base_url = self.myConfig.available_builtin_downloaders[dl][2]
             _state = self.myConfig.builtin_downloaders[dl]
-            index = self.sources_list_ctrl_1.InsertItem(sys.maxsize, "")
+            index = self.sources_list_ctrl_1.InsertItem(counter, "")
             self.sources_list_ctrl_1.SetItem(index, 1, _desc)
             self.sources_list_ctrl_1.SetItem(index, 2, _base_url)
             self.sources_list_ctrl_1.SetItemData(index, counter)
