@@ -17,6 +17,7 @@
 # along with this program.  If not, see https://www.gnu.org/licenses/.
 
 import sys
+import os
 sys.path.insert(1, 'lib')
 from wariety import wariety
 from subprocess import check_output
@@ -29,9 +30,10 @@ def get_version_array(vers_str):
         vers_arr.insert(0, i)
     return vers_arr
 
+
 print('MAKE VERSION FILE: Read properties')
 cmt_msg = check_output('git log --all --grep="#releasenotes" --pretty=format:"%h" --max-count 1', shell=True).decode()
-branch = check_output('git branch --format %(refname:short)', shell=True).decode()
+branch = check_output('git branch --show-current', shell=True).decode()
 version_str = wariety.__version__
 version_arr = get_version_array(version_str)
 author = wariety.__author__
@@ -43,10 +45,10 @@ if status_str == 'Development':
     err_code = 1  # Error code 1 => Dev status
 
 version_info_dic = {
-    'R01': version_arr[0], # Version x.0.0.0
-    'R02': version_arr[1], # Version 0.x.0.0
-    'R03': version_arr[2], # Version 0.0.x.0
-    'R04': version_arr[3], # Version 0.0.0.x
+    'R01': version_arr[0],  # Version x.0.0.0
+    'R02': version_arr[1],  # Version 0.x.0.0
+    'R03': version_arr[2],  # Version 0.0.x.0
+    'R04': version_arr[3],  # Version 0.0.0.x
     'R05': author,  # CompanyName -> author
     'R06': 'Wallpaper manager for Windows',  # FileDescription
     'R07': version_str,  # FileVersion -> version
@@ -70,5 +72,5 @@ f = open('VERSION', 'w')
 f.write(template)
 f.close()
 
-print('MAKE VERSION FILE: Successfully finished')
-sys.exit(err_code)
+print('MAKE VERSION FILE: Successfully finished ({})'.format(err_code))
+os._exit(err_code)
