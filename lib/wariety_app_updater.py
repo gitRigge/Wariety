@@ -21,7 +21,7 @@ import re
 import sys
 import threading
 
-import requests
+from pypac import PACSession
 from pubsub import pub
 
 logger = logging.getLogger(__name__)
@@ -42,7 +42,8 @@ def get_remote_version():
     version_search = '(__version__).*([0-9]\.[0-9]\.[0-9])'
     status_search1 = '(__status__).*'
     status_search2 = '&quot;([^&]*)&quot;'
-    response = requests.get(url)
+    session = PACSession()
+    response = session.get(url, verify=True)
 
     result1 = re.search(version_search, response.text)
     result2 = re.search(status_search1, response.text)

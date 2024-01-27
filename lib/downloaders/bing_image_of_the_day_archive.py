@@ -23,7 +23,7 @@ import logging
 import sys
 import urllib.parse
 
-import requests
+import pypac
 
 logger = logging.getLogger(__name__)
 
@@ -114,9 +114,15 @@ class BingArchiveDownloader(DefaultDownloader):
 
         # Receive image data
         my_idx = self.get_calculated_idx()
+        session = pypac.PACSession()
+        headers = {
+            'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+            'accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+            'referer': 'https://dont_worry.org',
+        }
         try:
             my_start_url = START_URL.replace('0', str(my_idx))
-            response = requests.get(my_start_url, proxies=self.proxies)
+            response = session.get(my_start_url, verify=True, headers=headers)
             image_data = json.loads(response.text)
 
             # Collect image data
@@ -153,7 +159,7 @@ class BingArchiveDownloader(DefaultDownloader):
             self.state['startdate'] = startdate
             self.state['idx'] = my_idx
 
-        except requests.ConnectionError:
-            logging.debug('get_next_image() - ConnectionError')
+        except Exception as e:
+            logging.debug('get_next_image() - ConnectionError', e)
 
         return next_image

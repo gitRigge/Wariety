@@ -92,6 +92,7 @@ class SettingsDlg(wx.Frame):
         self.notebook_1_Proxy = wx.Panel(self.notebook_1, wx.ID_ANY)
         self.label_12 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Proxy Settings"))
         self.checkbox_2 = wx.CheckBox(self.notebook_1_Proxy, wx.ID_ANY, _("Use a proxy to download images"))
+        self.checkbox_2.Disable()  # Due to Proxy PAC
         self.label_13 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the host or address of the proxy"))
         self.text_ctrl_2 = wx.TextCtrl(self.notebook_1_Proxy, wx.ID_ANY, "")
         self.label_14 = wx.StaticText(self.notebook_1_Proxy, wx.ID_ANY, _("Enter the port of the proxy"))

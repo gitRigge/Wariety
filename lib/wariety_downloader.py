@@ -27,10 +27,9 @@ import time
 import warnings
 
 import PIL.Image
-import requests
-import win32api
-
 import wariety_database
+import win32api
+from pypac import PACSession
 
 logger = logging.getLogger(__name__)
 
@@ -355,7 +354,8 @@ class WarietyDownloaderThread(threading.Thread):
             image_name = '{0}.{1}'.format(image_name, im.format.lower())
             shutil.copyfile(full_image_url, os.path.join(dir_path, image_name))
         else:
-            img_data = requests.get(full_image_url).content
+            session = PACSession()
+            img_data = session.get(full_image_url, verify=True).content
             with open(os.path.join(dir_path, image_name), 'wb') as handler:
                 handler.write(img_data)
         return os.path.join(dir_path, image_name)

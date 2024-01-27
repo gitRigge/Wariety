@@ -22,7 +22,7 @@ import logging
 import sys
 import urllib.parse
 
-import requests
+import pypac
 
 logger = logging.getLogger(__name__)
 if getattr(sys, 'frozen', False):
@@ -83,8 +83,14 @@ class BingDownloader(DefaultDownloader):
         next_image = wariety_wallpaper.WarietyWallpaper()
 
         # Receive image data
+        session = pypac.PACSession()
+        headers = {
+            'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+            'accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+            'referer': 'https://dont_worry.org',
+        }
         try:
-            response = requests.get(START_URL, proxies=self.proxies)
+            response = session.get(START_URL, verify=True, headers=headers)
             image_data = json.loads(response.text)
 
             # Collect image data
@@ -121,7 +127,7 @@ class BingDownloader(DefaultDownloader):
             self.state['startdate'] = startdate
             self.state['idx'] = 0
 
-        except requests.ConnectionError:
-            logging.debug('get_next_image() - ConnectionError')
+        except Exception as e:
+            logging.debug('get_next_image() - ConnectionError', e)
 
         return next_image

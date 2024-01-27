@@ -22,7 +22,7 @@ import logging
 import sys
 import urllib.parse
 
-import requests
+import pypac
 
 logger = logging.getLogger(__name__)
 if getattr(sys, 'frozen', False):
@@ -86,11 +86,17 @@ class DeutscheBahnDownloader(DefaultDownloader):
         ret_val = {'stat': 'fail'}
 
         url = 'https://api.flickr.com/services/rest/?method=flickr.groups.pools.getPhotos&api_key={}&group_id={}&per_page=500&page={}&format=json&nojsoncallback=1'.format(API_KEY, GROUP_ID, page)
+        session = pypac.PACSession()
+        headers = {
+            'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+            'accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+            'referer': 'https://dont_worry.org',
+        }
         try:
-            response = requests.get(url, proxies=self.proxies)
+            response = session.get(url, verify=True, headers=headers)
             ret_val = json.loads(response.text)
-        except requests.ConnectionError:
-            logging.debug('retrieve_image_data_once() - ConnectionError')
+        except Exception as e:
+            logging.debug('retrieve_image_data_once() - ConnectionError', e)
 
         return ret_val
 
@@ -107,11 +113,17 @@ class DeutscheBahnDownloader(DefaultDownloader):
         ret_val = {'stat': 'fail'}
 
         url = 'https://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key={}&photo_id={}&secret={}&format=json&nojsoncallback=1'.format(API_KEY, image_id, image_secret)
+        session = pypac.PACSession()
+        headers = {
+            'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+            'accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+            'referer': 'https://dont_worry.org',
+        }
         try:
-            response = requests.get(url, proxies=self.proxies)
+            response = session.get(url, verify=True, headers=headers)
             ret_val = json.loads(response.text)
-        except requests.ConnectionError:
-            logging.debug('retrieve_image_detail_data() - ConnectionError')
+        except Exception as e:
+            logging.debug('retrieve_image_detail_data() - ConnectionError', e)
 
         return ret_val
 
@@ -128,11 +140,17 @@ class DeutscheBahnDownloader(DefaultDownloader):
         ret_val = {'stat': 'fail'}
 
         url = 'https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key={}&photo_id={}&format=json&nojsoncallback=1'.format(API_KEY, image_id)
+        session = pypac.PACSession()
+        headers = {
+            'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+            'accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+            'referer': 'https://dont_worry.org',
+        }
         try:
-            response = requests.get(url, proxies=self.proxies)
+            response = session.get(url, verify=True, headers=headers)
             ret_val = json.loads(response.text)
-        except requests.ConnectionError:
-            logging.debug('retrieve_image_sizes_data_and_get_url() - ConnectionError')
+        except Exception as e:
+            logging.debug('retrieve_image_sizes_data_and_get_url() - ConnectionError', e)
 
         return ret_val
 
