@@ -1,0 +1,17 @@
+beautifulsoup4
+configparser
+cryptography
+importlib-metadata
+importlib-resources
+pillow
+pyinstaller
+PyPAC
+pypiwin32
+Pypubsub
+pywin32
+pywin32-ctypes
+requests
+urllib3
+urlparse2
+watchdog
+wxPython
