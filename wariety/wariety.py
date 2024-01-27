@@ -45,7 +45,7 @@ __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (C) 2024 {} <wariety@gmx.net>".format(__author__)
 __version__ = "0.2.4"
 __desc__ = "[Description]"
-__status__ = "RC12"  # Development  # RC10
+__status__ = "Development"  # Development  # RC10
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]

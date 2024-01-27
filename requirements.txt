@@ -16,3 +16,4 @@ urllib3
 urlparse2
 watchdog
 wxPython
+python-gettext
