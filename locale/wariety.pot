@@ -1,0 +1,133 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2024-01-27 12:40+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=cp1252\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: wariety\wariety.py:154 wariety\wariety.py:188
+msgid "Next"
+msgstr ""
+
+#: wariety\wariety.py:155 wariety\wariety.py:189
+msgid "Previous"
+msgstr ""
+
+#: wariety\wariety.py:167
+msgid "No Image"
+msgstr ""
+
+#: wariety\wariety.py:177
+msgid "No Source"
+msgstr ""
+
+#: wariety\wariety.py:181
+msgid "Remove from Favorites"
+msgstr ""
+
+#: wariety\wariety.py:183
+msgid "Add to Favorites"
+msgstr ""
+
+#: wariety\wariety.py:185
+msgid "Delete Image"
+msgstr ""
+
+#: wariety\wariety.py:193 wariety\wariety.py:197
+msgid "Keep Current"
+msgstr ""
+
+#: wariety\wariety.py:195
+msgid "Continue"
+msgstr ""
+
+#: wariety\wariety.py:199
+msgid "Show Source"
+msgstr ""
+
+#: wariety\wariety.py:200
+msgid "Bing Image Search"
+msgstr ""
+
+#: wariety\wariety.py:208
+msgid "No Vote"
+msgstr ""
+
+#: wariety\wariety.py:209
+msgid "Vote"
+msgstr ""
+
+#: wariety\wariety.py:210
+msgid "Image"
+msgstr ""
+
+#: wariety\wariety.py:212 wariety\wariety.py:357
+msgid "Settings"
+msgstr ""
+
+#: wariety\wariety.py:213 wariety\wariety.py:363
+msgid "About"
+msgstr ""
+
+#: wariety\wariety.py:214
+msgid "Quit"
+msgstr ""
+
+#: wariety\wariety.py:227
+msgid "Double Click"
+msgstr ""
+
+#: wariety\wariety.py:232
+msgid "Single Click"
+msgstr ""
+
+#: wariety\wariety.py:380
+msgid "Update Now!"
+msgstr ""
+
+#: wariety\wariety.py:381
+msgid "There is an update of the app available"
+msgstr ""
+
+#: wariety\wariety.py:386
+msgid "By"
+msgstr ""
+
+#: wariety\wariety.py:387
+msgid "by"
+msgstr ""
+
+#: wariety\wariety.py:388
+msgid "Location"
+msgstr ""
+
+#: wariety\wariety.py:389
+msgid "location"
+msgstr ""
+
+#: wariety\wariety.py:390
+msgid "Source"
+msgstr ""
+
+#: wariety\wariety.py:391
+msgid "source"
+msgstr ""
+
+#: wariety\wariety.py:392
+msgid "Rating"
+msgstr ""
+
+#: wariety\wariety.py:611 wariety\wariety.py:670
+msgid "Wariety is a wallpaper manager for Windows systems. It is a clone of the famous Linux application Variety and covers its main functionality."
+msgstr ""
+
