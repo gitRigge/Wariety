@@ -16,7 +16,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: 2021-05-01 16:05+0200\n"
-"PO-Revision-Date: 2021-05-01 16:09+0200\n"
+"PO-Revision-Date: 2024-01-27 12:55+0100\n"
 "Last-Translator: Roland Rickborn\n"
 "Language-Team: \n"
 "Language: de\n"
@@ -228,6 +228,10 @@ msgstr "Wariety Einstellungen"
 #: wariety\settingsDlg.py:338
 msgid "Hit button to save and close"
 msgstr "Klicken um zu Speichern und Schließen"
+
+#: wariety\settingsDlg.py:425
+msgid "Release Information"
+msgstr "Release Informationen"
 
 #: wariety\settingsDlg.py:433
 msgid "General"

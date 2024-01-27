@@ -25,6 +25,8 @@ import sys
 import time
 import webbrowser
 
+import bs4
+import requests
 import win32com.client
 import wx
 import wx.adv
@@ -41,9 +43,9 @@ logger = logging.getLogger(__name__)
 
 __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (C) 2024 {} <wariety@gmx.net>".format(__author__)
-__version__ = "0.1.9"
+__version__ = "0.2.3"
 __desc__ = "[Description]"
-__status__ = "RC11"  # Development  # RC10
+__status__ = "RC12"  # Development  # RC12
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]
@@ -58,6 +60,15 @@ APP_NAME = 'Wariety'
 CONFIGPATH = os.path.abspath(os.path.join(os.environ['LOCALAPPDATA'], APP_NAME))
 CONFIGFILE = os.path.join(os.environ['LOCALAPPDATA'], APP_NAME, 'config.ini')
 TOOL_NAME = 'wariety_set_wallpaper'
+
+
+def get_release_info_as_string():
+    _pyvers = 'Python: {}.{}.{} ({})'.format(sys.version_info.major, sys.version_info.minor, sys.version_info.micro, sys.version_info.releaselevel)
+    _wx = 'wxPython: {}'.format(wx.__version__)
+    _req = 'requests: {}'.format(requests.__version__)
+    _bs4 = 'beautifulsoup4: {}'.format(bs4.__version__)
+    rel_info_str = ', '.join([_pyvers, _wx, _req, _bs4])
+    return rel_info_str
 
 
 def get_rating_stars_as_string(rating_int=0):

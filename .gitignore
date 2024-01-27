@@ -12,14 +12,12 @@ __pycache__/
 *$py.class
 .pybuild/
 *.bak
-*.wxg
 
 *.spec
 
 *.lock
 
 *.mo
-*.pot
 *.pyo
 
 .env
