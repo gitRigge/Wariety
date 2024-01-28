@@ -6,7 +6,7 @@ set PATH=c:\Python312\;c:\Python312\Lib\site-packages\;c:\Python312\Scripts\;%PA
 set PYTHONPATH=c:\Python312\Lib\
 set PYTHONHOME=c:\Python312\
 git stash
-git pull origin master
+git pull
 python make_version_file.py
 echo.
 REM Error code 0 == Non Dev status
