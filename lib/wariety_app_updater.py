@@ -42,8 +42,13 @@ def get_remote_version():
     version_search = '(__version__).*([0-9]\.[0-9]\.[0-9])'
     status_search1 = '(__status__).*'
     status_search2 = '&quot;([^&]*)&quot;'
+    headers = {
+        'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0",
+        'accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+        'referer': 'https://dont_worry.org',
+    }
     session = PACSession()
-    response = session.get(url, verify=True)
+    response = session.get(url, verify=True, headers=headers)
 
     result1 = re.search(version_search, response.text)
     result2 = re.search(status_search1, response.text)

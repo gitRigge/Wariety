@@ -122,7 +122,7 @@ class BingArchiveDownloader(DefaultDownloader):
         }
         try:
             my_start_url = START_URL.replace('0', str(my_idx))
-            response = session.get(my_start_url, verify=True, headers=headers)
+            response = session.get(my_start_url, stream=True, verify=True, headers=headers)
             image_data = json.loads(response.text)
 
             # Collect image data

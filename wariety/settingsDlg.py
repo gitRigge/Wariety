@@ -672,6 +672,7 @@ class SettingsDlg(wx.Frame):
             self.label_19.SetLabel("{}  ({})".format(msg, _('no update available')))
         self.label_19.Enable()
 
+
 class MyFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         logger.debug('__init__()')

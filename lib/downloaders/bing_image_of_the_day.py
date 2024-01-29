@@ -90,7 +90,7 @@ class BingDownloader(DefaultDownloader):
             'referer': 'https://dont_worry.org',
         }
         try:
-            response = session.get(START_URL, verify=True, headers=headers)
+            response = session.get(START_URL, stream=True, verify=True, headers=headers)
             image_data = json.loads(response.text)
 
             # Collect image data

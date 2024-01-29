@@ -93,7 +93,7 @@ class DeutscheBahnDownloader(DefaultDownloader):
             'referer': 'https://dont_worry.org',
         }
         try:
-            response = session.get(url, verify=True, headers=headers)
+            response = session.get(url, stream=True, verify=True, headers=headers)
             ret_val = json.loads(response.text)
         except Exception as e:
             logging.debug('retrieve_image_data_once() - ConnectionError', e)
@@ -120,7 +120,7 @@ class DeutscheBahnDownloader(DefaultDownloader):
             'referer': 'https://dont_worry.org',
         }
         try:
-            response = session.get(url, verify=True, headers=headers)
+            response = session.get(url, stream=True, verify=True, headers=headers)
             ret_val = json.loads(response.text)
         except Exception as e:
             logging.debug('retrieve_image_detail_data() - ConnectionError', e)
@@ -147,7 +147,7 @@ class DeutscheBahnDownloader(DefaultDownloader):
             'referer': 'https://dont_worry.org',
         }
         try:
-            response = session.get(url, verify=True, headers=headers)
+            response = session.get(url, stream=True, verify=True, headers=headers)
             ret_val = json.loads(response.text)
         except Exception as e:
             logging.debug('retrieve_image_sizes_data_and_get_url() - ConnectionError', e)

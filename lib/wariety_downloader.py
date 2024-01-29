@@ -355,7 +355,7 @@ class WarietyDownloaderThread(threading.Thread):
             shutil.copyfile(full_image_url, os.path.join(dir_path, image_name))
         else:
             session = PACSession()
-            img_data = session.get(full_image_url, verify=True).content
+            img_data = session.get(full_image_url, stream=True, verify=True).content
             with open(os.path.join(dir_path, image_name), 'wb') as handler:
                 handler.write(img_data)
         return os.path.join(dir_path, image_name)
