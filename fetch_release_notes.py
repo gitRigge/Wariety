@@ -19,7 +19,8 @@
 import sys
 from subprocess import check_output
 print('FETCH RELEASE NOTES: Read properties')
-tmp_notes = check_output('git log --all --grep="#releasenotes" --pretty=format:"%s (%h)"', shell=True).decode().split('\n')
+branch_name = check_output('git branch --show-current', shell=True).decode().split('\n')[0]
+tmp_notes = check_output('git log {} --grep="#releasenotes" --pretty=format:"%s (%h)"'.format(branch_name), shell=True).decode().split('\n')
 lines = []
 release_notes = ''
 for line in tmp_notes:
