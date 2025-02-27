@@ -2,9 +2,9 @@ TITLE Build DEV Executable
 @echo off
 ECHO Build DEV Executable
 echo.
-set PATH=c:\Python312\;c:\Python312\Lib\site-packages\;c:\Python312\Scripts\;%PATH%
-set PYTHONPATH=c:\Python312\Lib\
-set PYTHONHOME=c:\Python312\
+set PATH=c:\Python313\;c:\Python313\Lib\site-packages\;c:\Python313\Scripts\;%PATH%
+set PYTHONPATH=c:\Python313\Lib\
+set PYTHONHOME=c:\Python313\
 python make_version_file.py
 echo.
 if %ERRORLEVEL%==1 (
