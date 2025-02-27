@@ -116,7 +116,14 @@ class BingArchiveDownloader(DefaultDownloader):
         my_idx = self.get_calculated_idx()
         try:
             my_start_url = START_URL.replace('0', str(my_idx))
-            response = requests.get(my_start_url, proxies=self.proxies)
+            session = requests.Session()
+            session.proxies.update(self.proxies)
+            headers = {
+                'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/131.0.2903.86",
+                'accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+                'referer': 'https://dont_worry.org',
+            }
+            response = session.get(my_start_url, stream=True, verify=False, headers=headers)
             image_data = json.loads(response.text)
 
             # Collect image data
