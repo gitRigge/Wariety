@@ -2,18 +2,15 @@ TITLE Build PROD Executable
 @echo off
 ECHO Build PROD Executable
 echo.
-set PATH=c:\Python313\;c:\Python313\Lib\site-packages\;c:\Python313\Scripts\;%PATH%
-set PYTHONPATH=c:\Python313\Lib\
-set PYTHONHOME=c:\Python313\
 git stash
 git pull origin master
-python make_version_file.py
+.venv\Scripts\python make_version_file.py
 echo.
 REM Error code 0 == Non Dev status
 if %ERRORLEVEL%==0 (
-    python fetch_release_notes.py
+    .venv\Scripts\python fetch_release_notes.py
     echo.
-    pyinstaller ^
+    .venv\Scripts\pyinstaller ^
             --onefile ^
             --noconsole ^
             --distpath .\bin ^

@@ -2,15 +2,12 @@ TITLE Build DEV Executable
 @echo off
 ECHO Build DEV Executable
 echo.
-set PATH=c:\Python313\;c:\Python313\Lib\site-packages\;c:\Python313\Scripts\;%PATH%
-set PYTHONPATH=c:\Python313\Lib\
-set PYTHONHOME=c:\Python313\
-python make_version_file.py
+.venv\Scripts\python make_version_file.py
 echo.
 if %ERRORLEVEL%==1 (
-    python fetch_release_notes.py
+    .venv\Scripts\python fetch_release_notes.py
     echo.
-    pyinstaller ^
+    .venv\Scripts\pyinstaller ^
         --onefile ^
         --console ^
         --debug all ^
