@@ -42,17 +42,17 @@ import lib.wariety_updater
 logger = logging.getLogger(__name__)
 
 __author__ = "Roland Rickborn"
-__copyright__ = "Copyright (C) 2024 {} <wariety@gmx.net>".format(__author__)
-__version__ = "0.2.3"
+__copyright__ = "Copyright (C) 2025 {} <wariety@gmx.net>".format(__author__)
+__version__ = "0.2.7"
 __desc__ = "[Description]"
-__status__ = "RC12"  # Development  # RC12
+__status__ = "RC13"  # Development  # RC13
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]
 """
 __license__ = """GPL v3 License
 
-Copyright (C) 2024 gitRigge
+Copyright (C) 2025 gitRigge
 
 """
 

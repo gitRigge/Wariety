@@ -323,7 +323,7 @@ class SettingsDlg(wx.Frame):
         self.text_ctrl_5.SetMinSize((400, -1))
         self.text_ctrl_4.SetMinSize((400, -1))
         self.text_ctrl_3.SetMinSize((400, -1))
-        self.notebook_1_Proxy.Enable(False)
+        self.notebook_1_Proxy.Enable(True)
         self.notebook_1_Sync.Enable(False)
         self.label_3.SetFont(wx.Font(9, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, 0, ""))
         self.dirpickerctrl_2.SetMinSize((-1, 23))

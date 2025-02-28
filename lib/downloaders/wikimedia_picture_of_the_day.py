@@ -24,6 +24,7 @@ import urllib.parse
 import urllib.request
 
 import bs4
+import requests
 
 logger = logging.getLogger(__name__)
 if getattr(sys, 'frozen', False):
@@ -103,15 +104,19 @@ class WikimediaDownloader(DefaultDownloader):
         # Generate empty image
         next_image = wariety_wallpaper.WarietyWallpaper()
 
-        # Set proxy if required
-        req = urllib.request.Request(START_URL)
-        if self.config.proxy_enable:
-            proxy_host = self.proxies['http']
-            req.set_proxy(proxy_host, 'http')
+        # Get content
+        session = requests.Session()
+        session.proxies.update(self.proxies)
+        headers = {
+            'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/131.0.2903.86",
+            'accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+            'referer': 'https://dont_worry.org',
+        }
+        response = session.get(START_URL, stream=True, verify=False, headers=headers)
+        content = response.content
 
         # Receive image data
-        page = urllib.request.urlopen(req).read()
-        soup = bs4.BeautifulSoup(page, 'html.parser')
+        soup = bs4.BeautifulSoup(content, 'html.parser')
         plainlist = soup.find('div', {'class': 'plainlist'})
         hlist = plainlist.findAll('li', {'class': 'hlist'})
 
