@@ -54,7 +54,7 @@ version_info_dic = {
     'R07': version_str,  # FileVersion -> version
     'R08': appname,  # InternalName -> APP_NAME
     'R09': copyright,  # LegalCopyright -> copyright
-    'R10': 'wariety.exe',  # OriginalFilename
+    'R10': 'Wariety.exe',  # OriginalFilename
     'R11': appname,  # ProductName -> APP_NAME
     'R12': '{} ({} {})'.format(version_str, branch.split('\n')[0].strip(), cmt_msg)   # ProductVersion -> version + (cmt_msg)
 }

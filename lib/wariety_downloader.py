@@ -202,6 +202,12 @@ class WarietyDownloaderThread(threading.Thread):
         self.seconds_until_fire = 1
         self.keep_running = False
 
+    def get_proxy(self):
+        _proxies = {}
+        _proxies['http'] = '{}:{}'.format(self.config.proxy_address, self.config.proxy_port)
+        _proxies['https'] = '{}:{}'.format(self.config.proxy_address, self.config.proxy_port)
+        return _proxies
+
     def start_new_wallpaper_download(self):
         """Instantiates a new random downloader
         """
@@ -355,7 +361,20 @@ class WarietyDownloaderThread(threading.Thread):
             image_name = '{0}.{1}'.format(image_name, im.format.lower())
             shutil.copyfile(full_image_url, os.path.join(dir_path, image_name))
         else:
-            img_data = requests.get(full_image_url).content
+            session = requests.Session()
+            self.proxies = {}
+            if self.config.proxy_enable:
+                self.proxies = self.get_proxy(self)
+            session.proxies.update(self.proxies)
+            verifySsl = True
+            if self.config.proxy_enable:
+                verifySsl = False
+            headers = {
+                'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/131.0.2903.86",
+                'accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+                'referer': 'https://dont_worry.org',
+            }
+            img_data = session.get(full_image_url, stream=True, verify=verifySsl, headers=headers).content
             with open(os.path.join(dir_path, image_name), 'wb') as handler:
                 handler.write(img_data)
         return os.path.join(dir_path, image_name)

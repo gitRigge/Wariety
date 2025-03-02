@@ -23,6 +23,7 @@ if %ERRORLEVEL%==1 (
         --hidden-import imghdr ^
         --hidden-import bs4 ^
         --hidden-import datetime ^
+        --name Wariety ^
         --add-data %cd%\LICENSE;.\ ^
         --add-data "%cd%\Release Notes.txt";.\ ^
         --add-data %cd%\locale\de\LC_MESSAGES\*.mo;locale\de\LC_MESSAGES\ ^

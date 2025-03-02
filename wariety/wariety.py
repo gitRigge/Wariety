@@ -43,9 +43,9 @@ logger = logging.getLogger(__name__)
 
 __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (C) 2025 {} <wariety@gmx.net>".format(__author__)
-__version__ = "0.3.0"
+__version__ = "0.3.2"
 __desc__ = "[Description]"
-__status__ = "RC14"  # Development  # RC13
+__status__ = "RC15"  # Development  # RC13
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]
@@ -567,7 +567,8 @@ class WarietyMain(wx.adv.TaskBarIcon):
     def on_check_update_now(self):
         show_balloon = True
         show_version_str = False
-        self.myAppUpdater = lib.wariety_app_updater.WarietyAppUpdaterThread(show_balloon, show_version_str)
+        self.myAppUpdater = lib.wariety_app_updater.WarietyAppUpdaterThread(
+            show_balloon, show_version_str, self.my_config)
 
 
 def create_menu_item(menu, label, func, enabled=True):

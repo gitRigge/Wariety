@@ -27,7 +27,7 @@ from pubsub import pub
 logger = logging.getLogger(__name__)
 
 
-def get_remote_version():
+def get_remote_version(config):
     """
     :return:
     """
@@ -42,7 +42,20 @@ def get_remote_version():
     version_search = '(__version__).*([0-9]\.[0-9]\.[0-9])'
     status_search1 = '(__status__).*'
     status_search2 = '&quot;([^&]*)&quot;'
-    response = requests.get(url)
+    session = requests.Session()
+    proxies = {}
+    if config.proxy_enable:
+        proxies = get_proxy(config)
+    session.proxies.update(proxies)
+    verifySsl = True
+    if config.proxy_enable:
+        verifySsl = False
+    headers = {
+        'user-agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/131.0.2903.86",
+        'accept': '"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"',
+        'referer': 'https://dont_worry.org',
+    }
+    response = session.get(url, stream=True, verify=verifySsl, headers=headers)
 
     result1 = re.search(version_search, response.text)
     result2 = re.search(status_search1, response.text)
@@ -123,16 +136,24 @@ def push_version_str(self, msg, update_available):
     pub.sendMessage("show version str", event='', msg=msg, update_available=update_available)
 
 
+def get_proxy(config):
+    _proxies = {}
+    _proxies['http'] = '{}:{}'.format(config.proxy_address, config.proxy_port)
+    _proxies['https'] = '{}:{}'.format(config.proxy_address, config.proxy_port)
+    return _proxies
+
+
 class WarietyAppUpdaterThread(threading.Thread):
     """docstring for WarietyAppUpdaterThread"""
 
-    def __init__(self, show_balloon=False, show_version_str=False):
+    def __init__(self, show_balloon=False, show_version_str=False, config=None):
         """Init Worker Thread Class."""
         logger.debug('Starting app updater thread')
         logger.debug('__init__()')
         self.my_version = ''
         self.show_balloon = show_balloon
         self.show_version_str = show_version_str
+        self.config = config
 
         threading.Thread.__init__(self)
 
@@ -149,7 +170,7 @@ class WarietyAppUpdaterThread(threading.Thread):
         """Run Worker Thread."""
         logger.debug('run()')
 
-        remote_version = get_remote_version()
+        remote_version = get_remote_version(self.config)
         is_updateable = is_update_available(self.my_version, remote_version)
         if is_updateable:
             if self.show_balloon:
