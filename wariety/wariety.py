@@ -43,9 +43,9 @@ logger = logging.getLogger(__name__)
 
 __author__ = "Roland Rickborn"
 __copyright__ = "Copyright (C) 2025 {} <wariety@gmx.net>".format(__author__)
-__version__ = "0.2.7"
+__version__ = "0.3.0"
 __desc__ = "[Description]"
-__status__ = "RC13"  # Development  # RC13
+__status__ = "RC14"  # Development  # RC13
 __url__ = "https://github.com/gitRigge/wariety"
 __releasenotes__ = """[version]
     [Notes]

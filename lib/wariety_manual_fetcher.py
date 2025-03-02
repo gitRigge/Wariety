@@ -202,17 +202,18 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
         """
         logger.debug('get_image_name_by_metadata()')
         image_name = ''
-
-        if (2, 105) in iptc:
-            # we have a headline
-            image_name = iptc[(2, 105)].decode('UTF-8')
-        elif (2, 5) in iptc:
-            # we have a document title
-            image_name = iptc[(2, 5)].decode('UTF-8')
-        else:
-            image_name = ''
-
-        return image_name
+        try:
+            if (2, 105) in iptc:
+                # we have a headline
+                image_name = iptc[(2, 105)].decode('UTF-8')
+            elif (2, 5) in iptc:
+                # we have a document title
+                image_name = iptc[(2, 5)].decode('UTF-8')
+            else:
+                image_name = ''
+            return image_name
+        except Exception:
+            return image_name
 
     def get_image_source_name_by_metadata(self, iptc):
         """
@@ -225,13 +226,15 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
 
         source_name = ''
 
-        if (2, 115) in iptc:
-            # we have a source
-            source_name = iptc[(2, 115)].decode('UTF-8')
-        else:
-            source_name = ''
-
-        return source_name
+        try:
+            if (2, 115) in iptc:
+                # we have a source
+                source_name = iptc[(2, 115)].decode('UTF-8')
+            else:
+                source_name = ''
+            return source_name
+        except Exception:
+            return source_name
 
     def get_image_author_by_metadata(self, iptc):
         """
@@ -244,16 +247,18 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
 
         author_name = ''
 
-        if (2, 80) in iptc:
-            # we have an author
-            author_name = iptc[(2, 80)].decode('UTF-8')
-        elif (2, 85) in iptc:
-            # we have an author title
-            author_name = iptc[(2, 85)].decode('UTF-8')
-        else:
-            author_name = ''
-
-        return author_name
+        try:
+            if (2, 80) in iptc:
+                # we have an author
+                author_name = iptc[(2, 80)].decode('UTF-8')
+            elif (2, 85) in iptc:
+                # we have an author title
+                author_name = iptc[(2, 85)].decode('UTF-8')
+            else:
+                author_name = ''
+            return author_name
+        except Exception:
+            return author_name
 
     def get_image_location_by_metadata(self, iptc):
         """
@@ -267,21 +272,23 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
         location_str = ''
         locations = []
 
-        if (2, 92) in iptc:
-            # we have a Sublocation
-            locations.append(iptc[(2, 92)].decode('UTF-8'))
-        if (2, 90) in iptc:
-            # we have a city
-            locations.append(iptc[(2, 90)].decode('UTF-8'))
-        if (2, 95) in iptc:
-            # we have a Province-State
-            locations.append(iptc[(2, 95)].decode('UTF-8'))
-        if (2, 101) in iptc:
-            # we have a Country
-            locations.append(iptc[(2, 101)].decode('UTF-8'))
-        location_str = ', '.join(locations)
-
-        return location_str
+        try:
+            if (2, 92) in iptc:
+                # we have a Sublocation
+                locations.append(iptc[(2, 92)].decode('UTF-8'))
+            if (2, 90) in iptc:
+                # we have a city
+                locations.append(iptc[(2, 90)].decode('UTF-8'))
+            if (2, 95) in iptc:
+                # we have a Province-State
+                locations.append(iptc[(2, 95)].decode('UTF-8'))
+            if (2, 101) in iptc:
+                # we have a Country
+                locations.append(iptc[(2, 101)].decode('UTF-8'))
+            location_str = ', '.join(locations)
+            return location_str
+        except Exception:
+            return location_str
 
     def get_image_keywords_by_metadata(self, iptc):
         """
@@ -300,10 +307,10 @@ class WarietyManualFetchHandler(FileSystemEventHandler):
                 keywords = iptc[(2, 25)].decode('UTF-8')
             else:
                 keywords = ''
-        except:
-            keywords = ''
+            return keywords
+        except Exception:
+            return keywords
 
-        return keywords
 
 class WarietyManualFetcher(Observer):
     """docstring for WarietyManualFetcher"""

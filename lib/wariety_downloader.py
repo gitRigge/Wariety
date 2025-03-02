@@ -216,7 +216,7 @@ class WarietyDownloaderThread(threading.Thread):
             if my_downloader_capability == 'many':
 
                 # Get new full image urls until one is not yet in DB
-                while self.database.exists_image_by_url_or_path(my_image.image_url) or my_image.image_url == '':
+                while self.database.exists_image_by_url_or_path(my_image.image_url) == 0 or my_image.image_url == '':
                     my_get_counter = my_image.found_at_counter + 1
                     my_image = my_downloader.get_next_image(my_get_counter)
 

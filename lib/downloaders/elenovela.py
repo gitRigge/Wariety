@@ -33,17 +33,17 @@ else:
     from lib.downloaders.default_downloader import DefaultDownloader
 
 
-START_URL = 'https://www.flickr.com/groups/deutschebahn/pool/'
-BASE_URL = 'https://www.flickr.com/groups/deutschebahn/pool/'
-DOWNLOADER_TYPE = 'deutschebahn'
-DOWNLOADER_DESCRIPTION = 'Deutsche Bahn Gruppenpool'
+START_URL = 'https://www.flickr.com/photos/elenovela/'
+BASE_URL = 'https://www.flickr.com/photos/elenovela/'
+DOWNLOADER_TYPE = 'elenovela'
+DOWNLOADER_DESCRIPTION = 'Elenovela\'s Flickr Collection'
 CAPABILITIES = {'single': 'single', 'many': 'many'}
 
 API_KEY = u'2861cd9d551ee36dc08123f5c7c04ff6'
-GROUP_ID = '27093075@N00'
+USER_ID = '90101761@N05'
 
 
-class DeutscheBahnDownloader(DefaultDownloader):
+class ElenovelaDownloader(DefaultDownloader):
 
     def __init__(self, config=None):
         logging.debug('__init__(config) - {}'.format(DOWNLOADER_TYPE))
@@ -85,7 +85,7 @@ class DeutscheBahnDownloader(DefaultDownloader):
         # Return value
         ret_val = {'stat': 'fail'}
 
-        url = 'https://api.flickr.com/services/rest/?method=flickr.groups.pools.getPhotos&api_key={}&group_id={}&per_page=500&page={}&format=json&nojsoncallback=1'.format(API_KEY, GROUP_ID, page)
+        url = 'https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key={}&user_id={}&per_page=500&page={}&content_type=1&format=json&nojsoncallback=1'.format(API_KEY, USER_ID, page)
         session = requests.Session()
         session.proxies.update(self.proxies)
         verifySsl = True
@@ -99,8 +99,8 @@ class DeutscheBahnDownloader(DefaultDownloader):
         try:
             response = session.get(url, stream=True, verify=verifySsl, headers=headers)
             ret_val = json.loads(response.text)
-        except requests.ConnectionError:
-            logging.debug('retrieve_image_data_once() - ConnectionError')
+        except Exception as e:
+            logging.debug('retrieve_image_data_once() - ConnectionError', e)
 
         return ret_val
 
@@ -130,8 +130,8 @@ class DeutscheBahnDownloader(DefaultDownloader):
         try:
             response = session.get(url, stream=True, verify=verifySsl, headers=headers)
             ret_val = json.loads(response.text)
-        except requests.ConnectionError:
-            logging.debug('retrieve_image_detail_data() - ConnectionError')
+        except Exception as e:
+            logging.debug('retrieve_image_detail_data() - ConnectionError', e)
 
         return ret_val
 
@@ -161,13 +161,13 @@ class DeutscheBahnDownloader(DefaultDownloader):
         try:
             response = session.get(url, stream=True, verify=verifySsl, headers=headers)
             ret_val = json.loads(response.text)
-        except requests.ConnectionError:
-            logging.debug('retrieve_image_sizes_data_and_get_url() - ConnectionError')
+        except Exception as e:
+            logging.debug('retrieve_image_sizes_data_and_get_url() - ConnectionError', e)
 
         return ret_val
 
     def get_next_image(self, last_image_counter=0):
-        """Retrieves the URL of the latest image of Deutsche Bahn Gruppenpool,
+        """Retrieves the URL of the latest image of Elenovela's Flickr Collection,
         downloads the image, stores it in a temporary folder and returns the path
         to it
         """
@@ -191,7 +191,6 @@ class DeutscheBahnDownloader(DefaultDownloader):
             image_id = self.state['photos']['photo'][last_image_counter]['id']
             image_secret = self.state['photos']['photo'][last_image_counter]['secret']
             image_title = self.state['photos']['photo'][last_image_counter]['title']
-            image_author = self.state['photos']['photo'][last_image_counter]['ownername']
             image_info_data = self.retrieve_image_info_data(image_id, image_secret)
             if image_info_data['stat'] == 'ok':
                 image_sizes = self.retrieve_image_sizes_data(image_id)
@@ -205,7 +204,7 @@ class DeutscheBahnDownloader(DefaultDownloader):
                     # Fill image data
                     next_image.source_url = urllib.parse.unquote(BASE_URL)
                     next_image.source_type = DOWNLOADER_TYPE
-                    next_image.image_author = image_author
+                    next_image.image_author = 'Elenovela'
                     next_image.source_name = DOWNLOADER_DESCRIPTION
                     next_image.image_url = urllib.parse.unquote(urllib.parse.urljoin(BASE_URL, image_url))
                     next_image.location = ''
